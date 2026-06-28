@@ -27,6 +27,23 @@
 
 若使用者未指定執行深度，需根據任務規模選擇最輕量但足以完成目標的模式；若判斷不明，先提出建議模式與原因並詢問確認。
 
+可用明確指令指定模式：
+
+```text
+/mode mvp
+/mode standard
+/mode formal
+```
+
+也可使用自然語言指定，例如：
+
+```text
+用 MVP 模式做
+用正式 SI 模式整理
+這次只要快速驗證
+這次要完整規格
+```
+
 ### Mode 1: MVP 快速驗證模式
 
 適用於新想法、概念驗證、小工具、內部 demo。
@@ -114,6 +131,17 @@ test/add_login_tests
 chore/update_ci
 ```
 
+規則：
+
+- 新功能：`feature/<task-name>`。
+- 修 bug：`fix/<task-name>`。
+- 重構、效能或架構整理：`refactor/<task-name>`。
+- 文件：`docs/<task-name>`。
+- 測試：`test/<task-name>`。
+- 工程設定：`chore/<task-name>`。
+- branch 名稱使用英文小寫、數字、底線或 hyphen。
+- branch 名稱避免空白與中文。
+
 ### Commit 規範
 
 使用 `type: description`：
@@ -128,6 +156,27 @@ chore: update github action
 ```
 
 允許類型：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`chore`。
+
+### PR 規範
+
+PR title 可使用以下格式：
+
+```text
+[Feature] User用戶管理頁面建置
+[WIP] User用戶管理頁面建置
+[Fix] User頁面Bug對應
+```
+
+PR content 需包含：
+
+- 概要。
+- 更新的內容。
+- 影響範圍。
+- 測試結果。
+- 風險與注意事項。
+- 備註。
+
+預設不需要發 Slack；若專案或使用者另有要求，再依指定流程通知。
 
 ### Push 前檢查
 
@@ -149,4 +198,3 @@ chore: update github action
 - MVP：基本功能測試與基礎資安風險檢查，重大資安問題必須停止推進並詢問。
 - Standard：測試案例、驗收標準、可執行測試與基礎 Security Review。
 - Formal：完整測試計畫、測試報告、自動化測試、OWASP、dependency、secret、權限、資料流與雲端設定檢查。
-

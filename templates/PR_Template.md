@@ -1,5 +1,13 @@
 # PR Template
 
+## PR Title
+
+```text
+[Feature] User用戶管理頁面建置
+[WIP] User用戶管理頁面建置
+[Fix] User頁面Bug對應
+```
+
 ## 概要
 
 * 本次修正或更新的概要
@@ -29,4 +37,3 @@
 ## 備註
 
 * 其他事項
-
