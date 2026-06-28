@@ -120,6 +120,17 @@
 - production 部署只有使用者明確說「部署」才執行。
 - branch 完成功能後可自動部署到測試環境並回報 preview URL。
 
+### 框架 repo 維護流程
+
+- `main` 是穩定正式版。
+- `develop` 是下一版整合區。
+- 框架 repo 的日常維護，也需從 `develop` 建立工作 branch。
+- 工作 branch 完成後可 merge 回 `develop`。
+- 若使用者明確要求，也可以直接 commit 到 `develop`。
+- 更新到 `develop` 後，需注意其他 agent 可能會讀到新版規則，並回報更新內容。
+- 更新到 `main` 前必須詢問使用者確認。
+- merge 或更新到 `main` 時，必須告知使用者本次更新內容與影響範圍。
+
 ### Branch 命名
 
 ```text

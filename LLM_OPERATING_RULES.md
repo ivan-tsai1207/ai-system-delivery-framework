@@ -27,6 +27,13 @@
 - Standard：一般正式專案規劃與開發前文件。
 - Formal：正式 SI / Production 交付。
 
+## 框架 repo 分支策略
+
+- `main` 是穩定正式版，更新前必須取得使用者確認。
+- `develop` 是下一版整合區，更新後需回報更新內容，並注意其他 agent 可能讀到新版規則。
+- 日常框架維護需從 `develop` 建立工作 branch；若使用者明確要求，才可直接 commit 到 `develop`。
+- merge 或更新到 `main` 時，必須告知本次更新內容與影響範圍。
+
 ## 模式指定
 
 可用明確指令指定：
