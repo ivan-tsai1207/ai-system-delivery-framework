@@ -16,11 +16,24 @@
 ```text
 ai-system-delivery-framework/
   AGENTS.md
+  CLAUDE.md
   LLM_OPERATING_RULES.md
   agent_roles/
+  docs/
   skills/
   templates/
 ```
+
+## 跨 LLM 使用入口
+
+| 工具 | 建議入口 |
+|---|---|
+| Codex | `AGENTS.md` |
+| Claude / Claude Code | `CLAUDE.md` |
+| Google AI Studio / Gemini | `docs/llm_bootstrap_prompt.md` + `LLM_OPERATING_RULES.md` |
+| 其他 LLM / Agent | `docs/llm_bootstrap_prompt.md` |
+
+詳細載入方式見 `docs/tool_adapters.md`。
 
 專案 repo：
 
@@ -48,4 +61,3 @@ project-name/
 3. 高風險操作必須先用繁體中文詢問使用者。
 4. 產出文件需寫回專案記憶，並推送到 GitHub。
 5. 重大技術決策需建立 ADR。
-
