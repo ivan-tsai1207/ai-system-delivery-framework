@@ -5,19 +5,24 @@
 | Field | Value |
 |---|---|
 | Status | Architecture Draft |
-| Scope | Harness v0.1 technical design |
+| Scope | Harness v0.1 project orchestration and task execution design |
+| Project Intake Contract | `.ai/PROJECT_INTAKE_CONTRACT.md` |
 | Runtime Contract | `.ai/HARNESS_CONTRACT.md` |
+| Work Item Contract | `templates/Work_Item.md` |
 | Implementation | Not started |
 
-本文件只定義 Harness 的 implementation architecture，不是新的 Governance Authority，也不修改 `.ai/HARNESS_CONTRACT.md`。若本文件與 Constitution、Authority、Workflow、active role、active gate 或 Harness Contract 衝突，必須停止並依既有治理規則處理。
+本文件只定義 Harness 的 implementation architecture，不是新的 Governance Authority，也不修改 Project Intake Contract、Harness Contract 或 Work Item Contract。若本文件與 Constitution、Authority、Workflow、active role、active gate 或既有 Contract 衝突，必須停止並依既有治理規則處理。
 
 ## 1. Design Goals
 
 Harness architecture 必須具備：
 
+- Natural-language entry：使用者可由自然語言開始新專案或既有專案變更，不必手動建立 Work Item。
+- Two-plane separation：Project Orchestration Plane 管理專案初始化與 task handoff；Task Execution Plane 管理單一 Work Item 的受控執行。
 - Vendor-neutral：核心不依賴單一 Agent vendor。
 - Local-first：v0.1 在開發者本機與 repository checkout 執行，不要求常駐雲端服務。
 - Repository-driven：work item、governance、specification、design contract 與 gate 都來自 repository。
+- Human-controlled side effects：repository creation、destructive operation 與其他高風險行為有明確 owner 與 approval boundary。
 - Least privilege：context、filesystem、tools、commands、environment 只開放任務最低需要。
 - Auditable：每次 execution 都產生可核對的 context、policy、operation 與 gate evidence。
 - Fail closed：無法驗證 input、context、policy 或 enforcement capability 時拒絕啟動或停止執行。
@@ -31,37 +36,191 @@ Claude Code 與 Codex 是 v0.1 adapters。Gemini、Hermes、Copilot 可在未來
 
 ```mermaid
 flowchart TD
-    U["User / Work Item"] --> CLI["Harness CLI / Entry Point"]
-    CLI --> IV["Input Validator"]
-    IV --> RR["Role Resolver"]
-    RR --> CC["Context Compiler"]
-    RR --> PC["Policy Compiler"]
-    CC --> EPB["Execution Profile Builder"]
+    U["User / Natural Language Request"]
+
+    subgraph OP["A. Project Orchestration Plane"]
+        IC["Intent Classifier"]
+        PIO["Project Intake Orchestrator"]
+        DM["Discovery Manager"]
+        PCB["Project Context Builder"]
+        PPB["Project Proposal Builder"]
+        PAC["Project Approval Coordinator"]
+        RP["Repository Provisioner"]
+        PBM["Project Bootstrap Manager"]
+        SGO["Specification Generation Orchestrator"]
+        WIG["Work Item Generator"]
+        DC["Dispatch Coordinator"]
+    end
+
+    PR[("Project Repo")]
+    WI["Canonical Work Item"]
+
+    subgraph TP["B. Task Execution Plane"]
+        IV["Input Validator"]
+        RR["Role Resolver"]
+        CC["Context Compiler"]
+        PC["Policy Compiler"]
+        EPB["Execution Profile Builder"]
+        AA["Agent Adapter Interface"]
+        ENF["Enforcement Backend"]
+        RM["Runtime Monitor"]
+        GR["Gate Runner"]
+        AH["Approval Handler"]
+        AR["Audit Recorder"]
+    end
+
+    CA["Claude Adapter"]
+    CO["Codex Adapter"]
+    OUT["Git / Design / Code / Review Evidence"]
+
+    U --> IC --> PIO --> DM --> PCB --> PPB --> PAC
+    PAC -->|"APPROVE_PROJECT"| RP --> PBM
+    PBM --> PR
+    PBM --> SGO --> WIG --> DC --> WI --> IV
+    IV --> RR
+    RR --> CC
+    RR --> PC
+    CC --> EPB
     PC --> EPB
-    EPB --> CAP["Adapter Capability Check"]
-    CAP --> AA["Agent Adapter Interface"]
-    AA --> CA["Claude Adapter"]
-    AA --> CO["Codex Adapter"]
-    CA --> ENF["Enforcement Backend"]
+    EPB --> AA
+    AA --> CA
+    AA --> CO
+    CA --> ENF
     CO --> ENF
-    ENF --> RM["Runtime Monitor"]
-    RM --> GR["Gate Runner"]
-    RM --> AH["Approval Handler"]
-    GR --> AR["Audit Recorder"]
+    ENF --> RM
+    RM --> GR
+    RM --> AH
+    GR --> AR
     AH --> AR
     RM --> AR
-    AR --> OUT["Complete / Block / Fail"]
+    AR --> OUT --> PR
+    GR -->|"Gate result / next phase"| WIG
 ```
 
 核心原則：
 
+- Project Orchestration Plane 只能透過 canonical Work Item 與 Dispatch Coordinator 呼叫 Task Execution Plane，不得直接啟動 Claude、Codex 或其他 Agent。
+- Work Item 是兩個 Plane 之間唯一正式 task handoff contract，其 schema 只來自 `templates/Work_Item.md`。
+- Project Repo 是 canonical specs、design contracts、source code、tests 與 delivery history 的 Source of Truth；Project Context 只是轉換前的 intermediate artifact。
 - Core components 產生 vendor-neutral artifacts。
 - Adapter 只能降低或忠實映射權限，不能修改 compiled policy。
 - Enforcement Backend 必須在 Agent process 外部或由不可被 Agent 改寫的 vendor / OS enforcement surface 提供。
 - Runtime Monitor 是偵測與協調層，不取代 hard enforcement。
 - Audit Recorder 使用 Agent 不可寫入的 host-owned storage。
 
-### 2.1 Component Responsibilities
+### 2.1 A. Project Orchestration Plane
+
+Project Orchestration Plane 將自然語言請求轉成已核准、可追溯且可由 Harness 執行的 Work Item。它遵守 `.ai/PROJECT_INTAKE_CONTRACT.md`，不重建其 intent、lifecycle、Project Context 或 approval 規則。
+
+`Project Context` 是 structured intermediate artifact，至少保留 confirmed facts、assumptions、known unknowns、technology recommendation 與 repository target。它不是 Product Source of Truth；內容必須經 `PRODUCT_ARCHITECT` execution 轉成 canonical specs，下游 Agent 不得直接把 Project Context 當作正式需求。
+
+Project Intake Orchestrator 消費 `.ai/PROJECT_INTAKE_CONTRACT.md` 定義的 lifecycle：
+
+```text
+RECEIVED
+→ CLASSIFIED
+→ DISCOVERY
+→ REQUIREMENTS_READY
+→ PROJECT_PROPOSED
+→ AWAITING_REPO_APPROVAL
+→ REPO_PROVISIONING
+→ SPEC_GENERATION
+→ SPEC_REVIEW
+→ READY_FOR_DESIGN
+```
+
+以上只表示 architecture orchestration order；state definition、blocked state 與 transition rule 的唯一來源仍是 Project Intake Contract。
+
+### 2.2 Project Orchestration Component Responsibilities
+
+| Component | Responsibility | Input | Output | Dependencies | Side Effects | Failure Behavior |
+|---|---|---|---|---|---|---|
+| Intent Classifier | 判斷請求 intent，不以不明 intent fallback 到 Implementer | Natural Language Request、existing repo context、user-provided source material | `NEW_PROJECT`、`EXISTING_PROJECT_CHANGE`、`BUG_FIX`、`DESIGN_CHANGE`、`TECHNICAL_TASK` 或 `RESEARCH_ONLY` | Project Intake Contract、source metadata | None | 不明時回報 `INTENT_UNCLEAR` 並停止 dispatch |
+| Project Intake Orchestrator | 協調 intake lifecycle 與各元件，不自行改寫 state rule | Classified intent、orchestration state、audit context | 下一個合法 state、component command、handoff status | Project Intake Contract、Workflow | None | 非法 transition、missing info 或 conflict 時進入 Contract 定義的 blocked route |
+| Discovery Manager | 推導 safe facts，只詢問 material unknowns | Original request、sources、current answers | Confirmed facts、assumptions、known unknowns、clarification record | Source Map、clarification policy | Human questions only | 關鍵資訊不足時 `MISSING_CRITICAL_REQUIREMENT`，不產生虛構需求 |
+| Project Context Builder | 將 discovery 結果正規化為 vendor-neutral Project Context | Confirmed facts、answers、assumptions、source references | Versioned Project Context | Project Intake Contract schema | None | Schema 不完整或互相衝突時 block；不得降級為 Product SOT |
+| Project Proposal Builder | 產生可供核准的專案、repo 與技術建議摘要 | Project Context、requested repository target、framework pin candidate | Project Proposal | Naming policy、technology recommendation rules | None | 無法形成可理解 proposal 時回到 Discovery / Requirements Ready |
+| Project Approval Coordinator | 將使用者決策綁定 proposal、repo target 與 framework pin | Project Proposal、human decision | `APPROVE_PROJECT`、`REQUEST_CHANGES` 或 `CANCEL` evidence | Project Intake Contract、audit sink | Human approval record | Request changes 返回 discovery；cancel 終止；無明確 approval 不允許 repo creation |
+| Repository Provisioner | 驗證 availability，建立 private Project Repo、initial `main` / `develop`、bootstrap commit 與 metadata | Approved proposal、repo target、immutable framework pin | Provisioned Project Repo identity、bootstrap target | GitHub integration、Git policy、credential boundary | Repository creation、initial branches、one bootstrap push | Name conflict、creation 或 bootstrap prerequisite failure 時停止；不交由 Agent 自行補救 |
+| Project Bootstrap Manager | 依 manifest 從 pinned Framework version 複製、生成或排除 project artifacts | Project Bootstrap Manifest、framework pin、Project Context、empty Project Repo | Canonical project structure、README、framework provenance | Framework repository、project repo structure | Project Repo file generation within bootstrap transaction | Manifest、version 或 write 失敗時 `BOOTSTRAP_FAILED`，不留下可誤認為完成的 repo |
+| Specification Generation Orchestrator | 建立 specification Work Item 並協調 `PRODUCT_ARCHITECT` execution；本身不寫規格邏輯 | Project Context、bootstrapped repo、canonical paths | Spec Work Item、spec execution result、Spec Gate request | Work Item Generator、Dispatch Coordinator、Task Execution Plane | None directly | Spec generation / Gate failure 依 Intake Contract block，不把問題交給 UX Designer |
+| Work Item Generator | 將 approved inputs 與 phase 轉成唯一 schema 的 system-generated Work Item | Approved canonical specs；初始 `SPEC` 時為 approved Project Context、proposal 與 source references；另含 phase、feature、traceability、active role | `work-items/<ID>.md` | `templates/Work_Item.md`、Role boundary、Gate registry | Project Repo Work Item write through governed integration | Schema、traceability 或 permission intersection 無效時拒絕生成；不得新增需求或擴權 |
+| Dispatch Coordinator | 依 Work Item Role 選擇 compatible adapter，呼叫 Task Execution Plane | Valid Work Item、repo identity、adapter capability inventory | Harness invocation、dispatch record | Harness Input Contract、adapter registry | Agent execution request only | 無 compatible adapter 或 Harness 拒絕時 `AGENT_DISPATCH_FAILED`，不得繞過 Harness |
+
+Role 決定 workflow authority；vendor 只決定 runtime adapter。`UX_DESIGNER` 可選 Claude-compatible adapter，`IMPLEMENTER` 可選 Codex 或 Claude-compatible adapter，`REVIEWER` 可選 review-capable adapter，但 vendor 不得修改 Role、Phase、Scope 或 Gate。
+
+### 2.3 Repository Provisioning and Bootstrap Architecture
+
+Repository Provisioner 是 repository creation 的唯一 owner。它只在 Project Proposal 已呈現且 Project Approval Coordinator 記錄明確 `APPROVE_PROJECT` 後執行。`REQUEST_CHANGES` 返回 Discovery / Requirements Ready；`CANCEL` 終止 orchestration 且不建立 repo。
+
+Provisioning architecture 依序處理：
+
+```text
+Check GitHub repository availability
+→ Create private repository
+→ Pin immutable Framework version
+→ Create initial main
+→ Apply Project Bootstrap Manifest
+→ Create initial bootstrap commit
+→ Create develop
+→ Record repository metadata and framework provenance
+```
+
+Project Bootstrap Manifest 使用下列 operation categories；實際 artifact 清單由 approved manifest 決定：
+
+| Operation | Intended Content |
+|---|---|
+| `COPY` | `AGENTS.md`、Project execution 必要的 `.ai` governance |
+| `GENERATE` | Project `README.md`、framework provenance、project metadata |
+| `CREATE_DIRECTORY` | `docs/**`、`specs/**`、`design/**`、`work-items/**`、`traceability/**` |
+| `OPTIONAL` | 使用 Claude 時的 `CLAUDE.md` 與明確核准的 project adapter entrypoint |
+| `EXCLUDE` | Harness implementation architecture、Framework internal development docs、unrelated skills、Framework history |
+
+Bootstrap 必須 pin immutable Framework version：
+
+```yaml
+framework_repository: ivan-tsai1207/ai-system-delivery-framework
+framework_commit_sha: <immutable-commit-sha>
+framework_release: <optional-release-id>
+```
+
+Provisioner 可以先解析指定 release 或 approved Framework source，但 bootstrap transaction 必須使用 resolved `framework_commit_sha`。禁止只讀 floating `main` 且不留下 version provenance。
+
+### 2.4 Specification, Gate, and Work Item Handoff
+
+Specification Generation Orchestrator 不直接產生規格內容。它要求 Work Item Generator 建立 `SPEC` Work Item，經 Dispatch Coordinator 呼叫 Task Execution Plane，由 `PRODUCT_ARCHITECT` 依 Governance 產生：
+
+```text
+docs/02_product/PRODUCT_VISION.md
+docs/02_product/PRD.md
+docs/03_requirements/SRS.md
+docs/04_system/ARCHITECTURE.md
+docs/04_system/SDD.md
+specs/<feature>/spec.md
+```
+
+初始 `SPEC` Work Item 可以引用 approved Project Context、Project Proposal 與 source references 作為 intake input；這不會將 Project Context 升格為 Product SOT。`PRODUCT_ARCHITECT` execution 的責任正是將這些輸入轉換為可審查的 canonical specs。
+
+Spec execution 完成後必須執行 `SPEC_GATE`。只有 Gate Pass 且沒有 material requirement gap / conflict 時，Project Intake 才能成為 `READY_FOR_DESIGN`。`SPEC_GAP`、`SPEC_CONFLICT` 或 missing material requirement 必須 block，不能交給 UX Designer 決策。
+
+後續每個 phase 都使用同一 handoff：
+
+```text
+Approved Canonical Specs
+→ Work Item Generator
+→ Canonical Work Item
+→ Dispatch Coordinator
+→ Task Execution Plane
+→ Active Role / Compatible Adapter
+→ Required Gate
+→ Evidence and next-phase decision
+```
+
+### 2.5 B. Task Execution Plane
+
+Task Execution Plane 沿用 `.ai/HARNESS_CONTRACT.md`，只負責一張 canonical Work Item 的 runtime execution boundary。它不執行 Project discovery、不核准 Project Proposal、不建立產品需求，也不擁有 repository provisioning。
+
+### 2.6 Task Execution Component Responsibilities
 
 | Component | Responsibility | Input | Output | Dependencies | Failure Behavior |
 |---|---|---|---|---|---|
@@ -80,7 +239,80 @@ flowchart TD
 | Audit Recorder | 記錄 execution facts 與 hashes | 所有 normalized events | Audit Event Stream、Final Record | Host-owned state store | audit 不可寫時不得開始 execution |
 | Approval Handler | 管理 restricted operation 的人工決策 | Approval Request、policy hash | Approval Decision | Human channel、Audit Recorder | deny / timeout 時不執行 operation |
 
-## 3. Execution Flow
+### 2.7 Side Effect Ownership and Enforcement
+
+| Side Effect | Owner | Boundary |
+|---|---|---|
+| Repository creation | Repository Provisioner | Project Proposal + explicit `APPROVE_PROJECT`；hard approval boundary |
+| Bootstrap Project Repo writes | Project Bootstrap Manager | Approved manifest + pinned framework commit + bootstrap transaction |
+| Git commit / push after bootstrap | Git integration under repository policy | Branch / PR policy；host-side protection where available |
+| Agent execution | Task Execution Plane | Valid Work Item、compiled policy、hard enforcement capability |
+| Agent file writes | Enforcement Backend | Governance ∩ Role ∩ Work Item ∩ Host Baseline |
+| Destructive operation | Approval Handler | Operation-bound, one-time human approval；default deny |
+| Production deployment | None in v0.1 | Explicitly out of scope |
+
+Agent、Adapter 與 runtime prompt 不得自行取得 side-effect ownership。Product workflow 由 Governance 與 Orchestration 強制；repo approval、branch protection、filesystem write 與 destructive operation 必須使用可用的 hard / host-side boundary，不能只依賴 prompt。
+
+## 3. Architecture Flows
+
+### 3.1 End-to-End New Project Flow
+
+```text
+User
+→ Natural Language Request
+→ Intent Classifier
+→ Project Intake Orchestrator
+→ Discovery Manager
+→ Project Context Builder
+→ Project Proposal Builder
+→ Project Approval Coordinator
+→ APPROVE_PROJECT
+→ Repository Provisioner
+→ Project Bootstrap Manager
+→ Specification Generation Orchestrator
+→ SPEC Work Item
+→ Dispatch Coordinator
+→ Task Execution Plane / PRODUCT_ARCHITECT
+→ Canonical Specs
+→ SPEC_GATE
+→ Design Work Item Generator
+→ Dispatch Coordinator
+→ Task Execution Plane / UX_DESIGNER
+→ Design Contract
+→ DESIGN_GATE
+→ Implementation Work Item Generator
+→ Dispatch Coordinator
+→ Task Execution Plane / IMPLEMENTER
+→ Source Code and Tests
+→ IMPLEMENTATION_GATE
+→ Review Work Item
+→ Task Execution Plane / REVIEWER
+→ Review Evidence
+→ PR / Merge under Git policy
+```
+
+任何 Gate failure、spec gap、spec conflict 或 unauthorized scope 都依 Contract 停止受影響流程。Project Orchestration Plane 不得直接呼叫 vendor Agent 來跳過 Work Item、Harness 或 Gate。
+
+### 3.2 Existing Project Flow
+
+`EXISTING_PROJECT_CHANGE`、`BUG_FIX`、`DESIGN_CHANGE` 與 `TECHNICAL_TASK` 不執行 repository provisioning：
+
+```text
+Classified Existing-Project Intent
+→ Resolve Existing Project Repo
+→ Load Governance and Canonical Specs
+→ Analyze Requested Delta
+→ Change Request when canonical state must change
+→ Canonical Spec Updated when required
+→ System-generated Work Item
+→ Dispatch Coordinator
+→ Task Execution Plane
+→ Required Gate
+```
+
+`RESEARCH_ONLY` 預設停留在 research context，不建立 repo 或 implementation Work Item。Existing Project Resolver 無法確認 repo identity、branch 或 canonical specs 時必須 block，不得把請求誤分類為 `NEW_PROJECT` 來建立新 repo。
+
+### 3.3 Task Execution Flow
 
 | Step | Action | Lifecycle Before | Lifecycle After | Failure Route |
 |---|---|---|---|---|
@@ -404,6 +636,8 @@ Design rules：
 
 Soft enforcement 用於意圖、角色、任務與規格說明：
 
+- Project Intake lifecycle 與 workflow guidance。
+- Project Context、Project Proposal 與 Work Item generation instructions。
 - Prompt。
 - `AGENTS.md`。
 - `CLAUDE.md`。
@@ -417,6 +651,9 @@ Soft enforcement 可以降低誤解，但 Agent 可能忽略、誤讀或遭 prom
 
 Hard enforcement 必須由 Agent 無法自行改寫的機制提供：
 
+- Repository creation 前的 explicit human approval record 與 Provisioner authorization check。
+- Immutable framework commit pin 與 bootstrap manifest verification。
+- Git branch protection / host-side repository policy where available。
 - Vendor / OS filesystem sandbox。
 - Host-controlled permission profile與 deny rules。
 - Host-controlled command / tool interception。
@@ -520,11 +757,17 @@ v0.1 的 hash chain 提供 tamper evidence，不宣稱等同外部 WORM storage�
 
 至少需要人工批准：
 
+- Project Proposal / Repository Creation。
 - Production deployment。
 - Force push / history rewrite。
 - Destructive database operation。
 - Credential-sensitive operation。
 - Governance modification。
+
+Approval responsibility 分成兩種，不得互換：
+
+- Project Approval Coordinator 管理 Project Proposal decision。只有綁定 proposal、repo target、visibility 與 framework pin 的 `APPROVE_PROJECT` 可以授權 Repository Provisioner；`REQUEST_CHANGES` 與 `CANCEL` 不產生 side-effect permission。
+- Task Execution Plane 的 Approval Handler 管理已啟動 execution 中的 restricted operation。它不得核准 Project Proposal，也不得把單次 runtime approval 延伸成 repository provisioning 或產品需求核准。
 
 Approval lifecycle：
 
@@ -555,12 +798,41 @@ requested_at: string
 expires_at: string
 ```
 
+Project repository approval evidence 另需綁定：
+
+```yaml
+proposal_hash: string
+repository_provider: string
+repository_owner: string
+repository_name: string
+repository_visibility: private
+framework_commit_sha: string
+decision: APPROVE_PROJECT | REQUEST_CHANGES | CANCEL
+decided_at: string
+```
+
 - Approval 只允許完全相同的 operation 一次；參數、resource、policy hash 或 execution 改變即失效。
 - Agent Adapter、Runtime Monitor 與 Reviewer Agent 都不能自行產生 `APPROVED`。
 - Approval decision 與執行結果都必須寫入 audit。
 - v0.1 可使用 local terminal prompt，但本文件不實作 UI。
 
 ## 15. Failure Model
+
+Project Orchestration Plane 的 failure ID、retry 與 human intervention 規則以 `.ai/PROJECT_INTAKE_CONTRACT.md` 為唯一來源。Architecture 只指定 detection owner 與 routing：
+
+| Failure | Primary Detection Owner | Architecture Route |
+|---|---|---|
+| `INTENT_UNCLEAR` | Intent Classifier | Discovery clarification；不得 dispatch Implementer |
+| `MISSING_CRITICAL_REQUIREMENT` | Discovery Manager / Project Context Builder | Block intake，取得必要 human input |
+| `PROJECT_REJECTED` | Project Approval Coordinator | Stop orchestration；新 proposal 需新 context |
+| `REPOSITORY_NAME_CONFLICT` | Repository Provisioner | Human confirms new target，new provisioning execution |
+| `REPOSITORY_CREATION_FAILED` | Repository Provisioner | Preserve evidence，retry only under still-valid approval |
+| `BOOTSTRAP_FAILED` | Project Bootstrap Manager | Mark provisioning incomplete；不得進入 spec generation |
+| `SPEC_GENERATION_FAILED` | Specification Generation Orchestrator / Task Execution Plane | New governed spec execution |
+| `SPEC_GATE_FAILED` | Gate Runner | Block before design，retain findings |
+| `AGENT_DISPATCH_FAILED` | Dispatch Coordinator | Do not bypass Harness；retry with compatible capability |
+
+Task Execution Plane failure mapping 沿用 Harness Contract：
 
 | Failure | Detection Stage | Lifecycle Mapping | Required Behavior |
 |---|---|---|---|
@@ -586,6 +858,17 @@ harness/
   tsconfig.json
   src/
     cli/
+    orchestration/
+      intent/
+      intake/
+      discovery/
+      project-context/
+      proposals/
+      provisioning/
+      bootstrap/
+      specifications/
+      work-items/
+      dispatch/
     core/
     input/
     roles/
@@ -611,6 +894,8 @@ harness/
 Placement rules：
 
 - `harness/` 是 Framework 的未來 implementation package，不是 target project artifact。
+- `orchestration/` 與 Task Execution modules 屬於同一個 Node.js / TypeScript Harness package，但以 interface 與 Work Item boundary 分離。
+- Project Repo 由 Repository Provisioner 建立在 framework package 之外，不放入 `harness/`。
 - Runtime state 與 audit 不放在 `harness/` 或 Agent writable repo。
 - Adapter-specific config 由 profile 動態產生在 host-owned execution directory；不提交 vendor runtime secrets。
 - 本次不建立任何上述目錄或檔案。
@@ -635,7 +920,7 @@ Placement rules：
 
 ### 17.2 Decision
 
-Harness Runtime 唯一推薦方案：**Node.js / TypeScript**。
+Harness project orchestration 與 task execution 的唯一推薦方案：**Node.js / TypeScript**。
 
 理由：
 
@@ -672,6 +957,16 @@ Security invariants：
 
 ### Must Have
 
+- Natural-language entry 與 Intent Classifier。
+- Project Intake Orchestrator 與 Discovery Manager。
+- Vendor-neutral Project Context Builder。
+- Project Proposal Builder 與 Project Approval Coordinator。
+- GitHub Repository Provisioner，預設 private 並建立 initial `main` / `develop`。
+- Project Bootstrap Manager、manifest operation 與 immutable framework version pinning。
+- Specification Generation Orchestrator，透過 `PRODUCT_ARCHITECT` Work Item 產生 canonical specs。
+- System-generated Work Item Generator，唯一 schema 為 `templates/Work_Item.md`。
+- Dispatch Coordinator，依 Role 選 compatible adapter 並只透過 Task Execution Plane 啟動 Agent。
+- New Project 與 Existing Project intent routing。
 - TypeScript CLI entry point 與 Input Validator。
 - Role Resolver：`PRODUCT_ARCHITECT`、`UX_DESIGNER`、`IMPLEMENTER`、`REVIEWER`。
 - Context Compiler 與 hashed Execution Context Manifest。
@@ -699,30 +994,40 @@ Security invariants：
 
 - Production deployment automation。
 - Production database operation。
-- Docker / Kubernetes execution backend。
+- Docker / Kubernetes isolation platform。
 - GitHub Actions / CI integration。
 - Cloud-hosted Harness control plane。
 - Gemini、Hermes、Copilot adapters。
 - GUI / web approval console。
 - Distributed multi-agent scheduling。
 - Automatic Change Request approval或 canonical spec modification。
+- Automatic release to production。
 - Remote WORM audit service或 compliance archive。
 
-## 20. Validation Against Harness Contract
+## 20. Validation Against Contracts
 
 | Validation | Result |
 |---|---|
+| Natural-language architecture entry | User request 先進 Intent Classifier 與 Project Intake Orchestrator |
+| New Project end-to-end | Approval 後可到 Project Repo、Specs、Design、Implementation 與 Review |
+| Existing Project routing | Existing change / bug / design / technical task 不建立新 repo |
+| Plane responsibility separation | Orchestration 不直接執行 Agent；Task Execution 不決定產品或建立 repo |
+| Work Item handoff | `templates/Work_Item.md` 是兩 Plane 之間唯一 task contract |
+| Repository approval | Repository Provisioner 只接受綁定 proposal 與 target 的 `APPROVE_PROJECT` |
 | Vendor-neutral core | Claude / Codex 僅存在於 adapters |
 | No new Authority | 本文件明確 subordinate to existing governance and contract |
+| No duplicate Work Item schema | Architecture 只引用 `templates/Work_Item.md` |
 | Context boundary | Context Manifest 定義 mandatory / conditional / optional / excluded |
 | Filesystem / tool / command boundary | Policy Compiler 與 Enforcement Backend 均有定義 |
 | Soft vs hard | 已分離，critical boundaries 要求 hard capability |
 | Lifecycle / stop conditions | Execution Flow 與 Failure Model 已對應 |
 | Audit evidence | Host-owned event stream、hash 與 final record |
 | Gate orchestration | 讀取 `.ai/gates/**`，不重寫 criteria |
-| No implementation | 本次只新增本 architecture 文件 |
+| Project Intake Contract alignment | Intent、lifecycle、approval、provisioning 與 blocked route 均引用既有 Contract |
+| Harness Contract alignment | Task lifecycle、permissions、gates、stop conditions 與 audit 均沿用既有 Contract |
+| No implementation | 本次只更新 architecture 文件，未建立 runtime code |
 | Single runtime recommendation | Node.js / TypeScript |
-| MVP boundary | Must / Should / Not in v0.1 已定義 |
+| v0.1 boundary | Project orchestration 與 Task Execution 的 Must / Should / Not in v0.1 已定義 |
 
 ## 21. Official Capability References
 
