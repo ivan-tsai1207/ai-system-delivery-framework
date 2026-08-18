@@ -4,15 +4,15 @@
 
 ## Target Users
 
-- 
+-
 
 ## Primary Objective
 
-- 
+-
 
 ## Design Philosophy
 
-- 
+-
 
 ## Information Density
 
@@ -20,28 +20,28 @@
 
 ## Navigation
 
-- 
+-
 
 ## Desktop / Mobile Priority
 
-- 
+-
 
 ## Interaction Principles
 
-- 
+-
 
 ## Avoid
 
-- 
+-
 
 ## Preferred References
 
-- 
+-
 
 ## Decision Heuristic
 
 當美觀、速度、清楚度、可維護性或成本衝突時，優先順序為：
 
-1. 
-2. 
-3. 
+1.
+2.
+3.

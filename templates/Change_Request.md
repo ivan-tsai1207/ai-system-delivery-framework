@@ -16,7 +16,7 @@
 
 ## Affected Specs
 
-- 
+-
 
 ## Impact
 

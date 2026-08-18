@@ -47,11 +47,11 @@
 
 ### Scenario FEATURE-001
 
-Given 
+Given
 
-When 
+When
 
-Then 
+Then
 
 ## 15. Open Questions
 

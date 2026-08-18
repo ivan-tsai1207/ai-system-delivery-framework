@@ -15,15 +15,15 @@
 
 ## Read
 
-- 
+-
 
 ## Write
 
-- 
+-
 
 ## Forbidden
 
-- 
+-
 
 ## Scope
 
