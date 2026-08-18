@@ -27,7 +27,7 @@
 | A | Core Foundation | 1-5 | 建立 typed core、Work Item v2、Context / Policy compiler foundations及 evidence persistence | Phase 1-5 tests與 contract checks通過；無 vendor side effect |
 | B | Execution Engine | 6-7 | 建立 execution lifecycle、profile、enforcement ports、fake adapter、five-Gate / review integration與 Git port | Fake end-to-end Work Item → Review → Gate flow通過 |
 | C | Real Adapters + Project Flow | 8-11 | 依序完成 Codex、Claude、Project Intake與 Repo Provisioning / Bootstrap | Adapter contract、intake與 mock provider transaction tests通過 |
-| D | End-to-End Pilot | 12 | 串接 CLI、dispatch、packaging與 controlled pilot | `AC-HNS-001`至`AC-HNS-020`通過 |
+| D | End-to-End Pilot | 12 | 串接 CLI、dispatch、packaging與 controlled pilot | `AC-HNS-001`至`AC-HNS-024`通過 |
 
 ## SDD Phase Dependencies
 

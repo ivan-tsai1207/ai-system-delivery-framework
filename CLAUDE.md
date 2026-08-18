@@ -1,40 +1,30 @@
 # CLAUDE.md
 
-本文件是 Claude / Claude Code 使用 `ai-system-delivery-framework` 時的入口文件。
+本文件只處理 Claude / Claude Code 的 bootstrap routing。共用規則以 `AGENTS.md` 與 canonical governance 為準，本文件不複製完整 Workflow、Git、Role 或 Review policy。
 
-## 讀取順序
+## Claude Bootstrap
 
-開始任何系統開發、需求整理、MVP、客戶案或正式交付工作前，請依序讀取：
+1. 以 `AGENTS.md` 作為 thin router；若環境不會自動載入，先讀取它。
+2. 從 assigned Work Item 解析 active Role、Risk、Required Gates 與 review binding。
+3. 依 `AGENTS.md` 載入最小 Tier 1 context；`Role: REVIEWER` 時只載入被指派的 Reviewer Profile。
+4. Skills、templates、其他 specs、source 與 tests 只在任務確實需要且位於 Read Scope 時 on demand 載入。
 
-1. `AGENTS.md`
-2. `.ai/CONSTITUTION.md`
-3. `.ai/AUTHORITY.md`
-4. `.ai/WORKFLOW.md`
-5. `.ai/roles/<active-role>.md`
-6. `.ai/HARNESS_CONTRACT.md`（若由 Harness 執行或需要 runtime boundary）
-7. `.ai/gates/<active-gate>.md`
-8. `LLM_OPERATING_RULES.md`
-9. 目標專案中與任務相關的 canonical specs、design contract 與 work item
-10. 依任務類型讀取 `skills/` 中的對應工作流與 `templates/`
-11. 需要角色審查時讀取 `agent_roles/` 與 `docs/review_role_matrix.md`
+正常 review workflow 不得預設讀取 `agent_roles/**` 或 `docs/review_role_matrix.md`。Review routing只能是：
 
-## 執行規則
+```text
+Work Item
+-> Role: REVIEWER
+-> assigned Reviewer Profile
+-> Risk Class
+-> active Gate
+```
 
-- 全程使用繁體中文與使用者溝通，除非使用者明確指定其他語言。
-- 以 `AGENTS.md` 作為 repository entrypoint；它不凌駕 `.ai/CONSTITUTION.md`。
-- 以 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md`、`.ai/WORKFLOW.md` 作為 Agentic Substrate 治理層。
-- `.ai/HARNESS_CONTRACT.md` 是 vendor-neutral runtime contract，不是新的 Authority；Claude adapter 不得藉此擴張 role 或 tool permission。
-- 以 `LLM_OPERATING_RULES.md` 作為跨 LLM 通用補充。
-- 若任務涉及新專案、新概念、MVP 或正式系統規劃，先啟動 `skills/project-intake.md`。
-- 若使用者提供資料來源，先依 `skills/source-map-builder.md` 建立 Source Map。
-- 依任務深度選擇 MVP、Standard 或 Formal 模式；不明時先提出建議並詢問確認。
-- 高風險操作必須先詢問使用者確認。
-- 討論新規則後，需主動整理規則變更，詢問是否更新至框架 repo。
-- 若被指派為 UX Designer，只能修改 `design/<feature>/**` 或指定 design 文件，不得修改 `src/**`、`specs/**`、資料模型、API、權限或產品範圍。
-- 若設計需要新增規格未授權能力，必須提出 Change Request。
+`agent_roles/**` 只是非 canonical professional reference，不決定 required review、Reviewer Profile 或 Gate。
 
-## Claude 使用注意
+## Claude Adapter Boundary
 
-- 不要假設 Claude 會自動讀取 `AGENTS.md`；若環境沒有自動載入，請使用本文件作為入口。
-- 若環境支援 project knowledge 或 memory，請加入本 repo 的 `AGENTS.md`、`.ai/**`、`LLM_OPERATING_RULES.md`、`skills/README.md` 與必要 skills。
-- 若環境無法讀取整個 repo，請使用 `docs/llm_bootstrap_prompt.md` 作為啟動提示。
+- Claude adapter 不得以 prompt、memory、project knowledge 或 tool capability 擴張 canonical Role、Read / Write Scope、Risk、Gate 或 permission。
+- 不得預設將 `.ai/**`、`docs/**`、`skills/**`、`templates/**` 或完整 repository 加入 project knowledge。
+- 額外 context 必須通過 Role、Work Item Read Scope、Policy 與 Context Budget，並記錄載入原因。
+- 若無法讀取 required canonical artifact，停止並回報缺少的 path；不得以模型記憶補寫規則。
+- 若環境無法直接讀取 repository，可用 `docs/llm_bootstrap_prompt.md` 建立連線入口，但後續仍依 assigned Work Item 精準載入 context。

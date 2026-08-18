@@ -9,79 +9,49 @@
 - `.ai/` 是 Agentic Substrate 治理層，定義憲法、權威順序、工作流、角色邊界與 Gate。
 - `.ai/HARNESS_CONTRACT.md` 是共用 runtime contract；各工具只負責轉換成自身支援的 permission、prompt、hook、sandbox 與 tool configuration。
 - `LLM_OPERATING_RULES.md` 是跨 LLM 通用規則。
-- `skills/` 是可重用工作流說明。
-- `templates/` 是文件產出模板。
-- `agent_roles/` 與 `docs/review_role_matrix.md` 是多 Agent 審查依據。
+- `skills/` 與 `templates/` 只在 assigned Work Item需要時on demand載入。
+- `agent_roles/` 與 `docs/review_role_matrix.md` 只是非 canonical professional reference / navigation，不決定 required review、Reviewer Profile、Risk或Gate。
+- 所有工具都必須使用 `Work Item -> active Role -> assigned Reviewer Profile when applicable -> Risk -> active Gate` 路由，且initial context small-by-default。
 
 ## Codex
 
-建議入口：
-
-1. `AGENTS.md`
-2. `.ai/CONSTITUTION.md`
-3. `.ai/AUTHORITY.md`
-4. `.ai/WORKFLOW.md`
-5. `.ai/HARNESS_CONTRACT.md`（Harness execution）
-6. `LLM_OPERATING_RULES.md`
-7. `skills/README.md`
+建議入口：`AGENTS.md` thin router → assigned Work Item → Tier 1 mandatory context。
 
 使用方式：
 
 - 在 Codex 工作目錄放置或引用本 repo 的 `AGENTS.md`。
-- 若本 repo 是目前工作目錄，Codex 先由 `AGENTS.md` 進入，再依 `.ai/AUTHORITY.md` 判斷規則優先順序。
-- 重複性流程可再整理為正式 Codex Skill。
+- 若本 repo 是目前工作目錄，Codex先由`AGENTS.md`進入；其他governance、role、gate與requirements依active Work Item精準載入。
+- 重複性流程可整理為正式Codex Skill，但Skill只在需要且Read Scope允許時載入。
 
 ## Claude / Claude Code
 
-建議入口：
-
-1. `CLAUDE.md`
-2. `AGENTS.md`
-3. `.ai/CONSTITUTION.md`
-4. `.ai/AUTHORITY.md`
-5. `.ai/WORKFLOW.md`
-6. `.ai/HARNESS_CONTRACT.md`（Harness execution）
-7. `LLM_OPERATING_RULES.md`
-8. `skills/README.md`
+建議入口：`CLAUDE.md` vendor router → `AGENTS.md` shared router → assigned Work Item → Tier 1 mandatory context。
 
 使用方式：
 
-- 將 `CLAUDE.md` 作為 Claude 專用入口；載入後仍以 `.ai/CONSTITUTION.md` 為最高治理權威。
-- 若 Claude 環境支援 project knowledge，加入 `AGENTS.md`、`LLM_OPERATING_RULES.md`、`skills/README.md` 與常用 skills。
+- 將`CLAUDE.md`作為Claude專用入口；載入後仍以`.ai/CONSTITUTION.md`為最高治理權威。
+- Project knowledge只放thin routers；不得預設加入`.ai/**`、`docs/**`、`skills/**`、`templates/**`或整個repository。
 - 若 Claude 環境無法自動讀 repo，將 `docs/llm_bootstrap_prompt.md` 貼入對話開頭。
 
 ## Google AI Studio / Gemini
 
-建議入口：
-
-1. `LLM_OPERATING_RULES.md`
-2. `.ai/CONSTITUTION.md`
-3. `.ai/AUTHORITY.md`
-4. `.ai/WORKFLOW.md`
-5. `.ai/HARNESS_CONTRACT.md`（Harness execution）
-6. `docs/llm_bootstrap_prompt.md`
-7. 依任務補充 `skills/` 與 `templates/`
+建議入口：`docs/llm_bootstrap_prompt.md` → assigned Work Item → Tier 1 mandatory context。
 
 使用方式：
 
-- 將 `docs/llm_bootstrap_prompt.md` 放入 System Instructions 或對話開頭，並依其指示載入 `.ai/` 治理層。
-- 若 context 允許，再加入 `AGENTS.md` 與相關 skills。
+- 將`docs/llm_bootstrap_prompt.md`放入System Instructions或對話開頭，並依其指示精準載入active governance、role、gate與requirements。
+- Skills與templates只可按任務需要on demand加入，不以context尚有空間作為載入理由。
 - 不要假設 Google AI Studio 會自動讀取 repo 檔案；需明確貼入或透過工具提供內容。
 
 ## 其他 LLM / Agent
 
-建議入口：
-
-1. `docs/llm_bootstrap_prompt.md`
-2. `LLM_OPERATING_RULES.md`
-3. `AGENTS.md`
-4. `skills/README.md`
+建議入口：`docs/llm_bootstrap_prompt.md` → assigned Work Item → Tier 1 mandatory context。
 
 使用方式：
 
-- 先要求 LLM 讀取本 repo 的入口文件。
+- 先要求LLM讀取thin bootstrap，不要預載完整Framework handbook。
 - 無法讀 repo 時，貼上 `docs/llm_bootstrap_prompt.md`。
-- 若任務進入實作或規格產出，再提供對應 skill 與 template。
+- 若任務進入實作或規格產出，只提供Read Scope允許且直接相關的skill、template或section。
 
 ## 不同工具的責任分工
 

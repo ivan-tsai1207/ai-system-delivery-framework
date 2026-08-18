@@ -32,8 +32,12 @@
 
 ## Read Scope
 
-- `.ai/**`
-- `AGENTS.md`
+- `.ai/CONSTITUTION.md`
+- `.ai/AUTHORITY.md`
+- `.ai/WORKFLOW.md`
+- `.ai/HARNESS_CONTRACT.md`
+- `.ai/roles/implementer.md`
+- `.ai/gates/implementation-gate.md`
 - `templates/Work_Item.md`
 - `docs/harness_implementation_architecture.md`
 - `docs/harness_v0.1_SDD.md`

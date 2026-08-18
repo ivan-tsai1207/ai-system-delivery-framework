@@ -6,7 +6,7 @@
 
 1. 使用者的系統想法需被整理為可交付的產品與技術文件。
 2. LLM 不應只靠自身猜測理解需求，必須讀取使用者提供的資料來源。
-3. LLM 需以多角色角度審視需求：SA、PO、PM、Business、UI/UX、Senior Engineer、Tech Lead、CTO、QA/Test Engineer、Security Engineer。
+3. LLM 只能依 assigned Work Item 的 active Role 工作；正式 review 使用 `REVIEWER` 及系統指派的 Reviewer Profile，不以固定 legacy Agent 群組決定審查範圍。
 4. 沒有明確要求的事不要做；必要延伸需標記並詢問。
 5. 高風險操作必須先詢問。
 6. 所有系統專案需沉澱至 GitHub private repo 與 Obsidian-compatible Markdown 記憶。
@@ -22,6 +22,7 @@
 - `design/<feature>/screens/<SCREEN-ID>.md` 是 UX Contract，不得新增未授權 product capability。
 - `work-items/<WORK-ITEM-ID>.md` 定義單次任務的 delta、read / write / forbidden 範圍。
 - `traceability/**` 或 `templates/Traceability.yaml` 用於追蹤 requirement、screen、API 與 tests。
+- `agent_roles/**` 只提供非 canonical professional reference，不決定 required reviews、Reviewer Profile、Risk、Gate或Authority。
 
 ## Canonical Project Paths
 
@@ -56,10 +57,13 @@
 
 ## Gate
 
-- Spec Gate：PRD、Architecture / SDD、Feature Spec 不得互相矛盾。
-- Design Gate：Screen、Action、State 必須可追溯到 requirement；不得新增未授權能力。
-- Implementation Gate：Code 必須符合 Feature Spec、Design Contract 與 Work Item。
-- Release Gate：測試、資安、traceability、Living Spec 與 PR 說明完成後才可 merge 或 release。
+- `SPEC_GATE`：PRD、Architecture / SDD、Feature Spec 不得互相矛盾，且需有獨立 `SPEC_REVIEWER` evidence。
+- `DESIGN_GATE`：Screen、Action、State 必須可追溯到 requirement，且需有獨立 `UX_REVIEWER` evidence。
+- `IMPLEMENTATION_GATE`：Code 必須符合 Feature Spec、Design Contract 與 Work Item，且至少需有獨立 `TECH_REVIEWER` evidence；QA / Security依 Risk決定。
+- `DELIVERY_ASSURANCE_GATE`：獨立確認 Maker / Checker / Assurer separation、required reviews、findings與 evidence完整性。
+- `RELEASE_GATE`：只有 required Delivery Assurance通過，且測試、資安、traceability與Living Spec完成後，才可成為 release候選。
+
+Reviewer decision使用 `PASS / REQUEST_CHANGES / BLOCK`；GateResult使用 `PASS / FAILED / NEEDS_CLARIFICATION`，不得混用。Required Reviewer set由 Orchestrator / Harness依 Work Item、Risk與 artifact type計算，Agent不得自行選擇或省略。
 
 ## 框架 repo 分支策略
 

@@ -468,7 +468,7 @@ type ExecutionState =
   | "FAILED_GATE" | "FAILED_RUNTIME" | "CANCELLED";
 
 interface ExecutionContextManifest {
-  readonly schema_version: "harness.context/v2";
+  readonly schema_version: "harness.context/v3";
   readonly execution_id: string;
   readonly task_id: string;
   readonly role: WorkItemRole;
@@ -476,14 +476,60 @@ interface ExecutionContextManifest {
   readonly review_profile?: ReviewProfile;
   readonly feature: string;
   readonly phase: WorkItemPhase;
-  readonly governance_context: readonly HashedFileRef[];
-  readonly delivery_context: readonly HashedFileRef[];
-  readonly source_context: readonly HashedFileRef[];
-  readonly design_context: readonly HashedFileRef[];
-  readonly work_item: HashedFileRef;
+  readonly bootstrap_context: readonly ContextManifestEntry[];
+  readonly governance_context: readonly ContextManifestEntry[];
+  readonly delivery_context: readonly ContextManifestEntry[];
+  readonly source_context: readonly ContextManifestEntry[];
+  readonly design_context: readonly ContextManifestEntry[];
+  readonly work_item: ContextManifestEntry;
   readonly excluded_context: readonly ExcludedRef[];
+  readonly deferred_context: readonly ExcludedRef[];
+  readonly initial_budget: ContextBudget;
+  readonly hard_safety_ceiling: ContextBudget;
+  readonly context_usage: ContextUsage;
   readonly spec_versions: Readonly<Record<string, string>>;
   readonly context_hash: string;
+}
+
+type ContextTier = "TIER_0_BOOTSTRAP" | "TIER_1_MANDATORY" | "TIER_2_ON_DEMAND";
+
+interface ContextManifestEntry {
+  readonly path: string;
+  readonly section?: string;
+  readonly anchor?: string;
+  readonly content_sha256: string;
+  readonly reason: string;
+  readonly tier: ContextTier;
+  readonly full_document_fallback_reason?: string;
+}
+
+interface ContextBudget {
+  readonly max_bytes: number;
+  readonly max_files: number;
+  readonly max_sections: number;
+}
+
+interface ContextUsage {
+  readonly bytes: number;
+  readonly files: number;
+  readonly sections: number;
+}
+
+interface OnDemandContextRequest {
+  readonly request_id: string;
+  readonly execution_id: string;
+  readonly requested_path: string;
+  readonly section?: string;
+  readonly anchor?: string;
+  readonly reason: string;
+}
+
+interface OnDemandContextDecision {
+  readonly request_id: string;
+  readonly status: "LOADED" | "DENIED" | "DEFERRED";
+  readonly manifest_entry?: ContextManifestEntry;
+  readonly reason: string;
+  readonly resulting_context_hash?: string;
 }
 
 interface ExecutionPolicy {
@@ -705,7 +751,7 @@ interface DeliveryCandidateInput { readonly project: string; readonly commit: st
 | `ReviewFinding` | Track review issue lifecycle | All fields required | severity / status transition、authority for accepted risk | Finding Registry | Append-only state events |
 | `DeliveryAssuranceResult` | Record final assurance decision | All aggregate fields required | candidate hash、reviews、gates、findings | Delivery Assurance Reviewer | Immutable per candidate |
 | `ExecutionState` | Track runtime lifecycle | Required | Harness Contract transition | Execution Core | Transition creates new state event |
-| `ExecutionContextManifest` | Freeze least context | All fields / hashes required | paths、references、versions、determinism | Context Compiler | Immutable |
+| `ExecutionContextManifest` | Freeze least context | Tier、path、section / anchor、reason、content hash與budgets required | references、deduplication、budget、versions、determinism | Context Compiler | Immutable；on-demand load creates new version |
 | `ExecutionPolicy` | Freeze effective permissions | All policy dimensions required | intersection、deny union、hash | Policy Compiler | Immutable |
 | `ExecutionProfile` | Adapter launch contract | All sections required | cross-hash / repository / gate consistency | Profile Builder | Deep-frozen immutable |
 | `AdapterCapability` | Report effective controls | Adapter ID + every capability required | capability-level enum | Adapter | Immutable report per prepare |
@@ -724,7 +770,7 @@ Canonical schema IDs：
 ```text
 harness.project-context/v1
 harness.work-item/v2
-harness.context/v2
+harness.context/v3
 harness.policy/v1
 harness.execution-profile/v2
 harness.audit/v2
@@ -747,6 +793,7 @@ Rules：
 - Audit 記錄 input version、migration ID、before / after hash。
 - `harness.work-item/v1 → v2` 是 breaking migration：Orchestrator必須重新計算 Risk並為 review task建立 explicit profile / artifact / hash / Maker identity；禁止以 default或 Agent assumption補值。v1可讀取做 migration，但不可直接 dispatch。
 - `harness.context/v1 → v2`、`harness.execution-profile/v1 → v2`與 `harness.audit/v1 → v2`必須由 trusted migrator加入可證明的 Risk / review / evidence references並重新 hash；缺少來源 evidence時不得 migration或 launch。
+- `harness.context/v2 → v3`是 breaking migration：trusted migrator必須為每個 entry建立 Tier、reason、section / anchor與content hash，加入Initial Context Budget及Hard Safety Ceiling並重新計算context hash。無法證明entry來源或full-document fallback reason時不得自動migration。
 
 ## 7. CLI Design
 
@@ -1096,41 +1143,82 @@ Unknown required section、duplicate metadata、invalid enum、unresolvable refe
 interface ContextCompilerInput {
   readonly execution_id: string;
   readonly work_item: WorkItem;
+  readonly bootstrap_entrypoints: readonly HashedFileRef[];
   readonly role_definition: HashedFileRef;
   readonly reviewer_profile_definition?: HashedFileRef;
   readonly repository: Readonly<{ root: string; identity: string; branch: string; commit: string }>;
   readonly governance_registry: readonly HashedFileRef[];
   readonly gate_registry: ReadonlyMap<GateId, string>;
   readonly traceability: TraceabilityIndex;
-  readonly additional_context: readonly string[];
+  readonly initial_budget: ContextBudget;
+  readonly hard_safety_ceiling: ContextBudget;
 }
 
 interface ContextCompiler {
   compile(input: ContextCompilerInput): Promise<ExecutionContextManifest>;
+  requestContext(
+    manifest: ExecutionContextManifest,
+    request: OnDemandContextRequest,
+    policy: ExecutionPolicy,
+  ): Promise<OnDemandContextDecision>;
 }
 ```
 
-Algorithm：
+### 18.1 Context Tier Model
 
-1. Validate Work Item與repository identity / branch / commit。
-2. Add Mandatory Governance：Constitution、Authority、Workflow、active Role、assigned Reviewer Profile、active Gates。
-3. Add assigned Work Item本身。
-4. Resolve Requirement References與traceability edges。
-5. Add directly relevant Feature Specs。
-6. Add directly relevant Screen Specs / Design Contracts for UI-dependent task。
-7. Add referenced Architecture / SDD sections or whole file when section extraction cannot preserve integrity。
-8. Add role-required source / test files that fall within Work Item Read Scope。
-9. Reviewer task加入 exact reviewed artifact / manifest、Maker evidence與 findings，並在讀取後驗證 SHA-256；Maker / Reviewer execution相同時停止。
-10. Intersect `additional_context` with role + Work Item read permission；optional context不擴權。
-11. Exclude forbidden、sensitive、unrelated、unsupported-size、version-mismatch與out-of-repo paths，記錄reason但不讀內容。
-12. Resolve canonical real path，read bytes once，calculate SHA-256。
-13. Deduplicate by normalized relative path；same path / different hash is concurrent modification error。
-14. Sort each context class by UTF-8 normalized repository-relative path。
-15. Canonical serialize manifest excluding `context_hash`，calculate hash，freeze。
+| Tier | Purpose | Initial Context Rule |
+|---|---|---|
+| `TIER_0_BOOTSTRAP` | 極短的 repository / vendor router，例如 `AGENTS.md`、`CLAUDE.md` | Host或vendor可自動載入；Manifest記錄path、hash與reason，但不得再次複製完整Governance、Workflow、Skills或canonical specs |
+| `TIER_1_MANDATORY` | 任務啟動所需的最小canonical contract | 只包含Constitution、Authority、Workflow、active Role、assigned Reviewer Profile、active Gate、assigned Work Item與其直接canonical requirement references |
+| `TIER_2_ON_DEMAND` | 執行中證明確有需要的額外細節 | 例如額外SDD / API / DB section、source file、test或skill；初始package不得以「可能有用」為理由預載 |
 
-`TraceabilityIndex` 是read-only mapping of requirement / feature / screen / test IDs to canonical paths；unresolved required edge回傳`HNS-CTX-002`。相同repository commit、Work Item hash、governance hashes、traceability與compiler version必須產生相同`context_hash`。
+Work Item直接引用的Feature / Screen / Architecture / SDD section屬Tier 1；執行中才發現需要的其他section、source、tests或專用skill屬Tier 2。禁止預設載入`docs/**`、`skills/**`、`templates/**`、`agent_roles/**`、`specs/**`或full repository。
 
-Compiler不得無差別掃描整個repo；discovery先由references、scope與bounded file index縮小候選。File content在通過path / size / sensitivity checks前不得送入Agent context。
+### 18.2 Initial Compilation
+
+1. Validate Work Item、repository identity / branch / commit，以及host提供的Initial Context Budget與Hard Safety Ceiling。
+2. 將實際bootstrap entrypoints記為Tier 0；entrypoint只提供routing，不把其引用內容遞迴展開。
+3. 加入Tier 1 Mandatory Governance：Constitution、Authority、Workflow、active Role、assigned Reviewer Profile when applicable、active Gates。
+4. 加入assigned Work Item本身，解析Requirement References與必要traceability edges。
+5. 只加入直接相關Feature Spec、UI-dependent task的Screen Spec / Design Contract，以及明確引用的Architecture / SDD sections。
+6. 只加入Work Item直接要求且位於Read Scope的source / test files；其他候選延後為Tier 2。
+7. Reviewer task加入exact reviewed artifact / manifest、Maker evidence與findings，並驗證SHA-256；Maker / Reviewer execution相同時停止。
+8. 在讀取內容前排除forbidden、sensitive、unrelated、unsupported-size、version-mismatch與out-of-repo paths，並記錄reason。
+9. Resolve canonical real path，read selected bytes once，calculate content SHA-256。
+10. 先依normalized path + section / anchor合併重複reference，再依content hash去除從AGENTS、Work Item、SDD或prompt重複注入的同一canonical content；保留最高Authority的canonical source，Manifest只保留一份entry與deterministic reason。
+11. 依Tier、context class、UTF-8 normalized path及section排序，套用Initial Context Budget。
+12. 超出initial budget時依序使用section extraction、remove duplicate、defer optional Tier 2與on-demand loading。剩餘Tier 1仍超出時回傳explicit `HNS-CTX-001`並要求縮小reference或由host在Hard Safety Ceiling內調整budget；不得silent truncate或summarize canonical requirement。
+13. 任何內容超過Hard Safety Ceiling一律fail closed。Canonical serialize manifest excluding `context_hash`，calculate hash，freeze。
+
+### 18.3 Section-Level Extraction
+
+可解析的heading、anchor或明確section reference必須優先產生section entry。例如Work Item引用`docs/harness_v0.1_SDD.md Section 6`時，只提供Section 6及維持語意所需的heading ancestry，不預設載入整份SDD。
+
+只有anchor無法解析、跨section normative dependency無法被明確列舉，或抽取後會失去規格完整性時，才能載入full document。每次fallback都必須在`full_document_fallback_reason`記錄deterministic reason並進入Audit；「方便」或「可能有用」不是有效理由。不得以模型摘要替代canonical section。
+
+### 18.4 Context Deduplication
+
+每個Manifest entry至少包含`path`、`section / anchor`、`content_sha256`、`reason`與`tier`。相同canonical content hash不得因多個reference、bootstrap prose或prompt重述而在Context Package重複出現；same path / section在同一repository commit出現不同hash視為concurrent modification並終止compile。
+
+### 18.5 On-Demand Loading
+
+```text
+request context
+→ verify Work Item Read Scope
+→ verify active Role
+→ verify effective Policy
+→ verify remaining Context Budget / Hard Safety Ceiling
+→ section-extract and deduplicate
+→ load or deny
+→ append audit evidence
+→ issue a new immutable context_hash
+```
+
+On-demand request不得擴張Write Scope、Role、Gate、tool permission或繞過Forbidden Scope。每次request、decision、path / section、reason、before / after context hash與budget delta都必須audit；拒絕或延後也需記錄。Agent不得直接讀取未進Manifest的額外內容。
+
+`TraceabilityIndex` 是read-only mapping of requirement / feature / screen / test IDs to canonical paths；unresolved required edge回傳`HNS-CTX-002`。相同repository commit、Work Item hash、governance hashes、traceability、budget與compiler version必須產生相同initial `context_hash`。
+
+Compiler不得無差別掃描整個repo；discovery先由references、scope與bounded file index縮小候選。File content在通過path、section、size、sensitivity與budget checks前不得送入Agent context。
 
 ## 19. Policy Compiler Design
 
@@ -1479,13 +1567,20 @@ adapters:
   preference: [codex, claude]
 audit:
   path: string
+context:
+  initial_max_files: 24
+  initial_max_sections: 64
+  initial_max_bytes: 1048576
+  hard_max_files: 200
+  hard_max_sections: 1000
+  hard_max_bytes: 20971520
 timeouts:
   process_seconds: number
 environment:
   allowlist: [NAME]
 ```
 
-Config禁止API key、GitHub PAT、Claude credential、OpenAI credential與其他secret value；只允許secure credential source identifier。Audit path必須是host-owned且不在Agent write scope。
+Initial Context Budget採small-by-default且可由host設定；project config與invocation只能縮小，不能超過host Hard Safety Ceiling。Core只使用bytes、file count與section count，不依賴vendor tokenizer。Config禁止API key、GitHub PAT、Claude credential、OpenAI credential與其他secret value；只允許secure credential source identifier。Audit path必須是host-owned且不在Agent write scope。
 
 ## 32. Environment Variables
 
@@ -1701,7 +1796,7 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 | Finding Registry | severity / status transitions、accepted-risk authority、open blocking query、append-only history |
 | Delivery Assurance Coordinator | candidate manifest、required reviews / gates、stale hash、open finding、release eligibility |
 | Dispatch Coordinator / Role Resolver | role-only selection、capability mismatch、no vendor authority、no bypass |
-| Context Compiler | mandatory order、traceability、exclusion、same hash、concurrent file drift |
+| Context Compiler | Tier 0 / 1 / 2、initial budget、section extraction / fallback reason、content deduplication、on-demand authorization / audit、same hash、concurrent file drift |
 | Policy Compiler | multi-source intersection、deny union、adapter shrink、conflict、stable hash |
 | Path Resolver | traversal、absolute、case、Unicode、symlink chain / cycle / swap fixture |
 | Command Classifier | argv、compound、pipe、redirect、subshell、quote、unknown command、env assignment |
@@ -1739,6 +1834,9 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 - Implementation Work Item → Implementer adapter → TECH / risk-required QA / Security reviews → Implementation Gate。
 - Delivery candidate → DELIVERY_ASSURANCE_REVIEWER → Delivery Assurance Gate → Release Gate。
 - Existing Project Change → no repo creation → delta Work Item。
+- Large fixture repo加入大量unrelated documents → identical Work Item initial Context Manifest不變。
+- Referenced Architecture / SDD section → section-only Context entry；unresolvable integrity case記錄full-document fallback reason。
+- Duplicate canonical content references → one Manifest entry；authorized on-demand request建立新context hash與audit evidence。
 - Gate failure / approval rejection / Audit failure propagation。
 
 ### 40.4 Security and Failure Tests
@@ -1756,6 +1854,7 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 - Required reviewer calculation；missing QA / Security review blocks applicable Gate。
 - `OPEN BLOCKING` finding blocks Delivery Assurance。
 - Delivery Assurance missing / failed blocks Release Gate。
+- On-demand context request超出Role、Read Scope、Policy或Hard Safety Ceiling時被拒絕且留下audit evidence。
 
 Fixtures必須synthetic且不含real token。Security regression test未通過不得release。
 
@@ -1781,6 +1880,10 @@ Fixtures必須synthetic且不含real token。Security regression test未通過�
 - `AC-HNS-018`：相同 canonical Risk inputs產生相同 Risk與 required Reviewer set；Agent無法降低。
 - `AC-HNS-019`：Risk-required QA / Security evidence缺失或存在 `OPEN BLOCKING` finding時，對應 Gate無法 PASS。
 - `AC-HNS-020`：缺少有效 `DELIVERY_ASSURANCE_GATE` PASS時，Release Gate無法 PASS。
+- `AC-HNS-021`：大型fixture repo增加大量unrelated documents時，同一Work Item的initial Context Manifest不得因此加入unrelated documents或改變context hash。
+- `AC-HNS-022`：可解析的Architecture / SDD section reference只載入referenced section與必要heading ancestry，不得預設載入full document。
+- `AC-HNS-023`：同一canonical content不得因AGENTS、Work Item、SDD、prompt或多個reference而重複出現在Context Package。
+- `AC-HNS-024`：On-demand context只能在active Role、Work Item Read Scope、effective Policy及Context Budget允許時加入，且request、decision與resulting context hash必須留下audit evidence。
 
 ## 42. Non-Functional Requirements
 
@@ -1791,18 +1894,35 @@ Fixtures必須synthetic且不含real token。Security regression test未通過�
 | Determinism | Same canonical Context / Policy / Risk / Review inputs and compiler version yield byte-identical artifact, assignment set and hash |
 | Auditability | Every execution has contiguous event sequence、source hashes、approval / gate evidence and immutable final record or explicit audit failure |
 | Portability | Core / schemas / ports run on selected Node LTS across supported OS；OS-specific enforcement isolated behind adapter and contract tests |
-| Performance | Bounds in section 43 enforced before content load；no unbounded repo scan or transcript accumulation |
+| Performance | Initial context small-by-default；Section 43 budgets在content delivery前enforced；no unbounded repo scan、duplicate canonical content或transcript accumulation |
 | Maintainability | Dependency direction architecture test passes；one schema / logger / error / exit registry；strict TypeScript build has zero errors |
 | Extensibility | New Agent / repository adapter implements port contract without core import of vendor package or Contract change |
 
 ## 43. Performance Boundary
 
-v0.1 defaults are safety bounds, configurable only within host policy ceilings：
+Core budget使用vendor-neutral bytes、file count與section count，不使用vendor tokenizer作為correctness dependency。
+
+### 43.1 Initial Context Budget
+
+Initial Context採small-by-default。下列是host secure defaults；host可依環境調整，但不得超過Hard Safety Ceiling，project / invocation只能縮小：
+
+| Initial Boundary | Default Target | Behavior When Exceeded |
+|---|---:|---|
+| Context files | 24 | Section extraction → deduplicate → defer Tier 2；mandatory Tier 1仍超過時explicit fail或由host調整budget |
+| Extracted sections | 64 | 保留direct references，defer optional Tier 2；不得改載full document |
+| Total context bytes | 1 MiB | 移除duplicate、defer optional content、改on-demand；不得silent truncate或summarize canonical requirement |
+
+Initial Context Budget是正常execution target，不是安全極限。Manifest必須記錄實際使用量、deferred entries與選擇原因。
+
+### 43.2 Hard Safety Ceiling
+
+Hard Safety Ceiling是任何initial或on-demand Context都不可超過的host boundary：
 
 | Boundary | Default | Behavior When Exceeded |
 |---|---:|---|
 | Indexed repository entries | 20,000 | Require narrower references / ignore rules；do not full-scan |
 | Context files | 200 | `CONTEXT_BUILD_FAILED` with largest contributors |
+| Extracted sections | 1,000 | Stop compile；require narrower references |
 | Single context file | 1 MiB | Exclude optional；required file causes explicit failure |
 | Total context bytes | 20 MiB | Stop compile；never truncate silently |
 | Work Item Markdown | 256 KiB | `WORK_ITEM_INVALID` |
@@ -1811,7 +1931,7 @@ v0.1 defaults are safety bounds, configurable only within host policy ceilings�
 | Audit bytes per execution | 100 MiB | Fail closed or approved external sink；do not drop security events |
 | Symlink resolution depth | 32 | Reject path |
 
-File index讀metadata first；content只在selection後讀。Large repo依canonical references、traceability與Work Item scope運作，不以「全部可能有用」為理由載入。
+File index讀metadata first；content只在selection後讀。Large repo依canonical references、traceability與Work Item scope運作，不以「全部可能有用」為理由載入。On-demand loading也受相同Hard Safety Ceiling與剩餘budget約束。
 
 ## 44. Data Retention
 
@@ -1845,7 +1965,7 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | 9 | Implement Claude adapter | `adapters/claude` capability mapping | Phase 6-7 + capability verification | Shared adapter contract suite and hard-boundary pilot pass |
 | 10 | Implement Project Intake | `intake`、`orchestration`、risk / review generation、proposal / session CLI | Phases 1、5、7 | Natural language → proposal / reviews / resume / cancel integration passes |
 | 11 | Implement Repo Provisioning | `repository`、`bootstrap`、GitHub adapter、transaction journal | Phases 1、5、7、10 | Mock provider transaction / partial failure / approval tests pass |
-| 12 | End-to-End Pilot | `dispatch` wiring、all CLI commands、packaging | Phases 1-11 | AC-HNS-001 through AC-HNS-020 pass in controlled pilot |
+| 12 | End-to-End Pilot | `dispatch` wiring、all CLI commands、packaging | Phases 1-11 | AC-HNS-001 through AC-HNS-024 pass in controlled pilot |
 
 每Phase以work branch / PR進`develop`，不直接改`main`。Adapter phase前必須完成對應blocking capability decision；未解決不可用prompt substitute。
 
@@ -1907,7 +2027,7 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | Project Intake Contract 14-15：Git / human approvals | GitIntegration / Approval components | Sections 28、37 | Branch policy + approval reuse tests |
 | Project Intake Contract 16-18：audit、failure、validation | Audit Recorder / Error Catalog | Sections 30、33-34、40-41 | Audit + failure + MVP acceptance |
 | Harness Contract 1-3：purpose、input、role | Input Validator / Role Resolver | Sections 4-7、17、21 | Input / role / profile unit tests |
-| Harness Contract 4：Context Compiler | Context Compiler | Section 18 | Determinism + missing context tests |
+| Harness Contract 4：Context Compiler | Context Compiler | Sections 5.3、18、31、43 | Tier / budget、section extraction、deduplication、on-demand authorization、determinism tests |
 | Harness Contract 5：Filesystem Boundary | Policy / Enforcement / Path Resolver | Sections 19-20、25 | Unauthorized write + escape security |
 | Harness Contract 6：Tool Boundary | Policy Compiler / Adapter | Sections 19、22-25 | Tool deny + capability contract |
 | Harness Contract 7：Command Boundary | Command Classifier / Enforcement | Sections 25-26 | Shell / restricted command security |
@@ -1918,7 +2038,7 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | Harness Contract 14-16：adapters / non-goals | AgentAdapter / Enforcement | Sections 22-25、45 | Shared adapter contract + capability fail |
 | Architecture Project Orchestration Plane | Intake + Risk + Review Assignment + Assurance components | Sections 3、8-16、35-37 | End-to-end orchestration integration |
 | Architecture Task Execution Plane | Runtime components | Sections 17-34 | Unit + contract + integration + security |
-| Architecture v0.1 Boundary | Full modular monolith | Sections 2-4、41-47 | AC-HNS-001..020 + architecture checks |
+| Architecture v0.1 Boundary | Full modular monolith | Sections 2-4、41-47 | AC-HNS-001..024 + architecture checks |
 | Work Item Contract v2 | Work Item Generator / Parser | Sections 5.2、6、16-17 | Canonical template / migration contract suite |
 | Role Accountability canonical governance | Review / Finding / Assurance modules | Sections 5.5、18-19、29-30、40 | Professional evidence + independence tests |
 
@@ -1942,3 +2062,4 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | 14. No code implementation started | PASS | Governance / design / plan / Work Items only；no runtime source、package或 install |
 | 15. Architecture / Contract conflict | NONE FOUND | Section 49 traceability; open questions are implementation choices |
 | 16. SDD approval separation | REVIEW REQUIRED | Status is `Review`; this Maker execution does not approve it |
+| 17. Context economy contract | PASS | Tier model、section extraction、content deduplication、on-demand audit、initial budget與hard ceiling位於Sections 5.3、18、31、40-43 |

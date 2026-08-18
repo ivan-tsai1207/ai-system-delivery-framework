@@ -32,7 +32,12 @@
 
 ## Read Scope
 
-- `.ai/**`
+- `.ai/CONSTITUTION.md`
+- `.ai/AUTHORITY.md`
+- `.ai/WORKFLOW.md`
+- `.ai/HARNESS_CONTRACT.md`
+- `.ai/roles/implementer.md`
+- `.ai/gates/implementation-gate.md`
 - `docs/harness_v0.1_SDD.md`
 - `work-items/HNS-CORE-001.md`
 - `work-items/HNS-CORE-002.md`
