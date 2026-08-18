@@ -1,11 +1,21 @@
 # Agentic SDLC Workflow
 
-本文件定義 ChatGPT、Claude、Codex 與其他 Agent 的交接流程，避免 Intent Debt 與 Context Drift。
+本文件定義 ChatGPT、Claude、Codex 與其他 Agent 的交接流程，避免 Intent Debt 與 Context Drift。新專案在進入正式規格與 Harness execution 前，依 `.ai/PROJECT_INTAKE_CONTRACT.md` 完成 intake 與 repository provisioning。
 
 ## 標準流程
 
 ```text
-使用者原始需求
+Natural Language Request
+  ↓
+Intent Classification
+  ↓
+Project Intake / Discovery
+  ↓
+Project Context / Project Proposal
+  ↓
+Human Repo Approval
+  ↓
+Repo Provisioning / Framework Bootstrap
   ↓
 ChatGPT / Product Architect：建立 Source of Truth
   ↓
@@ -29,6 +39,16 @@ PR / Review / Merge
   ↓
 Living Spec Update
 ```
+
+## New Project Intake
+
+- 使用者以自然語言提出新專案，不需手動建立 Work Item、指定 Role / Phase 或準備 Harness Execution Profile。
+- Intent 無法確認時先進行最小必要釐清，不得直接啟動 Implementer。
+- 建立 Project Repo 前必須呈現 Project Proposal，並取得使用者對 repo target 與 visibility 的明確核准。
+- 新 repo 預設 private；Framework Repo 與 Project Repo 必須分離。
+- Repo Provisioning 完成後，由系統建立內部 specification work item，交由 Harness 綁定 `PRODUCT_ARCHITECT`。
+- 初始規格通過 Spec Gate 後才能進入 Design；Design Gate 通過後才能建立 implementation work items。
+- Project Intake 負責 execution 前的 intake、initialization 與 orchestration；Harness 只負責特定 Agent task 的 runtime boundary，不決定產品需求。
 
 ## State 與 Delta
 
