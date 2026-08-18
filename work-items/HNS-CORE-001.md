@@ -8,8 +8,8 @@
 | Role | `IMPLEMENTER` |
 | Feature | `harness-core` |
 | Phase | `IMPLEMENTATION` |
-| Status | `TODO` |
-| Spec Version | `harness-v0.1-review` |
+| Status | `IN_PROGRESS` |
+| Spec Version | `harness-v0.1-approved-d98137c` |
 | Design Version | `N/A` |
 | Risk Class | `MEDIUM` |
 | Review Profile | `N/A` |
@@ -28,7 +28,7 @@
 - Screen IDs / Screen Specs：`N/A`
 - ADR：`N/A`
 - Architecture / SDD sections：`docs/harness_implementation_architecture.md` Sections 16-17；`docs/harness_v0.1_SDD.md` Sections 2-4、45-46
-- Review / Evidence references：Independent SDD approval evidence required before execution
+- Review / Evidence references：`docs/08_agent_reviews/review_log.md#rev-hns-sdd-001---harness-v01-sdd-independent-review`
 
 ## Read Scope
 
@@ -88,13 +88,14 @@
 
 ## Dependencies
 
-- Independent final approval of `docs/harness_v0.1_SDD.md`
+- `REV-HNS-SDD-001` PASS for the exact SDD at commit `d98137c13110ed2c29be3ae5399d5b9d0c9ea96e`
 
 ## Blockers
 
-- Harness v0.1 SDD must receive independent final approval before execution.
+- None. Independent SDD approval recorded as `REV-HNS-SDD-001`.
 
 ## Notes
 
 - FIRST IMPLEMENTATION WORK ITEM。
+- Approval evidence：`docs/08_agent_reviews/review_log.md#rev-hns-sdd-001---harness-v01-sdd-independent-review`。
 - 不依賴 Hard Enforcement、Codex / Claude Adapter capability或 GitHub Provisioning transport決策。

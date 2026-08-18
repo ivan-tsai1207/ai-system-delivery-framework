@@ -5,14 +5,15 @@
 | Field | Value |
 |---|---|
 | Document | Harness v0.1 Software Design Document |
-| Status | Review |
+| Status | Approved |
 | Scope | Implementation-level design for Project Orchestration Plane and Task Execution Plane |
 | Architecture | `docs/harness_implementation_architecture.md` |
 | Project Intake Contract | `.ai/PROJECT_INTAKE_CONTRACT.md` |
 | Harness Contract | `.ai/HARNESS_CONTRACT.md` |
 | Work Item Contract | `templates/Work_Item.md` |
 | Implementation | Not started |
-| Final Approval | Independent Review Required |
+| Final Approval | Independent Review PASS |
+| Approval Evidence | `docs/08_agent_reviews/review_log.md#rev-hns-sdd-001---harness-v01-sdd-independent-review` |
 
 ## 1. Document Role
 

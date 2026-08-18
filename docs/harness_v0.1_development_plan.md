@@ -4,13 +4,13 @@
 
 | Field | Value |
 |---|---|
-| Plan Status | Implementation Kickoff Candidate |
-| SDD Status | Review |
+| Plan Status | Implementation Active |
+| SDD Status | Approved |
 | Runtime Implementation | Not started |
-| Execution Blocker | Independent final approval of `docs/harness_v0.1_SDD.md` |
+| Execution Blocker | None for `HNS-CORE-001`; phase dependencies remain enforced |
 | First Implementation Work Item | `HNS-CORE-001` |
 
-本計畫只將 `docs/harness_v0.1_SDD.md` 第46節既有12個 phases整理成可管理 batches，不重新設計 Harness、改變 dependency或授權執行。Independent Reviewer核准 SDD並留下 evidence前，所有 Phase 1 Work Items均不可 dispatch。
+本計畫只將 `docs/harness_v0.1_SDD.md` 第46節既有12個 phases整理成可管理 batches，不重新設計 Harness或改變dependency。`REV-HNS-SDD-001`已核准exact reviewed SDD，現只授權依dependency順序啟動`HNS-CORE-001`；其他Work Item仍受各自dependency與Gate約束。
 
 ## Implementation Principles
 
@@ -50,7 +50,7 @@
 
 | Order | Work Item | Risk | Dependency | Purpose |
 |---:|---|---|---|---|
-| 1 | `HNS-CORE-001` | MEDIUM | Independent SDD approval | Bootstrap TypeScript Harness package |
+| 1 | `HNS-CORE-001` | MEDIUM | `REV-HNS-SDD-001` PASS | Bootstrap TypeScript Harness package |
 | 2 | `HNS-CORE-002` | LOW | HNS-CORE-001 | Implement Core Domain Types |
 | 3 | `HNS-CORE-003` | MEDIUM | HNS-CORE-001、002 | Implement Versioned Schema Registry |
 | 4 | `HNS-CORE-004` | LOW | HNS-CORE-001、002 | Implement Error and Exit Code Registry |
@@ -73,4 +73,4 @@ Dependency audit：它只需要 independently Approved SDD、Node.js / TypeScrip
 3. HNS-CORE-001 Work Item blocker被 Orchestrator依 evidence正式解除。
 4. 從最新 `develop`建立 implementation work branch。
 
-本次 Maker execution不得完成上述 approval、解除 blocker或宣告 framework implementation-ready。
+上述條件已由`REV-HNS-SDD-001`與本次authorized integration滿足；只解除`HNS-CORE-001`的approval blocker，不預先核准後續Work Item、Implementation Gate或release。
