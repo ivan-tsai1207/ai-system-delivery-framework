@@ -562,3 +562,91 @@ Candidate implementation file identities:
 Maker completion result：`READY_FOR_REVIEW`.
 
 Reviewer decision：`N/A`.
+
+## REV-HNS-CORE-002-TECH-002 - HNS-CORE-002 Technical Review R2
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-002-TECH-002` |
+| Execution ID | `REV-HNS-CORE-002-TECH-R2-20260818T175601Z` |
+| Work Item | `work-items/HNS-CORE-002-TECH-REVIEW-002.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `CP-HNS-CORE-002-REMEDIATION-CANDIDATE-20260818T174236Z` |
+| Reviewer Execution ID | `REV-HNS-CORE-002-TECH-R2-20260818T175601Z` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r2.md` |
+| Artifact Hash | `sha256:0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` |
+| Commit Hash | `2b96a9177b22258d58d2668e88c3872aa4828509` |
+| Timestamp | `2026-08-18T17:56:01Z` |
+
+### Specification References
+
+- Requirement IDs：`AC-HNS-CORE-002-001` through `AC-HNS-CORE-002-004`; `AC-HNS-CORE-002-TEST-FIX-001` through `AC-HNS-CORE-002-TEST-FIX-004`; `AC-HNS-CORE-002-TECH-REVIEW-002-001` through `AC-HNS-CORE-002-TECH-REVIEW-002-004`.
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 4, 5, 42, 46 Phase 1.
+- Architecture / SDD：`docs/harness_v0.1_SDD.md`; `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`; `work-items/HNS-CORE-002-TECH-REVIEW-002.md`.
+- Prior Review Evidence：`REV-HNS-CORE-002-TECH-001`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-002-TECH-002-01` | Repository preflight | Fresh clone from `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; `git rev-parse --show-toplevel`; `git fetch origin`; checkout `fix/hns-core-002-tech-findings`; remote inspection | Repository root `/private/tmp/hns-tech-review-tGkXhl/repo`; origin URL matched `ivan-tsai1207/ai-system-delivery-framework`; branch HEAD `fc9fd7f1703fc95bc0c6b4436f72973f8d444a6b` | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-02` | Lineage preflight | `git merge-base --is-ancestor` for preparation and candidate commits | Preparation commit `fc9fd7f1703fc95bc0c6b4436f72973f8d444a6b` and candidate commit `2b96a9177b22258d58d2668e88c3872aa4828509` are in branch lineage | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-03` | Required file identities | `test -f` for Work Item, manifest, domain source, and domain unit test | Required files exist: `work-items/HNS-CORE-002-TECH-REVIEW-002.md`, manifest, `harness/src/core/domain.ts`, `harness/tests/unit/core/domain.test.mjs` | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-04` | Manifest integrity | `sha256sum docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r2.md` | `0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-05` | Environment preflight | Temporary runtime installed outside repository; `node --version`; `npm --version` with `/tmp/hns-tech-review-tGkXhl/runtime/node_modules/.bin` first in `PATH` | Node `v24.19.0`; npm `11.17.0` | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-06` | Finding 001 closure | Code inspection of `freezeCoreValue` recursion-stack semantics plus runtime probe using `{ first: shared, second: shared }` and true self-cycle | Shared reference does not throw; `result.first === result.second`; `result.first === shared`; shared and result are frozen; true cycle throws `TypeError`; `finally` deletes from active traversal | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-07` | Finding 002 closure baseline | Code inspection plus runtime probes for primitives, arrays, plain objects, null-prototype object, nested `Date`, nested `Map`, nested `Set`, nested custom class, nested function, and symbol-keyed own property | Allowed values accepted; unsupported nested values throw `TypeError`; `Reflect.ownKeys` covers symbol-keyed own properties | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-08` | Accessor / Proxy immutability semantics | Runtime probes with accessor and proxy values returning fresh plain objects after `defineCoreValue` freezes the container | Fresh values returned after freeze are not frozen; new finding `FIND-HNS-CORE-002-TECH-004` opened | `FAILED` |
+| `REV-HNS-CORE-002-TECH-002-09` | Finding 003 closure | Inspected `harness/tests/unit/core/domain.test.mjs` | Exact `WORK_ITEM_STATUSES` assertion covers `TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `DONE`, `CANCELLED` | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-10` | Full domain contract review | Compared `harness/src/core/domain.ts` and tests to SDD Section 5 and Work Item Contract | 4 roles, 5 phases, 6 statuses, 4 risk classes, 6 reviewer profiles, 5 gate IDs, finding enums, distinct `ReviewDecision` and `GateResultStatus`, and required interfaces are present | `PASS` |
+| `REV-HNS-CORE-002-TECH-002-11` | Scope review | `git diff --name-status 76c69945d57ccf66869c0a81ab2e0b7ba155860c..2b96a9177b22258d58d2668e88c3872aa4828509`; source inspection | Candidate remediation changes only `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs`; no parser, filesystem I/O, process execution, persistence, adapter, runtime orchestration, vendor dependency, broad `any`, HNS-CORE-003, governance, SDD, Architecture, or unauthorized Work Item change | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Clean Install | `npm ci` in `harness/` using Node `v24.19.0` and npm `11.17.0` | `PASS` (`exit 0`) | `added 2 packages, and audited 3 packages`; `found 0 vulnerabilities` |
+| Build | `npm run build` | `PASS` (`exit 0`) | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` (`exit 0`) | `tsc --project tsconfig.json --noEmit` completed |
+| Unit / Smoke Test | `npm test` | `PASS` (`exit 0`) | Node test runner discovered root smoke tests and core unit tests: `tests 10`, `pass 10`, `fail 0`, `skipped 0`, `todo 0` |
+| Security Check | `npm audit --audit-level=high` | `PASS` (`exit 0`) | `found 0 vulnerabilities` |
+| Reviewer Runtime Probe | Inline `node --input-type=module` probe against built `dist/index.js` | `FAILED` for accessor / proxy immutability semantics | Probe confirmed old finding closures, then reproduced new mutable fresh-value issue after freeze |
+
+### Implementer Scope Evidence
+
+- Changed Files：`harness/src/core/domain.ts`, `harness/tests/unit/core/domain.test.mjs`.
+- Diff Scope：Remediation candidate commit `2b96a9177b22258d58d2668e88c3872aa4828509` is limited to HNS-CORE-002 domain source and domain unit test remediation for prior technical findings.
+- Unauthorized Change Check：No parser, filesystem I/O, process execution, persistence, adapter, runtime orchestration, vendor dependency, broad `any`, HNS-CORE-003 implementation, or unauthorized governance / SDD / Architecture change found.
+- Backward Compatibility：Domain package API remains vendor-neutral and side-effect-free.
+
+### Findings
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Requirement Reference | Description | Severity | Evidence Reference | Required Action | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `FIND-HNS-CORE-002-TECH-001` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `sha256:0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` | `AC-HNS-CORE-002-003`; SDD Section 5 immutable value output | R2 remediation correctly treats only the active recursion stack as circular. Acyclic shared references are accepted without cloning and genuine cycles throw `TypeError`. | `MAJOR` | `REV-HNS-CORE-002-TECH-002-06` | None | `RESOLVED` |
+| `FIND-HNS-CORE-002-TECH-002` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `sha256:0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` | HNS-CORE-002 immutable value contracts; SDD Section 5 immutable domain values | R2 remediation rejects nested `Date`, `Map`, `Set`, custom class, function, and symbol-keyed hidden mutable values; primitives, arrays, plain objects, and null-prototype plain objects remain accepted. | `MAJOR` | `REV-HNS-CORE-002-TECH-002-07` | None for the original non-plain object finding; see new accessor / proxy finding. | `RESOLVED` |
+| `FIND-HNS-CORE-002-TECH-003` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/tests/unit/core/domain.test.mjs` / `sha256:0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` | HNS-CORE-002 Scope: tests for allowed values; `AC-HNS-CORE-002-002`; `AC-HNS-CORE-002-003` | R2 remediation imports and asserts exact `WORK_ITEM_STATUSES` values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `DONE`, `CANCELLED`. | `MAJOR` | `REV-HNS-CORE-002-TECH-002-09` | None | `RESOLVED` |
+| `FIND-HNS-CORE-002-TECH-004` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `sha256:0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` | HNS-CORE-002 immutable value contracts; SDD Section 5 immutable domain values | `defineCoreValue` traverses property values but does not reject accessor descriptors or proxy accessor semantics. A getter can return one plain object during traversal, then return a different fresh mutable plain object after `Object.freeze` freezes the container; an accessor-backed proxy can do the same. This leaves a value reachable from a frozen domain object mutable after construction. | `MAJOR` | Runtime probe: after `defineCoreValue(accessorPlain)`, `Object.isFrozen(frozenAccessor.nested)` is `false`; after `defineCoreValue(proxyWithAccessor)`, `Object.isFrozen(frozenProxy.nested)` is `false` | Reject accessor properties / proxy-like dynamic object semantics or materialize values into data properties before freezing so all reachable values remain immutable after construction. | `OPEN` |
+
+### Known Limitations and Unresolved Issues
+
+- This review records a `TECH_REVIEWER` decision only. It does not execute `QA_REVIEWER`, pass `IMPLEMENTATION_GATE`, merge branches, or start HNS-CORE-003.
+- `npm ci` created ignored `harness/node_modules/` and build created ignored `harness/dist/` in the temporary review checkout; these were not staged or committed.
+- Existing findings are recorded as resolved in this R2 evidence only; prior review evidence is not modified.
+
+### Result
+
+Reviewer decision：`REQUEST_CHANGES`.
+
+### Integrity and Independence Validation
+
+- [x] Fresh clone / checkout preflight passed for the assigned repository and branch.
+- [x] Manifest hash matches the expected reviewed artifact hash.
+- [x] Maker and Reviewer execution IDs are distinct.
+- [x] Reviewer Profile was assigned by `work-items/HNS-CORE-002-TECH-REVIEW-002.md`.
+- [x] Reviewer execution did not modify the reviewed manifest or reviewed implementation files.
+- [x] Required independent review evidence and findings were appended only to `docs/08_agent_reviews/review_log.md`.
