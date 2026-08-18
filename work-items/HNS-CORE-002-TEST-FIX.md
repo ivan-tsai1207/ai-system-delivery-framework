@@ -89,7 +89,7 @@
 
 - [ ] `AC-HNS-CORE-002-TEST-FIX-001`：`npm test` executes the existing root smoke test file.
 - [ ] `AC-HNS-CORE-002-TEST-FIX-002`：`npm test` executes `tests/unit/core/domain.test.mjs`.
-- [ ] `AC-HNS-CORE-002-TEST-FIX-003`：Validation reports 8 passed and 0 failed tests.
+- [ ] `AC-HNS-CORE-002-TEST-FIX-003`：Default `npm test` must automatically execute the existing root smoke tests and all HNS-CORE-002 core unit tests, and all discovered tests must PASS with 0 failed.
 - [ ] `AC-HNS-CORE-002-TEST-FIX-004`：No runtime, parser, adapter, SDD, Architecture, or HNS-CORE-002 source/test implementation files are modified.
 
 ## Required Gates
@@ -108,3 +108,8 @@
 
 - Previous TECH_REVIEW false positives for missing `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs` were caused by reviewer workspace state, not implementation defects.
 - The previous TECH_REVIEW execution is not valid final review evidence if its workspace had no `.git`, did not contain the HNS-CORE-002 implementation files, and used unsupported Node/npm versions.
+- The original 8-test count was a snapshot from the test-discovery remediation.
+- Later `REV-HNS-CORE-002-TECH-001` findings required additional regression tests.
+- Therefore the exact test count is no longer a stable acceptance contract.
+- This update only corrects stale test-count wording.
+- This update does not change product, domain contract, or implementation scope.

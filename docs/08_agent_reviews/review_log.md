@@ -483,3 +483,82 @@ GateResult：`N/A`; `IMPLEMENTATION_GATE` remains pending.
 - [x] Reviewer execution未修改受審 artifact。
 - [x] Required evidence與 findings已寫入受控 audit / review log。
 - [x] Artifact變更後舊 PASS需標示失效或 superseded。
+
+---
+
+## RCE-HNS-CORE-002-REMEDIATION-R2-001 - Remediation Candidate Role Completion Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-002-REMEDIATION-R2-001` |
+| Execution ID | `CP-HNS-CORE-002-REVIEW-PREP-R2-20260818T174236Z` |
+| Work Item | `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md` |
+| Role | Remediation candidate evidence prepared by `CONTROL_PLANE_PREPARATION` |
+| Review Profile | `N/A` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `CP-HNS-CORE-002-REMEDIATION-CANDIDATE-20260818T174236Z` |
+| Reviewer Execution ID | `N/A` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r2.md` |
+| Artifact Hash | `0bde3d45f6328c083a387c9de6c8e365d9c075966dbf213fcd3b957785dc6418` |
+| Implementation Commit | `2b96a9177b22258d58d2668e88c3872aa4828509` |
+| Timestamp | `2026-08-18T17:42:36Z` |
+| Result | `READY_FOR_REVIEW` |
+
+### Specification References
+
+- Requirement IDs：`AC-HNS-CORE-002-001` through `AC-HNS-CORE-002-004`; `AC-HNS-CORE-002-TEST-FIX-001` through `AC-HNS-CORE-002-TEST-FIX-004`
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 4、5、42、46 Phase 1
+- Screen Specs：`N/A`
+- Architecture / SDD：`docs/harness_v0.1_SDD.md`; `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`
+
+### Repository and Environment Evidence
+
+| Check | Evidence | Result |
+|---|---|---|
+| Repository preflight | Clean clone from `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; `git fetch origin`; checkout `fix/hns-core-002-tech-findings`; `git rev-parse HEAD` = `2b96a9177b22258d58d2668e88c3872aa4828509`; required files present | `PASS` |
+| Environment | `node --version` = `v24.19.0`; `npm --version` = `11.17.0` via temporary command execution environment | `PASS` |
+| Clean install | `npm ci` | `PASS`; added 2 packages; audited 3 packages; found 0 vulnerabilities |
+| Build | `npm run build` | `PASS`; `tsc --project tsconfig.json` exited `0` |
+| Typecheck | `npm run typecheck` | `PASS`; `tsc --project tsconfig.json --noEmit` exited `0` |
+| Default test | `npm test` | `PASS`; command executed `tests/*.test.mjs` and `tests/unit/core/*.test.mjs`; 10 tests, 10 pass, 0 fail, 0 skipped, 0 todo |
+| Security audit | `npm audit --audit-level=high` | `PASS`; found 0 vulnerabilities |
+
+### Changed Files and Exact Hashes
+
+Candidate implementation commit `2b96a9177b22258d58d2668e88c3872aa4828509` changed:
+
+- `harness/src/core/domain.ts`
+- `harness/tests/unit/core/domain.test.mjs`
+
+Candidate implementation file identities:
+
+| Path | Git Blob | SHA-256 |
+|---|---|---|
+| `harness/src/core/domain.ts` | `1e71a839bb520e2fc2fb0fea6a61c7265a49dfe2` | `c6e76e7b32430415c4ecccbdcae9d269a6872620075d62c4a6cf993f80238811` |
+| `harness/src/index.ts` | `352642b371004e83c1600663f63d9669e2918dcb` | `cce34c3e2595601772d3ef6ce59fe16510f4477a8c85409a2b1c49e7149743a5` |
+| `harness/tests/unit/core/domain.test.mjs` | `933f69055ec0f525ce806c9796b92a7df34813c7` | `ef1f13a0615f039c136adb65447e87a99fa86b3149a878afa09393b555dee18a` |
+| `harness/package.json` | `bacbf3f93170d4098f97f269259a198a75491edf` | `bb8db537032ed1c9471a61c9912db04831e3064c368cc976f6bdf90f2229db9c` |
+
+### Remediation Candidate Mapping
+
+| Prior Finding | Candidate Evidence | Status |
+|---|---|---|
+| `FIND-HNS-CORE-002-TECH-001` | Candidate adds shared-reference regression coverage and implementation changes intended to allow acyclic shared references while rejecting true circular references. | `OPEN` pending independent review |
+| `FIND-HNS-CORE-002-TECH-002` | Candidate adds rejection coverage for unsupported mutable or non-plain objects including `Date`, `Map`, `Set`, and custom class instances. | `OPEN` pending independent review |
+| `FIND-HNS-CORE-002-TECH-003` | Candidate adds explicit `WORK_ITEM_STATUSES` exact-value coverage. | `OPEN` pending independent review |
+
+### Implementer Self Review
+
+- Scope verification：Candidate implementation delta is limited to `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs`.
+- No parser, I/O, process execution, adapter, orchestration, SDD, Architecture, governance, or unrelated work item implementation scope was changed by candidate commit `2b96a9177b22258d58d2668e88c3872aa4828509`.
+- Default `npm test` discovers both root smoke tests and all HNS-CORE-002 core unit tests.
+- This evidence does not mark any finding `RESOLVED`.
+- This evidence does not pass `IMPLEMENTATION_GATE`.
+
+### Result
+
+Maker completion result：`READY_FOR_REVIEW`.
+
+Reviewer decision：`N/A`.

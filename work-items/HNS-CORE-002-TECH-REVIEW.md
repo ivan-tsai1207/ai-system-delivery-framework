@@ -8,7 +8,7 @@
 | Role | `REVIEWER` |
 | Feature | `harness-core` |
 | Phase | `REVIEW` |
-| Status | `TODO` |
+| Status | `DONE` |
 | Spec Version | `harness-v0.1-review` |
 | Design Version | `N/A` |
 | Risk Class | `LOW` |
