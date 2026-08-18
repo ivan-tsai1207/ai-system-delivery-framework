@@ -8,7 +8,7 @@
 | Role | `REVIEWER` |
 | Feature | `harness-core` |
 | Phase | `REVIEW` |
-| Status | `TODO` |
+| Status | `CANCELLED` |
 | Spec Version | `harness-v0.1-review` |
 | Design Version | `N/A` |
 | Risk Class | `LOW` |
@@ -116,3 +116,5 @@
 ## Notes
 
 - QA reviewer write scope is limited to `docs/08_agent_reviews/review_log.md`.
+- Cancelled because the reviewed R2 artifact is stale and this QA review was never executed.
+- Superseded by R3 QA assignment `work-items/HNS-CORE-002-QA-REVIEW-002.md`.
