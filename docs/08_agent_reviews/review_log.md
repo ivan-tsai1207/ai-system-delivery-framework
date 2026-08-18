@@ -304,3 +304,90 @@ None.
 - HNS-CORE-002 was not started.
 - No merge from `main` or any other branch was performed.
 - Harness implementation files were not modified after the reviewed implementation commit.
+
+---
+
+## RCE-HNS-CORE-002-LINEAGE-001 - Control Plane Preparation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-002-LINEAGE-001` |
+| Execution ID | `CP-HNS-CORE-002-REVIEW-PREP-20260818T172636Z` |
+| Work Item | `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`; `work-items/HNS-CORE-002-TECH-REVIEW.md` |
+| Role | `IMPLEMENTER` lineage evidence prepared by `CONTROL_PLANE_PREPARATION` |
+| Review Profile | `N/A` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `CP-HNS-CORE-002-IMPLEMENTATION-LINEAGE` |
+| Reviewer Execution ID | `N/A` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md` |
+| Artifact Hash | `3dcd349f370c4f30a5c9a5cad44d788dc4641b09af62ae92a30ec83d0de98013` |
+| Commit Hash | `e35aea8ac5c79f0ed026019d16df9bed598e73a1` |
+| Timestamp | `2026-08-18T17:26:36Z` |
+
+### Specification References
+
+- Requirement IDs：`N/A`
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 4、5、42、46 Phase 1
+- Screen Specs：`N/A`
+- Architecture / SDD：`docs/harness_v0.1_SDD.md`; `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `RCE-HNS-CORE-002-LINEAGE-001-01` | Candidate lineage recorded | Manifest binds base, original implementation, control-plane remediation WI, and remediation implementation commits | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md` | `PASS` |
+| `RCE-HNS-CORE-002-LINEAGE-001-02` | Reviewed file identities recorded | Git blob IDs and SHA-256 values recorded for reviewed implementation files | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md#reviewed-file-identities` | `PASS` |
+| `RCE-HNS-CORE-002-LINEAGE-001-03` | Scope separation recorded | Manifest separates HNS-CORE-002 implementation, control-plane work item creation, and test discovery remediation | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md` | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Typecheck | Not run during control-plane preparation | `NOT_APPLICABLE` | Formal reviewer execution must run validation under required Node/npm environment. |
+| Lint | Not available during control-plane preparation | `NOT_APPLICABLE` | Formal reviewer execution must record available validation. |
+| Unit Test | Not run during control-plane preparation | `NOT_APPLICABLE` | No execution fact is claimed by this preparation evidence. |
+| Integration Test | Not run during control-plane preparation | `NOT_APPLICABLE` | No execution fact is claimed by this preparation evidence. |
+| Build | Not run during control-plane preparation | `NOT_APPLICABLE` | Formal reviewer execution must run validation under required Node/npm environment. |
+| Security Check | Not run during control-plane preparation | `NOT_APPLICABLE` | Formal reviewer execution must run `npm audit --audit-level=high`. |
+
+### Implementer Scope Evidence
+
+- Changed Files：
+  - `harness/src/core/domain.ts`
+  - `harness/src/index.ts`
+  - `harness/tests/unit/core/domain.test.mjs`
+  - `work-items/HNS-CORE-002-TEST-FIX.md`
+  - `harness/package.json`
+- Diff Scope：
+  - `f165ac83811b46ac4dc7143296f5758694d6e30f` to `e54950ede6677ee760905a734f4418968bb4a583`：HNS-CORE-002 implementation files.
+  - `e54950ede6677ee760905a734f4418968bb4a583` to `492621fb2533cf0c401d86a0469e38964a737b27`：control-plane remediation work item only.
+  - `492621fb2533cf0c401d86a0469e38964a737b27` to `e35aea8ac5c79f0ed026019d16df9bed598e73a1`：test discovery package script only.
+- Unauthorized Change Check：Deferred to independent `TECH_REVIEWER`; this preparation evidence records commit-bound lineage only.
+- Backward Compatibility：Deferred to independent `TECH_REVIEWER`.
+
+### Findings
+
+No findings are created by control-plane preparation.
+
+### Known Limitations and Unresolved Issues
+
+- Known Limitations：This evidence does not claim build, typecheck, unit test, or audit success.
+- Unresolved Issues：Independent `TECH_REVIEWER` execution is still required.
+- Accepted Risk References：`N/A`
+
+### Result
+
+Maker completion result：`READY_FOR_REVIEW`.
+
+Reviewer decision：`N/A`.
+
+### Integrity and Independence Validation
+
+- [x] Artifact hash與實際 reviewed version一致。
+- [x] Maker與 final Checker execution ID不同 by planned reviewer identity requirement.
+- [x] Reviewer Profile由 control-plane review work item 指派為 `TECH_REVIEWER`.
+- [x] Reviewer execution尚未開始；受審 artifact未由 reviewer 修改。
+- [x] Required preparation evidence已寫入受控 review log。
+- [x] Artifact變更後需重新產生 manifest hash與 independent review evidence。
