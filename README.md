@@ -58,6 +58,7 @@ Code
 - `.ai/WORKFLOW.md`：ChatGPT / Claude / Codex 交接流程。
 - `.ai/roles/`：角色邊界。
 - `.ai/gates/`：Spec / Design / Implementation / Release Gate。
+- `templates/PRODUCT_VISION.md`：Product Vision 模板。
 - `templates/Feature_Spec.md`：Living Feature Spec 模板。
 - `templates/Screen_Spec.md`：UX Contract / Screen Spec 模板。
 - `templates/Design_Source_Map.md`：Figma、Claude design、HTML prototype 等設計來源整理模板。
@@ -81,22 +82,28 @@ Code
 project-name/
   .ai/
   docs/
-    PRODUCT_VISION.md
     00_index.md
     01_sources/
     02_product/
-    03_design/
+      PRODUCT_VISION.md
+      PRD.md
+    03_requirements/
+      SRS.md
     04_system/
+      ARCHITECTURE.md
+      SDD.md
     05_decisions/
+      ADR-*.md
     06_risks/
     07_open_questions/
     08_agent_reviews/
     09_session_logs/
-  specs/
-  design/
-  work-items/
-  decisions/
-  traceability/
+  specs/<feature>/spec.md
+  design/<feature>/
+    Design_Source_Map.md
+    screens/<SCREEN-ID>.md
+  work-items/<WORK-ITEM-ID>.md
+  traceability/traceability.yaml
   README.md
   AGENTS.md
 ```

@@ -5,7 +5,7 @@
 ## 共用原則
 
 - 本 repo 是 AI 系統開發專案的規則與流程來源。
-- `AGENTS.md` 是 agent 主要規則入口。
+- `AGENTS.md` 是 agent repository entrypoint，不是最高治理權威。
 - `.ai/` 是 Agentic Substrate 治理層，定義憲法、權威順序、工作流、角色邊界與 Gate。
 - `LLM_OPERATING_RULES.md` 是跨 LLM 通用規則。
 - `skills/` 是可重用工作流說明。
@@ -26,7 +26,7 @@
 使用方式：
 
 - 在 Codex 工作目錄放置或引用本 repo 的 `AGENTS.md`。
-- 若本 repo 是目前工作目錄，Codex 會依 `AGENTS.md` 作為專案規則。
+- 若本 repo 是目前工作目錄，Codex 先由 `AGENTS.md` 進入，再依 `.ai/AUTHORITY.md` 判斷規則優先順序。
 - 重複性流程可再整理為正式 Codex Skill。
 
 ## Claude / Claude Code
@@ -43,7 +43,7 @@
 
 使用方式：
 
-- 將 `CLAUDE.md` 作為 Claude 專用入口。
+- 將 `CLAUDE.md` 作為 Claude 專用入口；載入後仍以 `.ai/CONSTITUTION.md` 為最高治理權威。
 - 若 Claude 環境支援 project knowledge，加入 `AGENTS.md`、`LLM_OPERATING_RULES.md`、`skills/README.md` 與常用 skills。
 - 若 Claude 環境無法自動讀 repo，將 `docs/llm_bootstrap_prompt.md` 貼入對話開頭。
 
@@ -60,7 +60,7 @@
 
 使用方式：
 
-- 將 `docs/llm_bootstrap_prompt.md` 放入 System Instructions 或對話開頭。
+- 將 `docs/llm_bootstrap_prompt.md` 放入 System Instructions 或對話開頭，並依其指示載入 `.ai/` 治理層。
 - 若 context 允許，再加入 `AGENTS.md` 與相關 skills。
 - 不要假設 Google AI Studio 會自動讀取 repo 檔案；需明確貼入或透過工具提供內容。
 
@@ -83,7 +83,7 @@
 
 | 工具 | 主要入口 | 適合用途 |
 |---|---|---|
-| Codex | `AGENTS.md` | Repo 工作、文件維護、程式實作、Git workflow |
+| Codex | `AGENTS.md`（entrypoint） | Repo 工作、文件維護、程式實作、Git workflow |
 | Claude / Claude Code | `CLAUDE.md` | 長文規劃、需求整理、文件審查、程式協作 |
 | Google AI Studio / Gemini | `LLM_OPERATING_RULES.md` + bootstrap prompt | prompt-driven 規劃、原型討論、模型測試 |
 | 其他 LLM | bootstrap prompt | 手動載入規則後執行特定任務 |
@@ -94,4 +94,5 @@
 - Codex 專用或 agent 工作目錄規則寫入 `AGENTS.md`。
 - Claude 專用入口或載入提醒寫入 `CLAUDE.md`。
 - Agentic Substrate 治理規則寫入 `.ai/`。
+- Canonical project paths 的權威定義來自 `.ai/AUTHORITY.md` 與 `docs/project_repo_structure.md`；其他文件若列出路徑，只能同步反映這兩份定義，不得建立第二套規則。
 - 工具使用方式改變時，更新本文件。

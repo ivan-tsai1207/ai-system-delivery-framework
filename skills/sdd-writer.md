@@ -5,6 +5,11 @@
 - MVP / Standard / Formal 全部預設啟動。
 - 作為系統開發必要文件。
 
+## 輸出
+
+- Canonical output path：`docs/04_system/SDD.md`
+- 使用 `templates/SDD.md` 作為格式基礎。
+
 ## 最低內容
 
 - 架構。
@@ -14,4 +19,3 @@
 - 資料流。
 - 安全。
 - 部署考量。
-

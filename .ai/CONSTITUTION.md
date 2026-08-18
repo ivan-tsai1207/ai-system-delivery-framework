@@ -8,6 +8,7 @@
 - ChatGPT、Claude、Codex 與其他 Agent 都不是 Source of Truth，只是依角色執行工作的 worker。
 - Agent 不得用對話中的臨時推論覆蓋 repo 中已確認的規格。
 - 若使用者口頭要求與 repo 規格衝突，必須指出衝突並請使用者確認是否更新規格。
+- Human approval、ADR 或 Change Request 只有在內容已寫回 canonical spec 後，才能改變下游 Agent 的執行依據。
 
 ## 禁止自行新增
 
@@ -30,7 +31,7 @@
 
 1. 停止擴張實作或設計。
 2. 明確列出缺少的規格。
-3. 建立或建議 `Change_Request.md`。
+3. 建立或建議 Change Request，並依 `.ai/AUTHORITY.md` 的狀態流程處理。
 4. 等使用者或授權角色確認後再繼續。
 
 ## Done 的最低條件

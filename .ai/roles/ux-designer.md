@@ -9,7 +9,7 @@
 
 ## 可寫入
 
-- `design/**`
+- `design/<feature>/**`
 - `work-items/DESIGN-*.md`
 - `traceability/**` 中與 design 對應的項目
 
@@ -18,9 +18,10 @@
 - `src/**`
 - `specs/**`
 - `migrations/**`
-- `docs/PRD.md`
-- `docs/ARCHITECTURE.md`
-- `docs/SDD.md`
+- `docs/02_product/PRD.md`
+- `docs/03_requirements/SRS.md`
+- `docs/04_system/ARCHITECTURE.md`
+- `docs/04_system/SDD.md`
 
 ## 必須停止的情況
 

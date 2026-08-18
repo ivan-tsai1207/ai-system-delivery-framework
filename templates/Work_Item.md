@@ -1,5 +1,7 @@
 # Work Item
 
+Canonical path：`work-items/<WORK-ITEM-ID>.md`
+
 ## Metadata
 
 | 欄位 | 內容 |

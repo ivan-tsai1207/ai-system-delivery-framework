@@ -1,5 +1,7 @@
 # SRS
 
+Canonical path：`docs/03_requirements/SRS.md`
+
 ## SRS Metadata
 
 | 欄位 | 內容 |
@@ -58,4 +60,3 @@
 ## 22. 未解問題
 
 ## 23. 參考資料
-

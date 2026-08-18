@@ -9,6 +9,7 @@
 
 ## 分級規則
 
-- MVP 使用 `Mini_PRD.md`，不強制完整 PRD。
+- 所有模式的 PRD canonical output path 都是 `docs/02_product/PRD.md`。
+- MVP 使用 `templates/Mini_PRD.md` 產出精簡內容，不建立第二個 PRD 路徑。
 - Standard 依專案複雜度使用完整或精簡 PRD。
 - Formal 預設使用完整 PRD。

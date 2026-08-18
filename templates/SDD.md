@@ -1,5 +1,7 @@
 # SDD
 
+Canonical path：`docs/04_system/SDD.md`
+
 ## SDD Metadata
 
 | 欄位 | 內容 |
@@ -61,4 +63,3 @@
 ## 23. AI 評估與驗證 (AI Evaluation & Validation)
 
 ## 24. 附錄與參考資料 (Appendix & References)
-

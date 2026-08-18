@@ -1,5 +1,7 @@
 # Feature Specification
 
+Canonical path：`specs/<feature>/spec.md`
+
 ## Metadata
 
 | 欄位 | 內容 |
@@ -10,8 +12,10 @@
 | Status | Draft / Review / Approved / Deprecated |
 | Owner |  |
 | Last Updated |  |
-| Related PRD |  |
-| Related Architecture / SDD |  |
+| Related PRD | `docs/02_product/PRD.md` |
+| Related SRS | `docs/03_requirements/SRS.md` |
+| Related Architecture | `docs/04_system/ARCHITECTURE.md` |
+| Related SDD | `docs/04_system/SDD.md` |
 
 ## 1. Context
 

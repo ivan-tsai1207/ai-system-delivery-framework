@@ -1,5 +1,7 @@
 # Mini PRD
 
+Canonical output path：`docs/02_product/PRD.md`
+
 ## 1. 專案背景
 
 ## 2. MVP 目標
@@ -21,4 +23,3 @@
 ## 10. 未解問題
 
 ## 11. 參考資料
-

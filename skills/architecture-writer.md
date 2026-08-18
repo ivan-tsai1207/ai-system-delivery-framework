@@ -7,7 +7,7 @@
 
 ## 輸出
 
-- `backend_architecture.md`
-- `cloud_architecture.md`
-- 必要時產出 `data_model.md`、`api_spec.md`
-
+- Canonical architecture：`docs/04_system/ARCHITECTURE.md`
+- 支援文件：`docs/04_system/backend_architecture.md`
+- 支援文件：`docs/04_system/cloud_architecture.md`
+- 必要時產出 `docs/04_system/data_model.md`、`docs/04_system/api_spec.md`

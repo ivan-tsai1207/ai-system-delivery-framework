@@ -1,5 +1,7 @@
 # Screen Specification
 
+Canonical path：`design/<feature>/screens/<SCREEN-ID>.md`
+
 ## Metadata
 
 | 欄位 | 內容 |

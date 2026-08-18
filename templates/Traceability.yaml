@@ -3,8 +3,8 @@
 REQ-EXAMPLE-001:
   specs:
     - specs/example/spec.md
-  screens:
-    - SCR-EXAMPLE-001
+    screens:
+      - design/example/screens/SCR-EXAMPLE-001.md
   api:
     - GET /api/v1/example
   tests:

@@ -1,5 +1,7 @@
 # PRD
 
+Canonical path：`docs/02_product/PRD.md`
+
 ## PRD Metadata
 
 | 欄位 | 內容 |
@@ -65,4 +67,3 @@
 ## 26. Open Questions
 
 ## 27. References
-

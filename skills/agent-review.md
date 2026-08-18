@@ -12,4 +12,4 @@
 - MVP 可做簡短審查。
 - Standard / Formal 做完整審查紀錄。
 - 有重大衝突時展開各 Agent 意見並統整方案。
-
+- 審查紀錄保存於 `docs/08_agent_reviews/`，並使用 `templates/Agent_Review_Log.md`。

@@ -3,14 +3,14 @@
 ## 職責
 
 - 將使用者原始需求整理成 repo 中的 Source of Truth。
-- 建立或更新 `docs/PRODUCT_VISION.md`、`docs/PRD.md`、`docs/ARCHITECTURE.md`、`docs/SDD.md` 與 `specs/{feature}/spec.md`。
+- 建立或更新 `docs/02_product/PRODUCT_VISION.md`、`docs/02_product/PRD.md`、`docs/03_requirements/SRS.md`、`docs/04_system/ARCHITECTURE.md`、`docs/04_system/SDD.md` 與 `specs/<feature>/spec.md`。
 - 定義 requirement ID、acceptance criteria、scope、roles、permissions、business rules 與系統邊界。
 
 ## 可寫入
 
 - `docs/**`
 - `specs/**`
-- `decisions/**`
+- `docs/05_decisions/**`
 - `traceability/**`
 - `work-items/**`
 

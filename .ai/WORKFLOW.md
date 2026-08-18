@@ -9,7 +9,7 @@
   ↓
 ChatGPT / Product Architect：建立 Source of Truth
   ↓
-PRODUCT_VISION / PRD / ARCHITECTURE / FEATURE SPEC
+PRODUCT_VISION / PRD / SRS / ARCHITECTURE / SDD / FEATURE SPEC
   ↓
 SPEC GATE
   ↓
@@ -32,8 +32,8 @@ Living Spec Update
 
 ## State 與 Delta
 
-- `docs/PRD.md`、`docs/ARCHITECTURE.md`、`docs/SDD.md`、`specs/{feature}/spec.md` 描述系統應該是什麼。
-- `work-items/*.md` 描述這一次要改什麼。
+- `docs/02_product/PRODUCT_VISION.md`、`docs/02_product/PRD.md`、`docs/03_requirements/SRS.md`、`docs/04_system/ARCHITECTURE.md`、`docs/04_system/SDD.md`、`specs/<feature>/spec.md` 描述系統應該是什麼。
+- `work-items/<WORK-ITEM-ID>.md` 描述這一次要改什麼。
 - Work item 不應重複整份規格，只引用相關 State 文件與版本。
 
 ## 交接規則
@@ -62,7 +62,13 @@ Codex Implementation
 規則：
 
 - Raw design source 不能直接成為 Source of Truth。
-- Raw design source 不得覆蓋 Product Vision、PRD、Architecture / SDD 或 Feature Spec。
+- Raw design source 不得覆蓋 canonical Product Vision、PRD、SRS、Architecture、SDD 或 Feature Spec。
 - Claude design output 與 HTML prototype 只能作為 design input、visual reference 或 implementation reference。
-- 交給 Codex 實作前，必須先轉成 `design/screens/*.md`、`design/DESIGN_SYSTEM.md`、`design/design-tokens.json` 或其他明確 Design Contract。
+- 交給 Codex 實作前，必須先登錄於 `design/<feature>/Design_Source_Map.md`，並轉成 `design/<feature>/screens/<SCREEN-ID>.md` 或其他明確 Design Contract。
 - 若 design source 包含未授權功能、API、欄位、角色、權限或流程，必須提出 Change Request。
+
+## Canonical Spec Update
+
+- Human approval、Accepted ADR 與 Approved Change Request 都必須寫回 canonical spec，才可供下游 Agent 執行。
+- Change Request 不得取代正式規格；其狀態與寫回流程依 `.ai/AUTHORITY.md`。
+- 發現上下層規格衝突時，停止受影響工作並回報 `SPEC CONFLICT`。

@@ -6,9 +6,9 @@
 
 ## 檢查項目
 
-- Figma、Claude design output、HTML prototype 或其他 raw design source 已記錄於 Design Source Map。
+- Figma、Claude design output、HTML prototype 或其他 raw design source 已記錄於 `design/<feature>/Design_Source_Map.md`。
 - Raw design source 已轉成 Screen Spec / UX Contract，不直接作為 Source of Truth。
-- 每個 screen 有 Screen ID。
+- 每個 screen 有 Screen ID，並保存於 `design/<feature>/screens/<SCREEN-ID>.md`。
 - 每個 action 可追溯到 requirement 或 feature spec。
 - Role visibility 與 permission 一致。
 - API binding 不超出既有 API contract。

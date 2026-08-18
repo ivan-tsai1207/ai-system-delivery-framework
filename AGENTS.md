@@ -2,24 +2,29 @@
 
 本文件是 AI 系統開發專案的總規則，給 Codex、Claude Code 與類似 agent 工具直接讀取。
 
-## 0. Agentic Substrate 讀取順序
+## 0. Agentic Substrate 入口與讀取順序
 
 開始任何系統開發、需求整理、UI/UX 設計、程式實作或審查前，必須先讀取：
 
 1. `.ai/CONSTITUTION.md`
 2. `.ai/AUTHORITY.md`
 3. `.ai/WORKFLOW.md`
-4. `docs/PRODUCT_VISION.md`
-5. 與任務相關的 `specs/{feature}/spec.md`、`design/**`、`work-items/**`
+4. `.ai/roles/<active-role>.md`
+5. `.ai/gates/<active-gate>.md`
+6. `docs/02_product/PRODUCT_VISION.md`
+7. 與任務相關的 canonical specs、design contract 與 work item
 
-若上述文件在目標專案尚不存在，需依 `templates/` 建立或詢問使用者是否建立。
+`AGENTS.md` 是 repository entrypoint，不是最高治理權威。治理規則以 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md` 與 `.ai/WORKFLOW.md` 為準。
+
+若專案規格在目標專案尚不存在，需依 `templates/` 建立或詢問使用者是否建立；Framework repo 本身不建立專案實例文件。
 
 核心原則：
 
 - Git repo 內的規格是 Source of Truth。
 - ChatGPT、Claude、Codex 與其他 Agent 都不是 Source of Truth。
-- 低層級文件、work item、user prompt 或 Agent 假設不得覆蓋高層級規格。
+- 低層級文件、work item、raw design source、runtime prompt 或 Agent 假設不得覆蓋高層級規格。
 - 規格不足時提出 Change Request，不得自行新增未授權需求。
+- 發生規格衝突時停止並回報 `SPEC CONFLICT`。
 
 ## 1. 語言與溝通
 
@@ -109,9 +114,9 @@
 4. 產生問題清單。
 5. 向使用者確認關鍵問題。
 6. 建立 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md`、`.ai/WORKFLOW.md`。
-7. 建立 `docs/PRODUCT_VISION.md`、PRD、ARCHITECTURE / SDD。
-8. 建立 `specs/{feature}/spec.md` 作為 Living Feature Spec。
-9. 建立 `work-items/*.md` 限定本次任務的 read / write / forbidden 範圍。
+7. 建立 `docs/02_product/PRODUCT_VISION.md`、`docs/02_product/PRD.md`、`docs/03_requirements/SRS.md`、`docs/04_system/ARCHITECTURE.md` 與 `docs/04_system/SDD.md`。
+8. 建立 `specs/<feature>/spec.md` 作為 Living Feature Spec。
+9. 建立 `work-items/<WORK-ITEM-ID>.md` 限定本次任務的 read / write / forbidden 範圍。
 10. 建立 Obsidian 專案記憶。
 11. 建立 GitHub repo / branch。
 12. 依工作類型進入 Spec Gate、Design Gate、Implementation Gate 或 Release Gate。
@@ -230,15 +235,15 @@ PR content 需包含：
 
 ### Product Architect / PM / SA
 
-- 可建立與更新 Product Vision、PRD、Architecture、SDD、Feature Spec、ADR 與 Work Item。
+- 可建立與更新 canonical Product Vision、PRD、SRS、Architecture、SDD、Feature Spec、ADR 與 Work Item。
 - 不直接實作未授權 code。
 - 不用對話推論覆蓋 repo 已確認規格。
 
 ### UX Designer
 
 - 只能在既定規格內設計。
-- 可產出或更新 `design/**`、Screen Spec、Design Tokens、Component Catalog。
-- 可整理 Figma、Claude design output、HTML prototype、v0 output 或 static mockup，並轉成 Design Source Map 與 Screen Spec。
+- 可產出或更新 `design/<feature>/**`、Screen Spec、Design Tokens、Component Catalog。
+- 可整理 Figma、Claude design output、HTML prototype、v0 output 或 static mockup，並轉成 `design/<feature>/Design_Source_Map.md` 與 `design/<feature>/screens/<SCREEN-ID>.md`。
 - 不得修改 product scope、business rules、roles、permissions、API contract、DB schema 或 source code。
 - 若 UX 需要新增能力，必須提出 Change Request。
 

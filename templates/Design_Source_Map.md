@@ -2,6 +2,8 @@
 
 本文件記錄所有 UI/UX 設計來源，包含 Figma、Claude design output、HTML prototype、v0 output、static mockup 或其他設計輸入。
 
+Canonical path：`design/<feature>/Design_Source_Map.md`。
+
 ## 文件資訊
 
 | 欄位 | 內容 |

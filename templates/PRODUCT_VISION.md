@@ -2,6 +2,8 @@
 
 本文件描述產品決策的長期方向與 taste，用於協助 Agent 在規格未完全覆蓋細節時做一致判斷。
 
+專案實例的 canonical path：`docs/02_product/PRODUCT_VISION.md`。
+
 ## Target Users
 
 -

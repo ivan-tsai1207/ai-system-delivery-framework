@@ -1,6 +1,6 @@
 # LLM Operating Rules
 
-本文件是跨 LLM 的通用操作規則。若目標工具支援 `AGENTS.md`，以 `AGENTS.md` 作為直接執行規則；本文件作為人類與其他 LLM 的通用說明。
+本文件是跨 LLM 的通用操作規則。若目標工具支援 `AGENTS.md`，以其作為 repository entrypoint；治理權威仍依 `.ai/AUTHORITY.md`，本文件不得覆蓋 Constitution。
 
 ## 核心原則
 
@@ -17,10 +17,25 @@
 - `.ai/CONSTITUTION.md` 定義最高治理規則。
 - `.ai/AUTHORITY.md` 定義規格衝突時的權威順序。
 - `.ai/WORKFLOW.md` 定義 ChatGPT / Claude / Codex 的交接流程。
-- `specs/{feature}/spec.md` 是功能開發的 Living Feature Spec。
-- `design/**` 是 UX Contract，不得新增未授權 product capability。
-- `work-items/**` 定義單次任務的 delta、read / write / forbidden 範圍。
+- `specs/<feature>/spec.md` 是功能開發的 Living Feature Spec。
+- `design/<feature>/screens/<SCREEN-ID>.md` 是 UX Contract，不得新增未授權 product capability。
+- `work-items/<WORK-ITEM-ID>.md` 定義單次任務的 delta、read / write / forbidden 範圍。
 - `traceability/**` 或 `templates/Traceability.yaml` 用於追蹤 requirement、screen、API 與 tests。
+
+## Canonical Project Paths
+
+- Product Vision：`docs/02_product/PRODUCT_VISION.md`
+- PRD：`docs/02_product/PRD.md`
+- SRS：`docs/03_requirements/SRS.md`
+- Architecture：`docs/04_system/ARCHITECTURE.md`
+- SDD：`docs/04_system/SDD.md`
+- ADR：`docs/05_decisions/ADR-*.md`
+- Feature Spec：`specs/<feature>/spec.md`
+- Design Source Map：`design/<feature>/Design_Source_Map.md`
+- Screen Spec：`design/<feature>/screens/<SCREEN-ID>.md`
+- Work Item：`work-items/<WORK-ITEM-ID>.md`
+
+發生上下層規格衝突時停止並回報 `SPEC CONFLICT`。ADR 與 Change Request 的權威與寫回規則以 `.ai/AUTHORITY.md` 為準。
 
 ## 記憶策略
 
