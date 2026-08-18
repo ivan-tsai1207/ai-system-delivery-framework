@@ -236,3 +236,71 @@ Reviewer decision：`PASS`.
 - [x] Reviewer Profile was assigned by `work-items/HNS-CORE-001-TECH-REVIEW.md`.
 - [x] Reviewer execution did not modify the reviewed manifest or reviewed implementation files.
 - [x] Required independent review evidence and findings were appended only to `docs/08_agent_reviews/review_log.md`.
+
+## IG-HNS-CORE-001-001 - HNS-CORE-001 Implementation Gate
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `IG-HNS-CORE-001-001` |
+| Execution ID | `implementation-gate-hns-core-001-20260819-001` |
+| Work Item | `work-items/HNS-CORE-001.md` |
+| Gate | `IMPLEMENTATION_GATE` |
+| GateResult | `PASS` |
+| Risk Class | `MEDIUM` |
+| Implementation Commit | `b1d635a34271b4bafa39891a167e6d83412e4083` |
+| TECH_REVIEWER Evidence | `REV-HNS-CORE-001-TECH-001` |
+| TECH_REVIEWER Review Commit | `030fdebc620c454bdcf3d21a93f89f41c94844a8` |
+| Reviewed Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` |
+| Reviewed Artifact Hash | `sha256:4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8` |
+| Timestamp | `2026-08-19T00:38:00+08:00` |
+
+### Gate Checks
+
+| Check ID | Check | Evidence Reference | Result |
+|---|---|---|---|
+| `IG-HNS-CORE-001-001-01` | TECH_REVIEWER evidence exists and decision is `PASS` | `REV-HNS-CORE-001-TECH-001`; Reviewer decision `PASS` | `PASS` |
+| `IG-HNS-CORE-001-001-02` | Reviewed artifact hash matches bound manifest | `shasum -a 256 docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` = `4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8` | `PASS` |
+| `IG-HNS-CORE-001-001-03` | Implementation commit identity is stable and reviewed | `git cat-file -t b1d635a34271b4bafa39891a167e6d83412e4083` = `commit`; commit is ancestor of review commit `030fdebc620c454bdcf3d21a93f89f41c94844a8` | `PASS` |
+| `IG-HNS-CORE-001-001-04` | HNS-CORE-001 diff remains within Write Scope | `git diff --name-status b629d917788d7ef5beb229aaa2254dfd0c9a1d76 b1d635a34271b4bafa39891a167e6d83412e4083` shows only `harness/package.json`, `harness/package-lock.json`, `harness/tsconfig.json`, `harness/src/index.ts`, `harness/tests/package-smoke.test.mjs` | `PASS` |
+| `IG-HNS-CORE-001-001-05` | Build, typecheck, smoke test, and audit evidence is valid | `npm ci`, `npm run build`, `npm run typecheck`, `npm test`, `npm audit --audit-level=high`, and `npm pack --dry-run` all exited `0` in fresh gate checkout | `PASS` |
+| `IG-HNS-CORE-001-001-06` | Acceptance Criteria complete | `AC-HNS-CORE-001-001` through `AC-HNS-CORE-001-004` validated by package metadata, TypeScript config, smoke tests, no runtime behavior, and scoped diff | `PASS` |
+| `IG-HNS-CORE-001-001-07` | No open blocking finding | `REV-HNS-CORE-001-TECH-001` records no blocking, major, minor, or observation findings; gate execution found no open blocking finding | `PASS` |
+
+### Test Evidence
+
+| Command | Result | Notes |
+|---|---|---|
+| `node --version && npm --version` | `v24.16.0`; `11.13.0` | Local gate checkout was below the pinned package engine floor, so `npm ci` emitted `EBADENGINE` warnings only; package metadata and smoke tests still pin the required `>=24.19.0 <25` and `>=11.17.0 <12` policy. |
+| `npm ci` | `PASS` (`exit 0`) | Added 2 packages, audited 3 packages, found 0 vulnerabilities. |
+| `npm run build` | `PASS` (`exit 0`) | `tsc --project tsconfig.json` completed. |
+| `npm run typecheck` | `PASS` (`exit 0`) | `tsc --project tsconfig.json --noEmit` completed. |
+| `npm test` | `PASS` (`exit 0`) | Node test runner: 3 tests, 3 pass, 0 fail. |
+| `npm audit --audit-level=high` | `PASS` (`exit 0`) | Found 0 vulnerabilities. |
+| `npm pack --dry-run` | `PASS` (`exit 0`) | Package preview contains compiled ESM output and package metadata only. |
+
+### Risk-Based Review Requirements
+
+- `TECH_REVIEWER`：required for implementation review and satisfied by `REV-HNS-CORE-001-TECH-001` with decision `PASS`.
+- `QA_REVIEWER`：not required. Risk Class is `MEDIUM`; canonical Risk Policy requires QA for MEDIUM only by artifact / behavior trigger. HNS-CORE-001 is a package/config-only foundation with deterministic smoke/config tests and introduces no product behavior, acceptance workflow, regression surface, adapter, runtime, API, DB schema, role, permission, UX flow, or production operation.
+- `SECURITY_REVIEWER`：not required. Security trigger is absent because the implementation adds no runtime dependency, credential handling, authentication, authorization, external API, data sensitivity, security boundary, migration, destructive operation, or production deployment path.
+
+### Acceptance Criteria Validation
+
+- `AC-HNS-CORE-001-001`：Package metadata uses ESM and pins Node/npm policy; TypeScript config uses strict mode with `NodeNext` module and resolution.
+- `AC-HNS-CORE-001-002`：`package-lock.json` exists; clean install, build, typecheck, and test scripts executed successfully.
+- `AC-HNS-CORE-001-003`：Smoke tests pass; source exports only a package marker and contains no vendor adapter or runtime behavior.
+- `AC-HNS-CORE-001-004`：Implementation diff contains only HNS-CORE-001 Write Scope files and no canonical governance changes.
+
+### Open Findings
+
+None.
+
+### Status Updates
+
+- `work-items/HNS-CORE-001.md` status updated from `REVIEW` to `DONE`.
+- `work-items/HNS-CORE-001-TECH-REVIEW.md` status updated from `TODO` to `DONE`.
+- HNS-CORE-002 was not started.
+- No merge from `main` or any other branch was performed.
+- Harness implementation files were not modified after the reviewed implementation commit.
