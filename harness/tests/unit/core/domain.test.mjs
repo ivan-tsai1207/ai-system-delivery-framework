@@ -126,7 +126,7 @@ test("defineCoreValue freezes representative nested domain values", () => {
   );
 });
 
-test("defineCoreValue accepts acyclic shared references without cloning", () => {
+test("defineCoreValue preserves shared references inside the immutable snapshot", () => {
   const shared = { value: "shared" };
 
   const value = defineCoreValue({
@@ -135,8 +135,9 @@ test("defineCoreValue accepts acyclic shared references without cloning", () => 
   });
 
   assert.equal(value.first, value.second);
-  assert.equal(value.first, shared);
-  assert.equal(Object.isFrozen(shared), true);
+  assert.notEqual(value.first, shared);
+  assert.equal(Object.isFrozen(shared), false);
+  assert.equal(Object.isFrozen(value.first), true);
   assert.equal(Object.isFrozen(value), true);
 });
 
@@ -147,6 +148,125 @@ test("defineCoreValue rejects circular mutable input", () => {
   assert.throws(
     () => defineCoreValue(value),
     /circular references/,
+  );
+});
+
+test("defineCoreValue rejects accessor-backed properties without invoking getters", () => {
+  let getterCalls = 0;
+  const value = {};
+  Object.defineProperty(value, "nested", {
+    enumerable: true,
+    get() {
+      getterCalls += 1;
+      return {};
+    },
+  });
+
+  assert.throws(
+    () => defineCoreValue(value),
+    /data properties, not accessors/,
+  );
+  assert.equal(getterCalls, 0);
+});
+
+test("defineCoreValue rejects fresh-object getters before they can expose mutable values", () => {
+  const value = {
+    get nested() {
+      return {};
+    },
+  };
+
+  assert.throws(
+    () => defineCoreValue(value),
+    /data properties, not accessors/,
+  );
+});
+
+test("defineCoreValue rejects nested accessors in ordinary plain objects", () => {
+  const value = {
+    ordinary: {
+      get nested() {
+        return {};
+      },
+    },
+  };
+
+  assert.throws(
+    () => defineCoreValue(value),
+    /data properties, not accessors/,
+  );
+});
+
+test("defineCoreValue snapshots proxy dynamic get behavior into immutable data", () => {
+  let dynamicGets = 0;
+  const proxy = new Proxy({}, {
+    get(_target, property) {
+      if (property === "nested") {
+        dynamicGets += 1;
+        return { mutable: true };
+      }
+      return undefined;
+    },
+    getOwnPropertyDescriptor(_target, property) {
+      if (property === "nested") {
+        return {
+          configurable: true,
+          enumerable: true,
+          value: { stable: true },
+          writable: true,
+        };
+      }
+      return undefined;
+    },
+    ownKeys() {
+      return ["nested"];
+    },
+  });
+
+  const value = defineCoreValue(proxy);
+
+  assert.equal(dynamicGets, 0);
+  assert.deepEqual(value.nested, { stable: true });
+  assert.equal(Object.isFrozen(value), true);
+  assert.equal(Object.isFrozen(value.nested), true);
+  assert.throws(
+    () => {
+      value.nested.extra = "mutation";
+    },
+    /extensible|read only|Cannot add property/,
+  );
+});
+
+test("defineCoreValue traverses and freezes symbol-keyed data properties", () => {
+  const key = Symbol("domain");
+  const value = defineCoreValue({
+    [key]: { nested: ["value"] },
+  });
+
+  assert.deepEqual(value[key].nested, ["value"]);
+  assert.equal(Object.isFrozen(value[key]), true);
+  assert.equal(Object.isFrozen(value[key].nested), true);
+  assert.throws(
+    () => {
+      value[key].nested.push("mutation");
+    },
+    /extensible|read only|Cannot add property/,
+  );
+});
+
+test("defineCoreValue rejects symbol-keyed accessor properties", () => {
+  const key = Symbol("domain");
+  const value = {};
+  Object.defineProperty(value, key, {
+    enumerable: true,
+    get() {
+      return {};
+    },
+  });
+
+  assert.throws(
+    () => defineCoreValue(value),
+    /data properties, not accessors/,
   );
 });
 
@@ -171,6 +291,10 @@ test("defineCoreValue rejects mutable or unsupported non-plain objects", () => {
   );
   assert.throws(
     () => defineCoreValue({ value: new CustomDomainValue() }),
+    /primitives, arrays, or plain objects/,
+  );
+  assert.throws(
+    () => defineCoreValue({ value() { return "function"; } }),
     /primitives, arrays, or plain objects/,
   );
 });

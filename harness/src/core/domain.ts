@@ -175,7 +175,18 @@ function isPlainCoreObject(value: object): boolean {
   return prototype === Object.prototype || prototype === null;
 }
 
-function freezeCoreValue<T>(value: T, activeTraversal: WeakSet<object>): Immutable<T> {
+function getCorePropertyDescriptor(
+  descriptors: PropertyDescriptorMap,
+  key: PropertyKey,
+): PropertyDescriptor | undefined {
+  return Reflect.get(descriptors, key) as PropertyDescriptor | undefined;
+}
+
+function snapshotCoreValue<T>(
+  value: T,
+  activeTraversal: WeakSet<object>,
+  snapshots: WeakMap<object, object>,
+): Immutable<T> {
   if (value === null || (typeof value !== "object" && typeof value !== "function")) {
     return value as Immutable<T>;
   }
@@ -188,6 +199,11 @@ function freezeCoreValue<T>(value: T, activeTraversal: WeakSet<object>): Immutab
     throw new TypeError("Core domain values must not contain circular references.");
   }
 
+  const existingSnapshot = snapshots.get(value);
+  if (existingSnapshot !== undefined) {
+    return existingSnapshot as Immutable<T>;
+  }
+
   if (!Array.isArray(value) && !isPlainCoreObject(value)) {
     throw new TypeError("Core domain values must be primitives, arrays, or plain objects.");
   }
@@ -195,25 +211,74 @@ function freezeCoreValue<T>(value: T, activeTraversal: WeakSet<object>): Immutab
   activeTraversal.add(value);
 
   try {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        freezeCoreValue(item, activeTraversal);
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+
+    for (const key of Reflect.ownKeys(descriptors)) {
+      const descriptor = getCorePropertyDescriptor(descriptors, key);
+      if (descriptor === undefined) {
+        continue;
       }
-      return Object.freeze(value) as Immutable<T>;
+      if ("get" in descriptor || "set" in descriptor) {
+        throw new TypeError("Core domain values must use data properties, not accessors.");
+      }
     }
 
-    for (const key of Reflect.ownKeys(value) as (keyof T)[]) {
-      freezeCoreValue(value[key], activeTraversal);
+    if (Array.isArray(value)) {
+      const lengthDescriptor = descriptors.length;
+      if (lengthDescriptor === undefined || !("value" in lengthDescriptor)) {
+        throw new TypeError("Core domain array values must expose a data length property.");
+      }
+      const length = "value" in lengthDescriptor ? lengthDescriptor.value : 0;
+      const snapshot: unknown[] = new Array(length as number);
+      snapshots.set(value, snapshot);
+
+      for (const key of Reflect.ownKeys(descriptors)) {
+        if (key === "length") {
+          continue;
+        }
+
+        const descriptor = getCorePropertyDescriptor(descriptors, key);
+        if (descriptor === undefined || !("value" in descriptor)) {
+          continue;
+        }
+
+        Object.defineProperty(snapshot, key, {
+          configurable: false,
+          enumerable: descriptor.enumerable === true,
+          value: snapshotCoreValue(descriptor.value, activeTraversal, snapshots),
+          writable: false,
+        });
+      }
+
+      return Object.freeze(snapshot) as Immutable<T>;
     }
 
-    return Object.freeze(value) as Immutable<T>;
+    const prototype = Object.getPrototypeOf(value);
+    const snapshot = Object.create(prototype) as Record<PropertyKey, unknown>;
+    snapshots.set(value, snapshot);
+
+    for (const key of Reflect.ownKeys(descriptors)) {
+      const descriptor = getCorePropertyDescriptor(descriptors, key);
+      if (descriptor === undefined || !("value" in descriptor)) {
+        continue;
+      }
+
+      Object.defineProperty(snapshot, key, {
+        configurable: false,
+        enumerable: descriptor.enumerable === true,
+        value: snapshotCoreValue(descriptor.value, activeTraversal, snapshots),
+        writable: false,
+      });
+    }
+
+    return Object.freeze(snapshot) as Immutable<T>;
   } finally {
     activeTraversal.delete(value);
   }
 }
 
 export function defineCoreValue<T>(value: T): Immutable<T> {
-  return freezeCoreValue(value, new WeakSet<object>());
+  return snapshotCoreValue(value, new WeakSet<object>(), new WeakMap<object, object>());
 }
 
 export function isOneOf<const Values extends readonly string[]>(
