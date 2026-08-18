@@ -391,3 +391,95 @@ Reviewer decision：`N/A`.
 - [x] Reviewer execution尚未開始；受審 artifact未由 reviewer 修改。
 - [x] Required preparation evidence已寫入受控 review log。
 - [x] Artifact變更後需重新產生 manifest hash與 independent review evidence。
+
+---
+
+## REV-HNS-CORE-002-TECH-001 - Independent Technical Re-Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-002-TECH-001` |
+| Execution ID | `REV-HNS-CORE-002-TECH-20260818T172829Z` |
+| Work Item | `work-items/HNS-CORE-002-TECH-REVIEW.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `CP-HNS-CORE-002-IMPLEMENTATION-LINEAGE` |
+| Reviewer Execution ID | `REV-HNS-CORE-002-TECH-20260818T172829Z` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md` |
+| Artifact Hash | `3dcd349f370c4f30a5c9a5cad44d788dc4641b09af62ae92a30ec83d0de98013` |
+| Commit Hash | `e35aea8ac5c79f0ed026019d16df9bed598e73a1` |
+| Timestamp | `2026-08-18T17:28:29Z` |
+
+### Specification References
+
+- Requirement IDs：`AC-HNS-CORE-002-001` through `AC-HNS-CORE-002-004`; `AC-HNS-CORE-002-TEST-FIX-001` through `AC-HNS-CORE-002-TEST-FIX-004`
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 4、5、42、46 Phase 1
+- Screen Specs：`N/A`
+- Architecture / SDD：`docs/harness_v0.1_SDD.md`; `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-002-TECH-001-01` | Repository preflight | Clean clone, `git fetch origin`, checkout `fix/hns-core-002-test-discovery-v2`, verify candidate commits and required files | `e35aea8ac5c79f0ed026019d16df9bed598e73a1`; local preflight command output | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-02` | Environment preflight | `node --version`; `npm --version` using `~/.nvm/versions/node/v24.19.0/bin` | `v24.19.0`; `11.17.0` | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-03` | Manifest integrity | `shasum -a 256 docs/08_agent_reviews/manifests/HNS-CORE-002-implementation.md` | `3dcd349f370c4f30a5c9a5cad44d788dc4641b09af62ae92a30ec83d0de98013` | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-04` | Commit lineage scope | `git diff --name-status` across required commit boundaries | Original implementation: three HNS-CORE-002 files; control-plane WI: `work-items/HNS-CORE-002-TEST-FIX.md`; remediation: `harness/package.json` | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-05` | Domain contract enums | Compared `harness/src/core/domain.ts` constants and types to SDD Section 5 and Work Item Contract | `harness/src/core/domain.ts` | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-06` | ReviewDecision / GateResultStatus separation | Compared implementation arrays and tests to SDD Section 5.4 / 5.5 | `REVIEW_DECISIONS`; `GATE_RESULT_STATUSES`; unit tests | `PASS` |
+| `REV-HNS-CORE-002-TECH-001-07` | Immutable value review | Code inspection plus runtime probes for nested values, circular references, shared references, `Date`, and `Map` | Findings `FIND-HNS-CORE-002-TECH-001`, `FIND-HNS-CORE-002-TECH-002` | `FAILED` |
+| `REV-HNS-CORE-002-TECH-001-08` | Test coverage review | Inspected `harness/tests/unit/core/domain.test.mjs` and `npm test` output | Finding `FIND-HNS-CORE-002-TECH-003` | `FAILED` |
+| `REV-HNS-CORE-002-TECH-001-09` | Scope review | Code search and diff review for parser, filesystem I/O, process execution, persistence, adapter, runtime orchestration, vendor dependency, broad `any`, unauthorized SDD/governance change, HNS-CORE-003 implementation | `harness/src/core/domain.ts`; `harness/src/index.ts`; `harness/package.json`; diffs | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Environment | `node --version && npm --version` | `PASS` | `v24.19.0`; `11.17.0` |
+| Clean Install | `npm ci` | `PASS` | Added 2 packages, audited 3 packages, found 0 vulnerabilities. |
+| Build | `npm run build` | `PASS` | `tsc --project tsconfig.json` exited `0`. |
+| Typecheck | `npm run typecheck` | `PASS` | `tsc --project tsconfig.json --noEmit` exited `0`. |
+| Unit Test | `npm test` | `PASS` | Command expands to `npm run build --silent && node --test tests/*.test.mjs tests/unit/core/*.test.mjs`; Node test runner reported 8 tests, 8 pass, 0 fail. |
+| Security Check | `npm audit --audit-level=high` | `PASS` | Found 0 vulnerabilities. |
+
+### Implementer Scope Evidence
+
+- Changed Files：
+  - Original HNS-CORE-002 implementation: `harness/src/core/domain.ts`, `harness/src/index.ts`, `harness/tests/unit/core/domain.test.mjs`.
+  - Control-plane remediation WI creation: `work-items/HNS-CORE-002-TEST-FIX.md`.
+  - HNS-CORE-002-TEST-FIX remediation implementation: `harness/package.json`.
+- Diff Scope：Matches the required lineage split and does not treat control-plane Work Item creation as an HNS-CORE-002 implementer scope violation.
+- Unauthorized Change Check：No parser, filesystem I/O, process execution, persistence, adapter, runtime orchestration, vendor dependency, broad `any`, unauthorized SDD / Architecture / governance modification, or HNS-CORE-003 implementation found in reviewed implementation.
+- Backward Compatibility：TypeScript build, typecheck, tests, and package audit pass under required engines.
+
+### Findings
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Requirement Reference | Description | Severity | Evidence Reference | Required Action | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `FIND-HNS-CORE-002-TECH-001` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `059650ba908d2694e97d3dfff0a3f527c0f65033c018a62874ec0a241e97c6aa` | `AC-HNS-CORE-002-003`; SDD Section 5 immutable value output | `freezeCoreValue` uses one global `WeakSet` for traversal and never removes objects after descending, so a legitimate shared reference such as `{ a: shared, b: shared }` is rejected as a circular reference. This violates the required distinction between circular references and shared references. | `MAJOR` | Runtime probe: `defineCoreValue({ a: shared, b: shared })` throws `Core domain values must not contain circular references.` | Track recursion stack separately from already-frozen/shared objects, or otherwise allow acyclic shared references while still rejecting true cycles. | `OPEN` |
+| `FIND-HNS-CORE-002-TECH-002` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `059650ba908d2694e97d3dfff0a3f527c0f65033c018a62874ec0a241e97c6aa` | HNS-CORE-002 immutable value contracts; SDD Section 5 immutable domain values | `defineCoreValue` freezes only own enumerable properties. Mutable non-plain objects such as `Date` and `Map` remain internally mutable after wrapping; runtime probes changed a frozen `Date` year to `2027` and added an entry to a frozen `Map`. That leaves values only superficially frozen, not immutable. | `MAJOR` | Runtime probes: `withDate.when.setUTCFullYear(2027)` succeeds; `withMap.values.set("b", 2)` succeeds. | Reject unsupported mutable non-plain objects or convert/freeze them with an explicit immutable representation. | `OPEN` |
+| `FIND-HNS-CORE-002-TECH-003` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/tests/unit/core/domain.test.mjs` / `92c59ce06c4f5c545dd4b802395fffb7248e8efb64a03fa8128fe34df0c4d9fa` | HNS-CORE-002 Scope: tests for allowed values; `AC-HNS-CORE-002-002`; `AC-HNS-CORE-002-003` | `WORK_ITEM_STATUSES` is exported by the implementation but is not imported or asserted in `domain.test.mjs`. The test named `canonical work item enums match the SDD and Work Item Contract` verifies roles, phases, risk classes, profiles, and gates, but omits the canonical Work Item Status allowed values. | `MAJOR` | `rg WORK_ITEM_STATUSES harness/tests/unit/core/domain.test.mjs` returns no match; `npm test` passes without status value assertions. | Add an explicit unit test assertion for `WORK_ITEM_STATUSES` values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `DONE`, `CANCELLED`. | `OPEN` |
+
+### Known Limitations and Unresolved Issues
+
+- Known Limitations：This is a `TECH_REVIEWER` decision only and does not run or pass `IMPLEMENTATION_GATE`.
+- Unresolved Issues：Three open MAJOR findings require implementer remediation and re-review before a PASS candidate.
+- Accepted Risk References：`N/A`
+
+### Result
+
+Reviewer decision：`REQUEST_CHANGES`.
+
+GateResult：`N/A`; `IMPLEMENTATION_GATE` remains pending.
+
+### Integrity and Independence Validation
+
+- [x] Artifact hash與實際 reviewed version一致。
+- [x] Maker與 final Checker execution ID不同。
+- [x] Reviewer Profile由 `work-items/HNS-CORE-002-TECH-REVIEW.md` 指派。
+- [x] Reviewer execution未修改受審 artifact。
+- [x] Required evidence與 findings已寫入受控 audit / review log。
+- [x] Artifact變更後舊 PASS需標示失效或 superseded。
