@@ -10,10 +10,11 @@
 2. `.ai/AUTHORITY.md`
 3. `.ai/WORKFLOW.md`
 4. `.ai/roles/<active-role>.md`
-5. `.ai/HARNESS_CONTRACT.md`（若任務由 Harness 執行或需要 runtime boundary）
-6. `.ai/gates/<active-gate>.md`
-7. `docs/02_product/PRODUCT_VISION.md`
-8. 與任務相關的 canonical specs、design contract 與 work item
+5. `.ai/roles/reviewer-profiles/<review-profile>.md`（僅 `REVIEWER`，且 profile 必須由 Work Item / Orchestrator 指派）
+6. `.ai/HARNESS_CONTRACT.md`（若任務由 Harness 執行或需要 runtime boundary）
+7. `.ai/gates/<active-gate>.md`
+8. `docs/02_product/PRODUCT_VISION.md`
+9. 與任務相關的 canonical specs、design contract、review evidence 與 work item
 
 `AGENTS.md` 是 repository entrypoint，不是最高治理權威。治理規則以 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md` 與 `.ai/WORKFLOW.md` 為準。
 
@@ -28,6 +29,7 @@
 - 低層級文件、work item、raw design source、runtime prompt 或 Agent 假設不得覆蓋高層級規格。
 - 規格不足時提出 Change Request，不得自行新增未授權需求。
 - 發生規格衝突時停止並回報 `SPEC CONFLICT`。
+- Maker 不得 final approve 自己的產物；Reviewer Profile 是 `REVIEWER` 的 subordinate responsibility binding，不是新的 Role 或 Authority。
 
 ## 1. 語言與溝通
 

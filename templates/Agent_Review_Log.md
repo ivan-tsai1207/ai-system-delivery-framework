@@ -1,30 +1,88 @@
-# 角色審查紀錄
+# Role Completion and Agent Review Log
 
-## 審查資訊
+Canonical project path：`docs/08_agent_reviews/review_log.md`
 
-| 欄位 | 內容 |
+本模板是 Role Completion Evidence、Independent Review與 Finding的共用紀錄格式。Harness可投影成 versioned machine-readable audit record，但不得建立語意衝突的第二套 evidence / finding enum。
+
+## Evidence Metadata
+
+| Field | Value |
 |---|---|
-| 文件名稱 |  |
-| 文件版本 |  |
-| 審查日期 |  |
-| 執行模式 | MVP / Standard / Formal |
-| 審查狀態 | 通過 / 需修正 / 有重大衝突 |
+| Evidence ID | `<evidence-id>` |
+| Execution ID | `<execution-id>` |
+| Work Item | `work-items/<WORK-ITEM-ID>.md` |
+| Role | `<PRODUCT_ARCHITECT \| UX_DESIGNER \| IMPLEMENTER \| REVIEWER>` |
+| Review Profile | `<canonical-profile-or-N/A>` |
+| Risk Class | `<LOW \| MEDIUM \| HIGH \| CRITICAL>` |
+| Maker Execution ID | `<execution-id-or-N/A>` |
+| Reviewer Execution ID | `<execution-id-or-N/A>` |
+| Artifact | `<repository-relative-path-or-manifest>` |
+| Artifact Hash | `<sha256:64-lowercase-hex>` |
+| Commit Hash | `<commit-or-N/A>` |
+| Timestamp | `<ISO-8601-with-timezone>` |
 
-## Agent Review Summary
+## Specification References
 
-| Agent | 審查重點 | 發現問題 | 建議修正 | 結論 |
+- Requirement IDs：
+- Feature / System Spec：
+- Screen Specs：
+- Architecture / SDD：
+
+## Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
 |---|---|---|---|---|
-| PO Agent |  | 無重大問題 | 無 | 通過 |
-| Tech Lead Agent |  | 無重大問題 | 無 | 通過 |
+|  |  |  |  | `PASS / FAILED / NOT_APPLICABLE` |
 
-## 重大問題或衝突展開
+## Tests Performed
 
-僅在有重大問題或角色衝突時填寫。
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Typecheck |  |  |  |
+| Lint |  |  |  |
+| Unit Test |  |  |  |
+| Integration Test |  |  |  |
+| Build |  |  |  |
+| Security Check |  |  |  |
 
-## 整合結論
+Agent自述「測試都通過」不是足夠 evidence。測試 evidence必須可定位至 command / runner、result、timestamp及相同 artifact / commit hash；未執行時填理由與 impact。
 
-- 必須修正：
-- 建議修正：
-- 可延後處理：
-- 最終判斷：
+## Implementer Scope Evidence
 
+- Changed Files：
+- Diff Scope：
+- Unauthorized Change Check：
+- Backward Compatibility：
+
+非 Implementer填 `N/A`。
+
+## Findings
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Requirement Reference | Description | Severity | Evidence Reference | Required Action | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  | `BLOCKING / MAJOR / MINOR / OBSERVATION` |  |  | `OPEN / RESOLVED / ACCEPTED_RISK / SUPERSEDED` |
+
+`OPEN BLOCKING` finding阻止 Delivery Assurance PASS。`ACCEPTED_RISK`必須引用既有 Governance授權的 Human / authority evidence，Agent不得自行決定。
+
+## Known Limitations and Unresolved Issues
+
+- Known Limitations：
+- Unresolved Issues：
+- Accepted Risk References：
+
+## Result
+
+Maker completion result：`READY_FOR_REVIEW / BLOCKED`。
+
+Reviewer decision：`PASS / REQUEST_CHANGES / BLOCK`。
+
+GateResult不是本欄位，仍由 active Gate記錄 `PASS / FAILED / NEEDS_CLARIFICATION`。
+
+## Integrity and Independence Validation
+
+- [ ] Artifact hash與實際 reviewed version一致。
+- [ ] Maker與 final Checker execution ID不同。
+- [ ] Reviewer Profile由 Orchestrator / Harness指派。
+- [ ] Reviewer execution未修改受審 artifact。
+- [ ] Required evidence與 findings已寫入受控 audit / review log。
+- [ ] Artifact變更後舊 PASS已標示失效或 superseded。

@@ -15,6 +15,7 @@ Harness 負責：
 - Task lifecycle control。
 - Gate execution orchestration。
 - Audit evidence collection。
+- Risk classification、review assignment、separation-of-duties validation與 Delivery Assurance orchestration。
 
 Harness 不負責：
 
@@ -44,6 +45,11 @@ feature: string
 phase: string
 spec_version: string
 design_version: string
+risk_class: LOW | MEDIUM | HIGH | CRITICAL
+review_profile: string | N/A
+reviewed_artifact: string | N/A
+reviewed_artifact_hash: string | N/A
+maker_execution_id: string | N/A
 read_scope: []
 write_scope: []
 forbidden_scope: []
@@ -57,7 +63,7 @@ Input validation 規則：
 - Required field 不可缺少或為空。
 - `task_id`、Work Item `ID` 與 filename 必須一致。
 - `role` 必須能映射到既有 role 文件。
-- Work Item `Role`、`Feature` 與 `Phase` 必須明確存在；Harness 不得從 ID prefix、Title、filename、directory 或 Agent assumption 推導。
+- Work Item `Role`、`Feature`、`Phase`、`Risk Class` 與 review-only fields必須明確存在；Harness 不得從 ID prefix、Title、filename、directory 或 Agent assumption 推導。
 - Work Item enum、required sections、Requirement References、scope 與 Required Gates 必須通過 `templates/Work_Item.md` 的 Validation Rules。
 - `work_item` 必須是 repository-relative path，且符合 canonical path。
 - `repository`、`branch` 與啟動時實際 checkout 必須一致。
@@ -65,6 +71,8 @@ Input validation 規則：
 - `forbidden_scope` 優先於 `write_scope`；scope 衝突時必須拒絕 write。
 - `additional_context` 只增加候選 read context，不會自動增加 write 或 tool permission。
 - Input 無效或 required file 不存在時，進入 `BLOCKED_PERMISSION` 或 `MISSING_REQUIRED_CONTEXT` 對應的停止流程。
+- Risk只能由 trusted Orchestrator / Harness policy計算或提高；Invocation、Work Item執行 Agent或 adapter不得降低。
+- `REVIEWER` Work Item必須通過 profile、artifact、hash與 Maker execution identity驗證；非 Reviewer的 review-only fields必須為 `N/A`。
 
 ## 3. Role Binding
 
@@ -81,6 +89,9 @@ Role binding 必須使用下列固定映射：
 - Agent 不得在執行期間自行修改、提升或切換 role。
 - 任務需要另一個 role 時，必須結束目前 execution，建立新的 task 或 execution context，重新編譯 context 與 permissions。
 - Role permission 來自 active role、assigned work item 與既有 Governance Authority；Harness 只能取其交集，不得擴張。
+- `REVIEWER` 必須另外綁定 `.ai/roles/reviewer-profiles/<review-profile>.md`；profile是 subordinate responsibility，不是第五個 Role或 permission source。
+- Reviewer Profile由 Orchestrator / Harness指派；一個 execution只能有一個 primary profile，Agent不得自選或切換。
+- Maker execution ID不得等於 final Checker execution ID。只更換 prompt、model label或 role文字不構成新的 independent execution。
 
 ## 4. Context Compiler
 
@@ -93,6 +104,15 @@ Mandatory Governance Context：
 .ai/AUTHORITY.md
 .ai/WORKFLOW.md
 .ai/roles/<active-role>.md
+```
+
+`REVIEWER` 還必須載入 Work Item綁定的：
+
+```text
+.ai/roles/reviewer-profiles/<review-profile>.md
+reviewed artifact / manifest and exact hash
+Maker Role Completion Evidence
+related findings and prior invalidated reviews
 ```
 
 若目前階段有 active gate，還必須載入：
@@ -108,7 +128,7 @@ Delivery Context 選擇原則：
 | `PRODUCT_ARCHITECT` | 使用者資料來源、Source Map、相關 canonical specs、assigned work item |
 | `UX_DESIGNER` | Product Vision、PRD、相關 SRS、Feature Spec、assigned work item、現有 Design Contract |
 | `IMPLEMENTER` | 相關 Architecture / SDD、Feature Spec、Screen Spec、assigned work item、相關 source code 與 tests |
-| `REVIEWER` | 被審查產物、其上層 canonical specs、assigned work item、active gate 與必要 evidence |
+| `REVIEWER` | 被審查產物 / manifest、其上層 canonical specs、assigned profile、Maker evidence、findings、assigned work item、active gate |
 
 Context Compiler 必須：
 
@@ -117,6 +137,7 @@ Context Compiler 必須：
 - 將實際載入清單寫入 `context_files` audit evidence。
 - 驗證 context path 位於允許的 repository scope 內。
 - Required context 缺失、版本不符或互相衝突時停止，不得以 Agent 推論補齊。
+- Context Compiler必須驗證 reviewed artifact實際 SHA-256與 Work Item一致；hash變更使舊 review context與 PASS失效。
 
 ## 5. Filesystem Boundary
 
@@ -301,6 +322,9 @@ Lifecycle 規則：
 - Agent 只能在 `RUNNING` 執行工作。
 - 任務完成後必須進入 `VALIDATING` 並執行 required gates。
 - 只有 required gates 全部通過，且沒有未處理 stop condition，才能進入 `COMPLETED`。
+- Maker execution完成 Self Review與 Role Completion Evidence後只能成為 review candidate；不得自行產生 final Checker PASS。
+- Review execution必須先通過 separation、profile assignment、artifact hash與 required evidence驗證。
+- Release candidate只有在 required Independent Reviews、phase Gates與 `DELIVERY_ASSURANCE_GATE`通過後才能進入 Release Gate PASS候選。
 - Blocked execution 不得偷換 context、role、spec version 或 permissions 後原地繼續；需要更新時建立新的 execution context。
 
 ## 9. Stop Conditions
@@ -316,6 +340,12 @@ Harness 必須停止受影響工作：
 | `OUT_OF_SCOPE_CHANGE` | 阻擋變更並回報 work item scope deviation |
 | `MISSING_REQUIRED_CONTEXT` | 不啟動或停止 execution，補齊後建立新 context |
 | `GATE_FAILURE` | `FAILED_GATE`，保留 gate evidence |
+| `SELF_APPROVAL` | 拒絕 review，建立不同 Reviewer execution |
+| `REVIEW_PROFILE_UNASSIGNED` | 不啟動 Reviewer；由 Orchestrator重新指派 |
+| `REVIEWED_ARTIFACT_CHANGED` | 舊 PASS失效，建立新 review assignment |
+| `REQUIRED_REVIEW_MISSING` | Gate不得 PASS，產生缺失 profile finding |
+| `OPEN_BLOCKING_FINDING` | Delivery Assurance不得 PASS |
+| `RISK_DOWNGRADE_ATTEMPT` | 拒絕變更並記錄 policy violation |
 
 - Agent 不得忽略、重新命名、降低嚴重度或自動繞過 Stop Condition。
 - Harness 只停止受影響範圍；是否終止整個 task 依 active gate、work item 與治理規則判定。
@@ -345,16 +375,20 @@ Harness 負責 orchestrate：
 SPEC_GATE
 DESIGN_GATE
 IMPLEMENTATION_GATE
+DELIVERY_ASSURANCE_GATE
 RELEASE_GATE
 ```
 
 - Gate 規則只來自 `.ai/gates/**`，Harness 不得修改、放寬或建立第二套判定標準。
 - Harness 依 `phase`、active role 與 work item 的 `required_gates` 選擇 active gate。
 - Phase 的 default gate 與 canonical Gate ID 以 `templates/Work_Item.md` 為準；Work Item 可增加 Gate，但不能移除 Governance / Workflow 強制要求的 Gate。
-- `REVIEW` 必須由 Work Item 明確引用被審查 artifact 並列出其對應 Gate；Harness 不得自行猜測 artifact phase。
+- `REVIEW` 必須由 Work Item 明確引用被審查 artifact / hash、Maker execution與對應 Gate；Harness 不得自行猜測 artifact phase或 profile。
 - Active gate 文件必須加入 Context Package。
-- Gate 結果必須記錄為 `Pass`、`Failed` 或 `Needs Clarification`，並連結 evidence。
+- Review decision使用 `PASS / REQUEST_CHANGES / BLOCK`。Gate結果必須記錄為 `PASS / FAILED / NEEDS_CLARIFICATION`並連結 evidence；兩者不得混成同一 enum。
 - Gate failure 進入 `FAILED_GATE`；豁免必須來自治理規則允許的授權者並留下 audit evidence。
+- Spec / Design / Implementation Gate必須驗證對應 required Reviewer Profile evidence。QA / Security依 Risk Policy計算，不得機械式套用全部 task或由 Agent自行跳過。
+- `DELIVERY_ASSURANCE_GATE`只接受 `DELIVERY_ASSURANCE_REVIEWER` Work Item，且 `OPEN BLOCKING` finding、missing review、stale hash或 unresolved conflict時不得 PASS。
+- `RELEASE_GATE`在 required Delivery Assurance缺失或失效時不得 PASS。
 
 ## 12. Audit Contract
 
@@ -364,6 +398,10 @@ RELEASE_GATE
 execution_id: string
 task_id: string
 role: string
+risk_class: string
+review_profile: string | null
+maker_execution_id: string | null
+reviewer_execution_id: string | null
 agent: string
 model: string
 tool_adapter: string
@@ -377,6 +415,11 @@ commands_executed: []
 tools_used: []
 blocked_actions: []
 gate_results: []
+role_completion_evidence: []
+review_assignments: []
+reviewed_artifacts: []
+review_findings: []
+delivery_assurance_results: []
 spec_gaps: []
 spec_conflicts: []
 commit_after: string | null
@@ -388,7 +431,37 @@ final_status: string
 - Agent 不得修改、刪除或偽造 Harness 已記錄的 evidence。
 - 敏感資訊必須遮罩；不得將 secret 或 credential 寫入 audit log。
 
-## 13. Agent Adapter Principle
+Role Completion Evidence至少包含 execution ID、Work Item、Role、Review Profile、artifact / hash、spec references、checks、tests、findings、known limitations、result與 timestamp。Implementer還必須記錄 changed files、diff scope、typecheck、lint、unit / integration test、build、security check與 commit hash。Agent自述不是足夠 evidence。
+
+Finding Severity只允許 `BLOCKING / MAJOR / MINOR / OBSERVATION`；Status只允許 `OPEN / RESOLVED / ACCEPTED_RISK / SUPERSEDED`。`ACCEPTED_RISK`必須引用既有 Governance授權的 Human / authority evidence，Agent不得自行決定。
+
+## 13. Accountability and Assurance Enforcement
+
+Harness必須依 Work Item、artifact type、changed paths與 canonical trigger計算 Risk Class，然後產生 required Reviewer Profile set。最低 policy：
+
+| Risk | Required review policy |
+|---|---|
+| `LOW` | Artifact-aligned basic Checker |
+| `MEDIUM` | Basic Checker + QA when artifact / behavior requires |
+| `HIGH` | Tech / QA + Security when security trigger applies |
+| `CRITICAL` | Tech + QA + Security + Delivery Assurance + existing Human high-risk approval |
+
+Required reviewer calculation、assignment與 finding state必須由 host-owned orchestration / audit管理。Agent不得選擇自己的 Reviewer、降低 Risk、刪除 finding或宣告 evidence完整。
+
+Enforcement invariants：
+
+1. Maker不能 final approve自己的 artifact。
+2. Review execution ID必須不同於 Maker execution ID。
+3. Checker不得在同一 execution修改並批准 artifact。
+4. Artifact hash改變使先前 review PASS與 dependent Gate evidence失效。
+5. Required Reviewer缺失時 phase Gate不得 PASS。
+6. `OPEN BLOCKING` finding時 Delivery Assurance不得 PASS。
+7. Delivery Assurance缺失或 stale時 Release Gate不得 PASS。
+8. Final Assurer不得參與原始 production，也不得修改 artifact後自行批准。
+
+Review assignment至少記錄 assignment ID、Work Item、Risk、Profile、Maker identity / execution、Reviewer identity / execution、artifact / hash、required checks與 evidence。違反 invariants必須 fail closed並留 audit evidence。
+
+## 14. Agent Adapter Principle
 
 Harness Contract 必須保持 vendor-neutral：
 
@@ -398,7 +471,7 @@ Harness Contract 必須保持 vendor-neutral：
 - Adapter 不得另建互相矛盾的 Authority、Role、Gate、Stop Condition 或 Specification hierarchy。
 - 工具缺少必要 enforcement capability 時，adapter 必須回報限制或拒絕啟動，不得假裝已強制執行。
 
-## 14. Example Execution Profiles
+## 15. Example Execution Profiles
 
 以下內容只示範 Contract，不建立實際 project artifact。
 
@@ -410,6 +483,8 @@ task:
   role: UX_DESIGNER
   feature: inventory
   phase: DESIGN
+  risk_class: MEDIUM
+  review_profile: N/A
   work_item: work-items/DESIGN-INV-001.md
   repository: example/inventory-system
   branch: feature/inventory_design
@@ -474,6 +549,8 @@ task:
   role: IMPLEMENTER
   feature: inventory
   phase: IMPLEMENTATION
+  risk_class: MEDIUM
+  review_profile: N/A
   work_item: work-items/PBI-INV-003.md
   repository: example/inventory-system
   branch: feature/inventory_list
@@ -533,7 +610,7 @@ stop_on:
   - GATE_FAILURE
 ```
 
-## 15. Non-Goals
+## 16. Non-Goals
 
 本版本不處理：
 

@@ -14,6 +14,8 @@
 - API binding 不超出既有 API contract。
 - States 包含 loading、empty、loaded、error、permission-denied 等必要狀態。
 - Responsive、accessibility、empty state 與 error behaviour 已定義。
+- 存在獨立 `UX_REVIEWER` evidence，decision為 `PASS`且綁定目前 Design artifact hash。
+- Risk Policy要求的 Security Review已完成。
 
 ## Fail 條件
 
@@ -21,3 +23,8 @@
 - Design 與 Feature Spec / PRD 衝突。
 - Screen 無法追溯到需求。
 - Codex 直接依 raw Figma / Claude design / HTML prototype 實作，且未經 Design Gate。
+- 缺少 required `UX_REVIEWER` / conditional Security evidence、artifact hash不符、self approval或存在 `OPEN BLOCKING` finding。
+
+## Result Separation
+
+Reviewer decision使用 `PASS / REQUEST_CHANGES / BLOCK`；本 GateResult只使用 `PASS / FAILED / NEEDS_CLARIFICATION`。

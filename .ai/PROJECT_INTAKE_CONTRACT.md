@@ -326,6 +326,9 @@ specs/<feature>/spec.md
 
 ```text
 Generate Specs
+→ Maker Self Review / Artifact Hash
+→ Risk Assignment
+→ Independent SPEC_REVIEWER Work Item
 → SPEC_GATE
 → Human Review when required
 → READY_FOR_DESIGN
@@ -337,13 +340,14 @@ Generate Specs
 
 ### 12.1 Design Dispatch
 
-只有 `READY_FOR_DESIGN` 才能由 Orchestrator 自動產生內部 Design Work Item：
+只有 required `SPEC_REVIEWER` evidence與 `SPEC_GATE`通過後，`READY_FOR_DESIGN`才可由 Orchestrator 自動產生內部 Design Work Item：
 
 ```text
 Harness
 → Role = UX_DESIGNER
 → selected compatible adapter
 → design/<feature>/**
+→ independent UX_REVIEWER
 → DESIGN_GATE
 ```
 
@@ -363,6 +367,8 @@ Harness
 → Role = IMPLEMENTER
 → selected compatible adapter
 → source code and tests in Project Repo
+→ independent TECH_REVIEWER
+→ QA_REVIEWER / SECURITY_REVIEWER as required by Risk
 → IMPLEMENTATION_GATE
 ```
 
@@ -370,9 +376,11 @@ Source code 必須保存在 Project Repo 的 `src/**`、`app/**`、`tests/**`、
 
 ## 13. Internal Work Items and Agent Selection
 
-Work Item 是 system-generated internal execution contract，唯一 schema 為 `templates/Work_Item.md`。Project Architect / Orchestrator 根據 approved canonical specs 自動建立 task ID、Role、Feature、Phase、read / write / forbidden scope、requirement references、acceptance criteria 與 required gates。正常情況下，使用者不需自行建立或填寫這些欄位。
+Work Item 是 system-generated internal execution contract，唯一 schema 為 `templates/Work_Item.md`。Product Architect / Orchestrator 根據 approved canonical specs 自動建立 task ID、Role、Feature、Phase、Risk Class、review binding、read / write / forbidden scope、requirement references、acceptance criteria 與 required gates。正常情況下，使用者不需自行建立、選擇 Reviewer / Risk / Gate或填寫這些欄位。
 
 Project Intake 可以依流程自動產生 Specification、Design、Implementation 與 Review Work Item，再交由 Harness 執行。Work Item 只能將 approved specs 轉成單次 task delta 與較小 execution boundary，不得新增、改寫或擴張產品需求，也不得取代 PRD、SRS、Architecture、SDD、Feature Spec 或 Screen Spec。
+
+Orchestrator / Harness是 Risk assignment owner，必須依 artifact type、changed paths與 security / data / operation triggers計算 `LOW / MEDIUM / HIGH / CRITICAL`。Agent不得自行降低 Risk。每個 Maker output完成 Self Review並產生 artifact hash後，Orchestrator依 Risk Policy自動建立 required `REVIEWER` Work Items；profile、Reviewed Artifact、Reviewed Artifact Hash與 Maker Execution ID由系統寫入。
 
 Agent 選擇以 Role 為核心：
 
@@ -384,6 +392,8 @@ Agent 選擇以 Role 為核心：
 | `REVIEWER` | 選擇可讀取 evidence 並執行 gate review 的 Agent adapter |
 
 Claude、Codex 或其他 vendor 是 runtime adapter selection，不是 Product Workflow Authority，也不得改寫 Role、Gate 或 canonical specs。
+
+Reviewer Profile不是第五個 Role。它只能是 `REVIEWER` Work Item的 subordinate binding，且一個 execution只能有一個 primary profile。Maker與 final Checker必須使用不同 execution IDs。
 
 ## 14. Git Strategy and Bootstrap Exception
 
@@ -431,6 +441,11 @@ repo_target: object
 framework_version: string
 generated_specs: []
 initial_work_items: []
+work_item_risk_assignments: []
+review_assignments: []
+role_completion_evidence: []
+findings: []
+delivery_assurance: null
 handoff_status: string
 ```
 
@@ -448,6 +463,9 @@ Repo 建立前，audit 可保存在 Orchestrator 管理的暫時 execution state
 | `BOOTSTRAP_FAILED` | 清理不完整結果並驗證 target 後可重試 | Required for destructive cleanup or target change | Yes |
 | `SPEC_GENERATION_FAILED` | 修正 context、tool 或 adapter failure 後可重試 | Required when requirement input is missing | Yes；交由新的 Harness execution |
 | `SPEC_GATE_FAILED` | 規格修正後可重新執行 gate | Required for material requirement decisions | Yes；使用新的 review / spec execution |
+| `REQUIRED_REVIEW_MISSING` | 產生或重跑 required Reviewer Work Item後可重試 | Required only for accepted risk / policy change | Yes |
+| `SELF_APPROVAL_REJECTED` | 指派不同 Reviewer execution後可重試 | No for compliant reassignment | Yes |
+| `DELIVERY_ASSURANCE_FAILED` | Owner修正 findings並完成 invalidated reviews後可重試 | Required for accepted risk或 authority decision | Yes |
 | `AGENT_DISPATCH_FAILED` | 修正 adapter、capability 或 Harness 問題後可重試 | Required when policy or scope must change | Yes |
 
 所有 retry 必須保留前次 failure evidence。不得在同一個已失效或越權的 Harness execution 中切換 Role、擴張 permission 或跳過 approval。
@@ -467,3 +485,7 @@ Contract implementation 必須驗證：
 9. 本 Contract 沒有建立第二套 Authority。
 10. 規格階段不建立實際 Project Repo、不寫 runtime code。
 11. Bootstrap 完成後，一般 Agent 不可直接 push `main`。
+12. 每個 generated Work Item都有系統指派的 Risk Class。
+13. Reviewer Profile不會成為新的 top-level Role，且由 Orchestrator / Harness指派。
+14. Initial specs沒有 independent `SPEC_REVIEWER` evidence時不能進入 `READY_FOR_DESIGN`。
+15. 正常使用者不需手動選 Risk、Reviewer、Gate或建立 Review Work Item。

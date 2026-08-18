@@ -1,10 +1,26 @@
 # Role Accountability & Assurance Model
 
-Status：Governance Design Proposal
+Status：Approved Design Integrated into Canonical Governance
 
 Scope：AI System Delivery Framework
 
-Canonical change state：Not Applied
+Canonical change state：Applied
+
+Applied governance references：
+
+- `.ai/WORKFLOW.md`
+- `.ai/PROJECT_INTAKE_CONTRACT.md`
+- `.ai/HARNESS_CONTRACT.md`
+- `.ai/roles/product-architect.md`
+- `.ai/roles/ux-designer.md`
+- `.ai/roles/implementer.md`
+- `.ai/roles/reviewer.md`
+- `.ai/roles/reviewer-profiles/**`
+- `.ai/gates/**`
+- `templates/Work_Item.md`
+- `templates/Agent_Review_Log.md`
+
+Applied design baseline commit：`f2efc3742f18d46a05d10dac462bb8b67a5d6e30`
 
 ## 1. Purpose
 
@@ -19,7 +35,7 @@ Canonical change state：Not Applied
 7. 如何處理 cross-role finding、conflict 與責任退回。
 8. Delivery Assurance 如何在 release 前獨立確認整體完整性。
 
-本文件是 governance design proposal，不是新的 Governance Authority、Role Contract、Gate Registry 或 Work Item Contract。核准前不得把本文中的 profile、risk class、evidence field 或 assurance result 當成現行 Harness 必須接受的 canonical enum。
+本文件保存已核准設計與 integration rationale，不是新的最高 Governance Authority、Role Contract、Gate Registry 或 Work Item Contract。可執行規則已同步至上列 canonical governance；若本文與 canonical artifact 有差異，以 canonical artifact 為準。
 
 本文遵守：
 
@@ -68,7 +84,7 @@ Role Boundary
 | Gate result | 現有 Gate criteria 與 Gate Runner | 依 `.ai/gates/**` 對 phase 產生 canonical Gate result |
 | Delivery / release decision | Delivery Assurer 與既有 human / Git policy | Assurance 完整性及正式 merge、release、production 決策 |
 
-Reviewer Profile 的 `PASS / REQUEST_CHANGES / BLOCK` 是本 proposal 的 review evidence，不直接新增或取代現有 Gate 的 `Pass / Failed / Needs Clarification` semantics。
+Reviewer Profile 的 `PASS / REQUEST_CHANGES / BLOCK` 是 review evidence，不新增或取代 Gate 的 `PASS / FAILED / NEEDS_CLARIFICATION` semantics。
 
 ## 3. Separation of Duties
 
@@ -97,7 +113,7 @@ Reviewer Profile 的 `PASS / REQUEST_CHANGES / BLOCK` 是本 proposal 的 review
 
 ## 4. Top-Level Execution Roles
 
-本 proposal 完整保留目前 canonical Work Item Role Enum：
+本模型完整保留 canonical Work Item Role Enum：
 
 ```text
 PRODUCT_ARCHITECT
@@ -115,7 +131,7 @@ REVIEWER
 | `IMPLEMENTER` | Maker | Source code、tests、authorized engineering artifact |
 | `REVIEWER` | Checker or Final Assurer | Review evidence、findings、assurance result |
 
-Reviewer Profile 不得作為 Work Item `Role` 值。未來若模型核准，review Work Item 仍使用 `Role: REVIEWER`，再以獨立、明確且可驗證的 profile binding 指定專業審查責任。
+Reviewer Profile 不得作為 Work Item `Role` 值。Review Work Item使用 `Role: REVIEWER`，再以獨立、明確且可驗證的 profile binding指定專業審查責任。
 
 ## 5. Reviewer Profiles
 
@@ -137,7 +153,7 @@ Profile binding 原則：
 - Profile 只能增加該次 review 的 required checks，不能擴張 `REVIEWER` filesystem、tool 或 command permission。
 - Profile 由 Orchestrator / Harness 根據 artifact type、risk 與 policy 指派，不能由 Agent 自選。
 - Profile 結果只對指定 artifact hash、spec reference、Work Item 與 review version 有效。
-- `agent_roles/**` 可作為既有專業視角參考，但在正式 migration 前，不等同本 proposal 的 canonical Reviewer Profile。
+- `agent_roles/**` 只作為 legacy advisory perspective，不等同 `.ai/roles/reviewer-profiles/**` 的 canonical Reviewer Profile。
 
 ### 5.1 Common Review Decision
 
@@ -552,7 +568,7 @@ Result semantics：
 
 任何 candidate artifact、commit、required review policy 或 accepted risk 變更，都使舊 result失效並要求新的 assurance execution。
 
-## 24. Delivery Assurance Gate Proposal
+## 24. Delivery Assurance Gate Decision
 
 ### 24.1 Options Considered
 
@@ -562,7 +578,7 @@ Result semantics：
 
 ### 24.2 Unique Recommendation
 
-**唯一建議：模型核准後，新增 canonical `DELIVERY_ASSURANCE_GATE`，位置為 `IMPLEMENTATION_GATE → DELIVERY_ASSURANCE_GATE → RELEASE_GATE`。**
+**唯一核准決策：使用 canonical `DELIVERY_ASSURANCE_GATE`，位置為 `IMPLEMENTATION_GATE → required independent review aggregation → DELIVERY_ASSURANCE_GATE → RELEASE_GATE`。**
 
 理由：
 
@@ -571,7 +587,7 @@ Result semantics：
 3. 它允許 `RELEASE_GATE` 專注 release readiness 與 human external-side-effect decision。
 4. 單一 assurance Gate 搭配 risk-based profiles，可避免 profile-to-gate explosion。
 
-本次不新增 Gate file、不修改 Gate Registry、不改 Phase mapping。正式採用前必須先完成第 29 節的 canonical changes 與 migration。
+此決策已同步至 Gate Registry與 canonical governance，且沒有新增 Work Item Phase。Runtime enforcement仍需依第29節 migration與 independently Approved SDD實作。
 
 ## 25. Harness Integration Design
 
@@ -661,34 +677,25 @@ Framework 應以 traceability、automated checks、risk assignment、specialist 
 
 「最後讓人全部重新看一次」不是品質模型；Human 應收到可定位的 unresolved findings、accepted risks、Gate status、evidence refs 與 decision scope。
 
-## 29. Proposed Governance Changes
+## 29. Applied Governance Changes and Runtime Migration
 
-以下只是在本模型核准後的 migration proposal；本次全部未修改。
+| Canonical artifact | Applied integration | Compatibility impact | Remaining runtime migration |
+|---|---|---|---|
+| `.ai/roles/product-architect.md`、`ux-designer.md`、`implementer.md` | Professional Baseline、Self Review、Evidence、Forbidden、Escalation、Handoff | Raises completion bar | Evidence collector / validator implementation |
+| `.ai/roles/reviewer.md` + `reviewer-profiles/**` | Six subordinate profiles、independence、Risk / Finding rules | No new top-level Role | Profile registry / assignment runtime |
+| `.ai/WORKFLOW.md` | Maker → Review → Gate → Assurance → Release | Workflow guard tightened | Orchestration implementation |
+| `.ai/PROJECT_INTAKE_CONTRACT.md` | Risk assignment與 system-generated Reviewer Work Items | Intake review guard tightened | Intake / Work Item Generator implementation |
+| `.ai/HARNESS_CONTRACT.md` | Separation、Risk、Review、Finding、Evidence、Assurance enforcement | Runtime contract expanded | Harness implementation after approved SDD |
+| `templates/Work_Item.md` | `harness.work-item/v2`、Risk與 review binding | Breaking schema version | Explicit v1 → v2 migration；no guessed defaults |
+| `templates/Agent_Review_Log.md` | Canonical Role Completion / Review / Finding evidence | Replaces generic log semantics | Machine-readable schema projection |
+| `.ai/gates/**` | Independent review requirements + `DELIVERY_ASSURANCE_GATE` | Five canonical Gates | Gate Runner implementation |
+| Architecture / SDD | Two-Plane accountability components與 implementation model | Additive design | Independent SDD approval before coding |
 
-| Canonical artifact | Required change | Reason | Compatibility impact | Migration needed |
-|---|---|---|---|---|
-| `.ai/roles/product-architect.md` | 加入 Professional Baseline、Self Review、Required Evidence、禁止 self approval | 讓 spec Maker 的完成條件可驗證 | Additive responsibility；可能使舊 task evidence不足 | Yes：舊 active spec task需補 evidence或 grandfather policy |
-| `.ai/roles/ux-designer.md` | 加入 state / accessibility / unauthorized-feature baseline與 evidence | 防止設計只滿足 write boundary | Additive | Yes for active design tasks |
-| `.ai/roles/implementer.md` | 加入 engineering baseline、tests / diff evidence與 self review | 定義 code 完成標準 | Additive；可能提高 Done bar | Yes for active implementation tasks |
-| `.ai/roles/reviewer.md` | 定義 profile binding、independence、review decision與 read-only rule | 讓 `REVIEWER` 可承載專業 Checker / Assurer | Additive但 runtime需要辨識 profile | Yes |
-| `.ai/roles/reviewer-profiles/**` | 新增六個 profile checklist文件，由 reviewer role引用 | 避免新增 top-level Role Enum | New governed artifacts | Yes：Context Compiler / bootstrap manifest需納入 |
-| `.ai/WORKFLOW.md` | 加入 Self Review、risk-based independent review、Assurance sequence | 固定跨 role handoff | Workflow behavior change | Yes：active workflow需版本 pin |
-| `.ai/PROJECT_INTAKE_CONTRACT.md` | 將 `SPEC_REVIEW` 綁定獨立 `SPEC_REVIEWER` evidence | 防止初始規格由 Maker 自行放行 | Tightens lifecycle guard，不新增 state | Yes：in-flight intake需補 review或採明確 transition policy |
-| `.ai/HARNESS_CONTRACT.md` | 增加 profile binding、risk resolver、separation、evidence / finding lifecycle | 讓 Harness 可 fail closed | Contract additive / runtime breaking if immediately required | Yes：schema + staged rollout |
-| `templates/Work_Item.md` | 保留 Role Enum；為 REVIEW task設計 profile、risk、maker / artifact refs等 canonical fields | 不讓 Harness猜 Reviewer Profile | Schema version change | Yes：parser、generator、fixtures與舊 Work Item migration |
-| `.ai/gates/spec-gate.md`、`design-gate.md`、`implementation-gate.md` | 分別要求適用的 Spec、UX、Tech / QA獨立 review evidence，並驗證 artifact hash | 讓現有 phase Gate真正消費 professional review | Tightens Gate criteria | Yes：active Gate run需依 policy版本處理 |
-| `.ai/gates/delivery-assurance-gate.md` | 新增 aggregate assurance criteria | 建立獨立 final accountability checkpoint | New Gate | Yes：registry、phase / workflow mapping |
-| `.ai/gates/release-gate.md` | 將 Assurance Gate結果列為 release prerequisite | 保持 assurance與release decision分離 | Tightens release | Yes for in-flight releases |
-| Gate Registry in `templates/Work_Item.md` | 加入 `DELIVERY_ASSURANCE_GATE` | 使 Work Item與Gate可解析 | Canonical enum / validation change | Yes |
-| Evidence / Finding canonical schema | 新增 versioned Role Completion Evidence、Review Assignment、Finding、Assurance Result | 提供 machine-readable audit contract | New schema set | Yes：retention、hash、redaction policy |
-| `docs/harness_implementation_architecture.md` | 加入 Review Assignment / Assurance component ownership | 對齊 Two-Plane architecture | Additive architecture update | Yes before runtime implementation |
-| `docs/harness_v0.1_SDD.md` | 補上 module、interface、error、state、test與migration design | 讓工程實作可拆 task | SDD revision | Yes before implementation |
-
-不建議修改 `.ai/AUTHORITY.md` 的 hierarchy 或四個 top-level Role Enum。Reviewer Profile 應從 `REVIEWER` role 派生，不能成為新的平行權威。
+`.ai/AUTHORITY.md` hierarchy未重新排序，四個 top-level Role Enum與五個 Work Item Phase維持不變。Reviewer Profile只從 `REVIEWER` role派生，不能成為新的平行權威。
 
 ## 30. Validation
 
-| Check | Result | Evidence in this proposal |
+| Check | Result | Evidence in this model |
 |---|---|---|
 | 1. Permission 與 Professional Responsibility 分離 | PASS | Sections 2、6-8 |
 | 2. Maker / Checker / Assurer 分離 | PASS | Section 3 |
@@ -702,12 +709,12 @@ Framework 應以 traceability、automated checks、risk assignment、specialist 
 | 10. 以 evidence 而非 Agent claim 判斷 | PASS | Sections 17-19 |
 | 11. Blocking finding 阻止 release | PASS | Sections 19、22-24 |
 | 12. Human 不需逐項檢查 Agent | PASS | Section 28 |
-| 13. 未修改 Authority | PASS | 本次只新增 proposal文件 |
+| 13. Authority hierarchy未重排 | PASS | Reviewer Profile subordinate to REVIEWER；Authority order unchanged |
 | 14. 未修改 Role Enum | PASS | Section 4保留四個 canonical Role |
-| 15. 未開始 runtime implementation | PASS | 無 source、schema、script、Action或runtime config變更 |
+| 15. 未開始 runtime implementation | PASS | 只有 governance、design、plan與 blocked Work Items；無 package、source、install或 adapter |
 
 ### Current Governance Conflict Assessment
 
-未發現本 proposal 與目前 Governance 的直接衝突，因為 profile、risk class、evidence與Assurance Gate皆明確標示為尚未生效的設計。現況存在的是 governance capability gap：目前 `REVIEWER`、Gate與Work Item尚未定義 profile binding、separation of duties、risk-based assignment、finding lifecycle與final assurance。
+未發現 canonical Governance衝突。Profile、Risk、Evidence、Finding與 Delivery Assurance已寫入 canonical artifacts；Authority hierarchy、四個 Role與五個 Phase未變。
 
-在第 29 節 canonical changes 完成前，Harness 不得假裝上述能力已可被 machine-enforced，也不得產生 `DELIVERY_ASSURANCE_GATE` 作為現行 Required Gate。
+目前 remaining condition不是新的 governance gap，而是 implementation與 approval gate：Harness尚未實作這些規則，`docs/harness_v0.1_SDD.md`仍為 `Review`。Independent Reviewer核准 exact SDD artifact hash前，不得啟動 Phase 1 Work Item或宣告 implementation-ready。

@@ -5,13 +5,14 @@
 | Field | Value |
 |---|---|
 | Document | Harness v0.1 Software Design Document |
-| Status | Draft |
+| Status | Review |
 | Scope | Implementation-level design for Project Orchestration Plane and Task Execution Plane |
 | Architecture | `docs/harness_implementation_architecture.md` |
 | Project Intake Contract | `.ai/PROJECT_INTAKE_CONTRACT.md` |
 | Harness Contract | `.ai/HARNESS_CONTRACT.md` |
 | Work Item Contract | `templates/Work_Item.md` |
 | Implementation | Not started |
+| Final Approval | Independent Review Required |
 
 ## 1. Document Role
 
@@ -77,7 +78,11 @@ harness/
     repository/
     bootstrap/
     specs/
+    risk/
     work-items/
+    reviews/
+    findings/
+    assurance/
     dispatch/
     core/
     context/
@@ -116,7 +121,11 @@ Directory responsibility：
 | `repository/` | Repository provisioning use cases and ports | core、approval、bootstrap、git ports | credentials in domain objects、vendor client outside adapter |
 | `bootstrap/` | Manifest validation and deterministic bootstrap plan | schemas、core、filesystem / git ports | floating framework source、destructive cleanup |
 | `specs/` | Specification-generation orchestration | work-items、dispatch、gate ports | writing product logic directly |
+| `risk/` | Deterministic risk classification and trigger evaluation | core、work-items、host policy ports | Agent-selected downgrade、vendor assumptions |
 | `work-items/` | Generator、Markdown parser、normalizer、validator | core、schemas、role / gate registries | vendor adapter、GitHub client |
+| `reviews/` | Reviewer Profile registry、assignment resolver、independence validation | core、risk、work-items、audit ports | changing reviewed artifact、self-selected profile |
+| `findings/` | Append-only finding lifecycle and accepted-risk validation | core、audit、authority reader ports | Agent-owned deletion、artifact mutation |
+| `assurance/` | Delivery candidate manifest and final assurance coordination | reviews、findings、gates、audit ports | release approval、artifact production |
 | `dispatch/` | Role-to-capability matching and Harness invocation | execution ports、adapter registry types | changing Role、Phase、Scope or Gate |
 | `core/` | Vendor-neutral domain types、hashing contracts、invariants | standard library abstractions only | infrastructure、CLI、vendor packages |
 | `context/` | Context compiler and deterministic manifest | core、work-items、repository-reader ports | Claude / Codex adapters |
@@ -208,6 +217,27 @@ interface SpecificationGenerationOrchestrator {
   dispatchAndReview(item: WorkItem): Promise<GateResult>;
 }
 
+interface RiskClassifier {
+  classify(input: RiskClassificationInput, policy: RiskPolicy): RiskAssignment;
+}
+
+interface ReviewAssignmentResolver {
+  resolve(item: WorkItem, makerEvidence: RoleCompletionEvidence, risk: RiskClass): readonly ReviewAssignment[];
+  validateIndependence(assignment: ReviewAssignment, reviewerExecutionId: string): void;
+}
+
+interface FindingRegistry {
+  append(finding: ReviewFinding): Promise<void>;
+  transition(findingId: string, status: FindingStatus, evidence: string, actor: string): Promise<ReviewFinding>;
+  listOpenBlocking(deliveryId: string): Promise<readonly ReviewFinding[]>;
+}
+
+interface DeliveryAssuranceCoordinator {
+  buildCandidate(input: DeliveryCandidateInput): Promise<HashedFileRef>;
+  createAssuranceWorkItem(candidate: HashedFileRef): Promise<WorkItem>;
+  validateResult(result: DeliveryAssuranceResult, candidate: HashedFileRef): Promise<void>;
+}
+
 interface DispatchCoordinator {
   selectAdapter(item: WorkItem, capabilities: readonly AdapterCapability[]): AdapterSelection;
   dispatch(item: WorkItem, repository: RepositoryIdentity): Promise<ExecutionHandle>;
@@ -239,6 +269,9 @@ interface AuditRecorder {
   append(event: RuntimeEvent): Promise<void>;
   recordGate(result: GateResult): Promise<void>;
   recordApproval(result: ApprovalDecisionRecord): Promise<void>;
+  recordRoleEvidence(evidence: RoleCompletionEvidence): Promise<void>;
+  recordFinding(finding: ReviewFinding): Promise<void>;
+  recordAssurance(result: DeliveryAssuranceResult): Promise<void>;
   finalize(record: AuditRecord): Promise<void>;
 }
 ```
@@ -383,9 +416,13 @@ interface BootstrapManifest {
 type WorkItemRole = "PRODUCT_ARCHITECT" | "UX_DESIGNER" | "IMPLEMENTER" | "REVIEWER";
 type WorkItemPhase = "SPEC" | "DESIGN" | "IMPLEMENTATION" | "REVIEW" | "RELEASE";
 type WorkItemStatus = "TODO" | "IN_PROGRESS" | "BLOCKED" | "REVIEW" | "DONE" | "CANCELLED";
+type RiskClass = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+type ReviewProfile =
+  | "SPEC_REVIEWER" | "UX_REVIEWER" | "TECH_REVIEWER"
+  | "QA_REVIEWER" | "SECURITY_REVIEWER" | "DELIVERY_ASSURANCE_REVIEWER";
 
 interface WorkItem {
-  readonly schema_version: "harness.work-item/v1";
+  readonly schema_version: "harness.work-item/v2";
   readonly id: string;
   readonly title: string;
   readonly role: WorkItemRole;
@@ -394,6 +431,11 @@ interface WorkItem {
   readonly status: WorkItemStatus;
   readonly spec_version: string;
   readonly design_version: string;
+  readonly risk_class: RiskClass;
+  readonly review_profile: ReviewProfile | null;
+  readonly reviewed_artifact: ArtifactReference | null;
+  readonly reviewed_artifact_hash: string | null;
+  readonly maker_execution_id: string | null;
   readonly objective: string;
   readonly requirement_references: readonly ArtifactReference[];
   readonly read_scope: readonly string[];
@@ -412,7 +454,7 @@ interface WorkItem {
 
 interface ArtifactReference { readonly kind: string; readonly id?: string; readonly path: string; readonly anchor?: string; }
 interface AcceptanceCriterion { readonly id: string; readonly description: string; readonly completed: boolean; }
-type GateId = "SPEC_GATE" | "DESIGN_GATE" | "IMPLEMENTATION_GATE" | "RELEASE_GATE";
+type GateId = "SPEC_GATE" | "DESIGN_GATE" | "IMPLEMENTATION_GATE" | "DELIVERY_ASSURANCE_GATE" | "RELEASE_GATE";
 ```
 
 `templates/Work_Item.md` 是 enum、required section 與 validation 的唯一來源；上述 TypeScript type 是 parser output mapping，不是第二套 Work Item Contract。Work Item Generator 擁有 draft creation；Work Item Parser 擁有 normalization；兩者輸出 immutable value。
@@ -426,10 +468,12 @@ type ExecutionState =
   | "FAILED_GATE" | "FAILED_RUNTIME" | "CANCELLED";
 
 interface ExecutionContextManifest {
-  readonly schema_version: "harness.context/v1";
+  readonly schema_version: "harness.context/v2";
   readonly execution_id: string;
   readonly task_id: string;
   readonly role: WorkItemRole;
+  readonly risk_class: RiskClass;
+  readonly review_profile?: ReviewProfile;
   readonly feature: string;
   readonly phase: WorkItemPhase;
   readonly governance_context: readonly HashedFileRef[];
@@ -454,9 +498,9 @@ interface ExecutionPolicy {
 }
 
 interface ExecutionProfile {
-  readonly schema_version: "harness.execution-profile/v1";
+  readonly schema_version: "harness.execution-profile/v2";
   readonly profile_hash: string;
-  readonly execution: Readonly<{ execution_id: string; task_id: string; role: WorkItemRole; feature: string; phase: WorkItemPhase; adapter: string }>;
+  readonly execution: Readonly<{ execution_id: string; task_id: string; role: WorkItemRole; risk_class: RiskClass; review_profile?: ReviewProfile; feature: string; phase: WorkItemPhase; adapter: string }>;
   readonly repository: Readonly<{ identity: string; root: string; branch: string; commit_before: string }>;
   readonly work_item: Readonly<{ path: string; hash: string }>;
   readonly context: Readonly<{ manifest_ref: string; context_hash: string }>;
@@ -465,6 +509,7 @@ interface ExecutionProfile {
   readonly commands: ExecutionPolicy["commands"];
   readonly environment: ExecutionPolicy["environment"];
   readonly gates: Readonly<{ required: readonly GateId[] }>;
+  readonly review?: Readonly<{ assignment_ref: string; assignment_hash: string; maker_execution_ids: readonly string[]; reviewed_artifact_hash: string }>;
   readonly adapter_requirements: readonly AdapterCapabilityRequirement[];
   readonly audit: Readonly<{ sink: string; redaction_policy: string; required_fields: readonly string[] }>;
 }
@@ -517,7 +562,7 @@ interface GateResult { readonly gate_id: GateId; readonly status: GateResultStat
 type ApprovalDecision = "APPROVED" | "REJECTED" | "EXPIRED";
 interface ApprovalRequest { readonly approval_id: string; readonly execution_id: string; readonly operation: string; readonly operation_hash: string; readonly risk_class: string; readonly reason: string; readonly requested_at: string; readonly expires_at: string; readonly policy_hash: string; }
 
-interface AuditRecord { readonly schema_version: "harness.audit/v1"; readonly execution_id: string; readonly task_id: string; readonly profile_hash: string; readonly events_hash: string; readonly gate_results: readonly GateResult[]; readonly approvals: readonly ApprovalDecisionRecord[]; readonly commit_before: string; readonly commit_after?: string; readonly final_status: ExecutionState; readonly finalized_at: string; }
+interface AuditRecord { readonly schema_version: "harness.audit/v2"; readonly execution_id: string; readonly task_id: string; readonly profile_hash: string; readonly events_hash: string; readonly gate_results: readonly GateResult[]; readonly approvals: readonly ApprovalDecisionRecord[]; readonly role_evidence_refs: readonly string[]; readonly review_assignment_refs: readonly string[]; readonly finding_refs: readonly string[]; readonly delivery_assurance_ref?: string; readonly commit_before: string; readonly commit_after?: string; readonly final_status: ExecutionState; readonly finalized_at: string; }
 interface ApprovalDecisionRecord { readonly request: ApprovalRequest; readonly decision: ApprovalDecision; readonly decided_at: string; readonly decided_by: string; }
 
 interface HarnessError { readonly code: string; readonly message: string; readonly cause?: HarnessError; readonly retryable: boolean; readonly human_action_required: boolean; readonly lifecycle_mapping: string; readonly exit_code: number; readonly details?: Readonly<Record<string, unknown>>; }
@@ -525,9 +570,117 @@ interface HarnessError { readonly code: string; readonly message: string; readon
 
 Adapter owns capability report / raw result；Runtime Monitor owns normalized events；Gate Runner owns GateResult；Approval Handler owns decision record；Audit Recorder owns final AuditRecord；Error Factory owns HarnessError。所有 audit/event/error payload 在 persistence 前 redaction。
 
-Gate Runner內部正規化值使用`PASS / FAILED / NEEDS_CLARIFICATION`；寫入Harness Contract evidence時必須lossless序列化為`Pass / Failed / Needs Clarification`。Deserializer接受Contract spelling後轉回internal enum；其他值拒絕，避免SDD建立第二套Gate semantics。
+GateResult使用`PASS / FAILED / NEEDS_CLARIFICATION`；Review decision使用`PASS / REQUEST_CHANGES / BLOCK`。兩者是不同 domain type，不得互相代用。
 
-### 5.5 Type Contract Matrix
+### 5.5 Accountability and Assurance Types
+
+```ts
+type ReviewDecision = "PASS" | "REQUEST_CHANGES" | "BLOCK";
+type FindingSeverity = "BLOCKING" | "MAJOR" | "MINOR" | "OBSERVATION";
+type FindingStatus = "OPEN" | "RESOLVED" | "ACCEPTED_RISK" | "SUPERSEDED";
+
+interface RiskAssignment {
+  readonly schema_version: "harness.risk-assignment/v1";
+  readonly risk_class: RiskClass;
+  readonly trigger_ids: readonly string[];
+  readonly source_hashes: readonly string[];
+  readonly classifier_version: string;
+  readonly assignment_hash: string;
+}
+
+interface RiskClassificationInput {
+  readonly work_item_id: string;
+  readonly artifact_type: string;
+  readonly changed_paths: readonly string[];
+  readonly trigger_facts: readonly string[];
+  readonly source_hashes: readonly string[];
+}
+
+interface RiskPolicy { readonly version: string; readonly rules: readonly string[]; readonly policy_hash: string; }
+
+interface ReviewAssignment {
+  readonly schema_version: "harness.review-assignment/v1";
+  readonly assignment_id: string;
+  readonly work_item_id: string;
+  readonly risk_class: RiskClass;
+  readonly review_profile: ReviewProfile;
+  readonly maker_role: Exclude<WorkItemRole, "REVIEWER"> | "MULTIPLE";
+  readonly maker_execution_ids: readonly string[];
+  readonly reviewed_artifact: ArtifactReference;
+  readonly reviewed_artifact_hash: string;
+  readonly required_checks: readonly string[];
+  readonly required_evidence: readonly string[];
+  readonly assignment_hash: string;
+}
+
+interface RoleCompletionEvidence {
+  readonly schema_version: "harness.role-evidence/v1";
+  readonly evidence_id: string;
+  readonly execution_id: string;
+  readonly work_item_id: string;
+  readonly role: WorkItemRole;
+  readonly review_profile?: ReviewProfile;
+  readonly artifact_refs: readonly ArtifactReference[];
+  readonly artifact_hashes: readonly string[];
+  readonly spec_references: readonly ArtifactReference[];
+  readonly checks_performed: readonly EvidenceCheck[];
+  readonly tests_performed: readonly EvidenceCheck[];
+  readonly findings: readonly string[];
+  readonly known_limitations: readonly string[];
+  readonly result: "READY_FOR_REVIEW" | "BLOCKED" | ReviewDecision;
+  readonly timestamp: string;
+  readonly commit_hash?: string;
+  readonly changed_files?: readonly string[];
+  readonly diff_scope?: readonly string[];
+  readonly typecheck?: EvidenceCheck;
+  readonly lint?: EvidenceCheck;
+  readonly unit_test?: EvidenceCheck;
+  readonly integration_test?: EvidenceCheck;
+  readonly build?: EvidenceCheck;
+  readonly security_check?: EvidenceCheck;
+}
+
+interface ReviewFinding {
+  readonly schema_version: "harness.finding/v1";
+  readonly finding_id: string;
+  readonly review_profile: ReviewProfile;
+  readonly owner_role: WorkItemRole;
+  readonly work_item_id: string;
+  readonly artifact_ref: ArtifactReference;
+  readonly artifact_hash: string;
+  readonly requirement_references: readonly ArtifactReference[];
+  readonly description: string;
+  readonly severity: FindingSeverity;
+  readonly evidence_references: readonly string[];
+  readonly required_action: string;
+  readonly status: FindingStatus;
+}
+
+interface DeliveryAssuranceResult {
+  readonly schema_version: "harness.delivery-assurance/v1";
+  readonly delivery_id: string;
+  readonly project: string;
+  readonly commit: string;
+  readonly reviewed_work_items: readonly string[];
+  readonly required_reviews: readonly ReviewAssignment[];
+  readonly completed_review_evidence: readonly string[];
+  readonly gate_results: readonly GateResult[];
+  readonly open_findings: readonly string[];
+  readonly accepted_risk_references: readonly string[];
+  readonly evidence_references: readonly string[];
+  readonly result: "PASS" | "REQUEST_CHANGES" | "BLOCKED";
+  readonly reviewer: string;
+  readonly reviewer_execution_id: string;
+  readonly timestamp: string;
+}
+
+interface EvidenceCheck { readonly id: string; readonly method: string; readonly result: string; readonly evidence_reference?: string; }
+interface DeliveryCandidateInput { readonly project: string; readonly commit: string; readonly work_items: readonly string[]; readonly evidence_refs: readonly string[]; readonly gate_refs: readonly string[]; readonly finding_refs: readonly string[]; }
+```
+
+`ReviewProfile`是 `REVIEWER` subordinate binding，不擴張 permission。Review Assignment Resolver擁有 assignment；Maker / Reviewer executions各自擁有 RoleCompletionEvidence；Finding Registry擁有 ReviewFinding lifecycle；Delivery Assurance Coordinator擁有 candidate manifest，`DELIVERY_ASSURANCE_REVIEWER` execution產生 result。
+
+### 5.6 Type Contract Matrix
 
 | Type | Purpose | Required / Optional | Validation | Owner | Mutability |
 |---|---|---|---|---|---|
@@ -544,6 +697,13 @@ Gate Runner內部正規化值使用`PASS / FAILED / NEEDS_CLARIFICATION`；寫�
 | `WorkItemPhase` | Bind execution phase | Required | Work Item Contract enum | Work Item Parser | Immutable |
 | `WorkItemStatus` | Track Work Item status | Required | Work Item Contract enum | Work Item workflow | New document revision on change |
 | `WorkItem` | Normalize internal execution contract | All canonical sections required；notes may empty | Template validation + document hash | Parser / Generator | Immutable parsed value |
+| `RiskClass` | Bind review risk | Required for every Work Item | Canonical trigger evaluation；no Agent downgrade | Risk Classifier | Immutable assignment |
+| `RiskAssignment` | Prove deterministic Risk decision | All fields / source hashes required | highest trigger wins、classifier version / hash | Risk Classifier | Immutable |
+| `ReviewProfile` | Bind Reviewer responsibility | Required only for REVIEWER | Profile registry；one primary profile | Review Assignment Resolver | Immutable |
+| `ReviewAssignment` | Bind independent checker to artifact | All fields / hashes required | Maker / Reviewer separation、risk、artifact hash | Review Assignment Resolver | Immutable |
+| `RoleCompletionEvidence` | Prove baseline / review work | Required fields；Implementer conditional fields | execution / artifact / commit binding | Evidence Collector | Append-only immutable |
+| `ReviewFinding` | Track review issue lifecycle | All fields required | severity / status transition、authority for accepted risk | Finding Registry | Append-only state events |
+| `DeliveryAssuranceResult` | Record final assurance decision | All aggregate fields required | candidate hash、reviews、gates、findings | Delivery Assurance Reviewer | Immutable per candidate |
 | `ExecutionState` | Track runtime lifecycle | Required | Harness Contract transition | Execution Core | Transition creates new state event |
 | `ExecutionContextManifest` | Freeze least context | All fields / hashes required | paths、references、versions、determinism | Context Compiler | Immutable |
 | `ExecutionPolicy` | Freeze effective permissions | All policy dimensions required | intersection、deny union、hash | Policy Compiler | Immutable |
@@ -563,12 +723,17 @@ Canonical schema IDs：
 
 ```text
 harness.project-context/v1
-harness.work-item/v1
-harness.context/v1
+harness.work-item/v2
+harness.context/v2
 harness.policy/v1
-harness.execution-profile/v1
-harness.audit/v1
+harness.execution-profile/v2
+harness.audit/v2
 harness.bootstrap/v1
+harness.risk-assignment/v1
+harness.review-assignment/v1
+harness.role-evidence/v1
+harness.finding/v1
+harness.delivery-assurance/v1
 ```
 
 Rules：
@@ -580,10 +745,12 @@ Rules：
 - Runtime 只接受明列 supported versions；未知或較新 major 回傳 `HNS-INPUT-001` 或 domain-specific schema error並 fail closed。
 - 不允許 adapter 私自 migration；migration 位於 schema registry / application boundary。
 - Audit 記錄 input version、migration ID、before / after hash。
+- `harness.work-item/v1 → v2` 是 breaking migration：Orchestrator必須重新計算 Risk並為 review task建立 explicit profile / artifact / hash / Maker identity；禁止以 default或 Agent assumption補值。v1可讀取做 migration，但不可直接 dispatch。
+- `harness.context/v1 → v2`、`harness.execution-profile/v1 → v2`與 `harness.audit/v1 → v2`必須由 trusted migrator加入可證明的 Risk / review / evidence references並重新 hash；缺少來源 evidence時不得 migration或 launch。
 
 ## 7. CLI Design
 
-Global behavior：TTY 預設 human-readable；`--json` 輸出 structured result；所有 command共用第 34 節 exit code registry。CLI 不要求使用者輸入 Role、Feature、Phase、Read Scope 或 Write Scope。
+Global behavior：TTY 預設 human-readable；`--json` 輸出 structured result；所有 command共用第 34 節 exit code registry。CLI 不要求使用者輸入 Role、Feature、Phase、Risk、Reviewer、Gate、Read Scope 或 Write Scope。
 
 | Command | Purpose | Arguments / Options | Input | Output | Exit Codes | Side Effects | Approval |
 |---|---|---|---|---|---|---|---|
@@ -595,7 +762,7 @@ Global behavior：TTY 預設 human-readable；`--json` 輸出 structured result�
 | `harness validate [--task <ID>]` | 驗證 config、Work Item、schemas、repo與 references | optional task；`--json` | repo / config | findings and exit code | `0, 2, 3, 4, 5, 6` | None | None |
 | `harness doctor` | 檢查 Node、Git、credential source presence、adapter capability availability | optional `--adapter <id>` | host environment facts | redacted capability report | `0, 2, 5, 8` | Read-only checks | None |
 
-v0.1 保留上述六個 command；不提供 cleanup、production deploy、automatic release或 direct vendor passthrough command。任何 vendor-specific launch option在 adapter implementation前標示 `ADAPTER CAPABILITY TO VERIFY`。
+v0.1 保留上述七個 command；不提供 cleanup、production deploy、automatic release或 direct vendor passthrough command。任何 vendor-specific launch option在 adapter implementation前標示 `ADAPTER CAPABILITY TO VERIFY`。
 
 ## 8. Natural Language Project Start
 
@@ -828,6 +995,8 @@ Compiler steps：schema validate → resolve framework SHA → normalize paths �
 
 New Project manifest必須包含Section 11.1 intake source snapshot的required `GENERATE` operation；payload來自approved Project Context / Proposal，target固定在`docs/01_sources/project-intake/<session-id>/`下，並納入bootstrap commit與provenance。
 
+Bootstrap governance COPY set必須包含 `REVIEWER` role、六個 subordinate profile、五個 Gate、Work Item v2與 Role Completion / Review Log template。漏掉任一 required governance artifact視為`HNS-BOOT-001`，不得建立可執行 Project Repo。
+
 Fail closed conditions：duplicate target、`../`、absolute target、symlink escape、missing required source、hash mismatch、version pin mismatch、unknown operation、EXCLUDE 與 writer conflict。Manifest 不執行 shell。
 
 ## 16. Work Item Generator Design
@@ -839,6 +1008,13 @@ interface GenerateWorkItemInput {
   readonly role: WorkItemRole;
   readonly feature: string;
   readonly phase: WorkItemPhase;
+  readonly risk_assignment: Readonly<{ risk_class: RiskClass; source_hash: string; assigned_by: "ORCHESTRATOR" | "HARNESS" }>;
+  readonly review_binding?: Readonly<{
+    profile: ReviewProfile;
+    reviewed_artifact: ArtifactReference;
+    reviewed_artifact_hash: string;
+    maker_execution_id?: string;
+  }>;
   readonly traceability: readonly ArtifactReference[];
   readonly requested_scope: Readonly<{ read: readonly string[]; write: readonly string[]; forbidden: readonly string[] }>;
   readonly objective: string;
@@ -851,6 +1027,7 @@ generateWorkItem(input: GenerateWorkItemInput): WorkItemDocument;
 Generation rules：
 
 - Schema與enum只讀`templates/Work_Item.md`的versioned registry projection，不在generator硬編第二份authority。
+- Generator只接受 Risk Classifier的 signed / hashed assignment；Agent-provided downgrade拒絕。`REVIEWER` task必須有完整 review binding，其他 Role必須輸出 `N/A` fields。
 - ID格式由project-level ID allocator產生；prefix可供人讀但不得用來推導Role / Phase。Allocator使用repo lock與monotonic sequence，避免collision。
 - Filename固定`<ID>.md`。
 - AC IDs依input順序產生`AC-<ID>-001`起的zero-padded sequence；同一canonical input順序輸出deterministic。
@@ -859,7 +1036,25 @@ Generation rules：
 - Initial `SPEC` Work Item只可透過Section 11.1的repository-relative approved intake projection引用Project Context / Proposal / sources，不接受host absolute path，也不得宣稱它們是Product SOT。
 - Output先render Markdown，再由WorkItemParser重新parse / validate；round-trip不一致即`HNS-WI-001`。
 
-Generator禁止新增產品需求、擴張Role permission、自創Gate / Role / Phase或補猜缺失metadata。
+Generator禁止新增產品需求、擴張Role permission、自創Gate / Role / Phase、選擇較低 Risk、讓 Agent自選 Reviewer或補猜缺失metadata。
+
+### 16.1 Risk and Review Orchestration
+
+Risk Classifier以 canonical trigger table評估 artifact type、changed paths、auth / authorization、DB / migration、payment、external API、credential、production、destructive operation、security boundary與 data sensitivity，取最高 Risk。相同 normalized inputs與 classifier version必須產生相同 RiskAssignment hash；未知 sensitive trigger至少為`HIGH`並要求 clarification。
+
+Review Assignment Resolver先選 artifact-aligned basic Checker，再依 Risk增加 QA / Security；`CRITICAL`還要求 Delivery Assurance與既有 Governance指定的 Human high-risk approval。它輸出依 profile ID排序的 deterministic assignments，一個 assignment對應一個 primary profile與 execution。Maker execution collision、Agent-provided profile、Risk downgrade或 artifact hash缺失都 fail closed。
+
+```text
+Maker Role Completion Evidence
+→ verify Self Review and artifact hash
+→ classify Risk
+→ resolve required profiles
+→ generate REVIEWER Work Items
+→ independent executions
+→ validate evidence / findings
+→ phase Gate
+→ delivery candidate / assurance when applicable
+```
 
 ## 17. Work Item Parser
 
@@ -883,16 +1078,17 @@ Parsing algorithm：
 1. Normalize / authorize repository-relative Work Item path。
 2. Parse Markdown AST；禁止以heading substring或table row regex作完整parser。
 3. Locate exactly one required Metadata table and every canonical section。
-4. Convert metadata fields，validate Role / Feature / Phase / Status / versions。
+4. Convert metadata fields，validate `harness.work-item/v2`、Role / Feature / Phase / Status / versions / Risk與 review-only fields。
 5. Validate filename equals Metadata ID。
 6. Parse Requirement References / Dependencies into typed references and resolve paths / anchors。
 7. Parse Read / Write / Forbidden lists；normalize pattern syntax但不compile policy。
 8. Parse Acceptance Criteria checkbox and enforce `AC-<ID>-NNN` uniqueness。
 9. Parse canonical Gate IDs and verify gate registry target exists。
-10. Parse Scope、Out of Scope、Blockers、Notes without treating prose aspermission。
-11. Build canonical normalized representation，compute document hash，freeze。
+10. 對 `REVIEWER`驗證 profile registry、reviewed artifact path / SHA-256與 Maker execution ID；對其他 Role驗證 review-only fields全為`N/A`。
+11. Parse Scope、Out of Scope、Blockers、Notes without treating prose as permission。
+12. Build canonical normalized representation，compute document hash，freeze。
 
-Unknown required section、duplicate metadata、invalid enum、unresolvable reference、path escape、AC / gate error都回傳structured error detail。Parser不得由ID prefix、Title、filename或directory猜Role、Feature或Phase。
+Unknown required section、duplicate metadata、invalid enum、unresolvable reference、path escape、AC / gate / Risk / review binding error都回傳structured error detail。Parser不得由ID prefix、Title、filename或directory猜Role、Feature、Phase、Risk或 Reviewer Profile。v1只能交給 explicit migrator，不可 dispatch。
 
 ## 18. Context Compiler Design
 
@@ -901,6 +1097,7 @@ interface ContextCompilerInput {
   readonly execution_id: string;
   readonly work_item: WorkItem;
   readonly role_definition: HashedFileRef;
+  readonly reviewer_profile_definition?: HashedFileRef;
   readonly repository: Readonly<{ root: string; identity: string; branch: string; commit: string }>;
   readonly governance_registry: readonly HashedFileRef[];
   readonly gate_registry: ReadonlyMap<GateId, string>;
@@ -916,19 +1113,20 @@ interface ContextCompiler {
 Algorithm：
 
 1. Validate Work Item與repository identity / branch / commit。
-2. Add Mandatory Governance：Constitution、Authority、Workflow、active Role、active Gates。
+2. Add Mandatory Governance：Constitution、Authority、Workflow、active Role、assigned Reviewer Profile、active Gates。
 3. Add assigned Work Item本身。
 4. Resolve Requirement References與traceability edges。
 5. Add directly relevant Feature Specs。
 6. Add directly relevant Screen Specs / Design Contracts for UI-dependent task。
 7. Add referenced Architecture / SDD sections or whole file when section extraction cannot preserve integrity。
 8. Add role-required source / test files that fall within Work Item Read Scope。
-9. Intersect `additional_context` with role + Work Item read permission；optional context不擴權。
-10. Exclude forbidden、sensitive、unrelated、unsupported-size、version-mismatch與out-of-repo paths，記錄reason但不讀內容。
-11. Resolve canonical real path，read bytes once，calculate SHA-256。
-12. Deduplicate by normalized relative path；same path / different hash is concurrent modification error。
-13. Sort each context class by UTF-8 normalized repository-relative path。
-14. Canonical serialize manifest excluding `context_hash`，calculate hash，freeze。
+9. Reviewer task加入 exact reviewed artifact / manifest、Maker evidence與 findings，並在讀取後驗證 SHA-256；Maker / Reviewer execution相同時停止。
+10. Intersect `additional_context` with role + Work Item read permission；optional context不擴權。
+11. Exclude forbidden、sensitive、unrelated、unsupported-size、version-mismatch與out-of-repo paths，記錄reason但不讀內容。
+12. Resolve canonical real path，read bytes once，calculate SHA-256。
+13. Deduplicate by normalized relative path；same path / different hash is concurrent modification error。
+14. Sort each context class by UTF-8 normalized repository-relative path。
+15. Canonical serialize manifest excluding `context_hash`，calculate hash，freeze。
 
 `TraceabilityIndex` 是read-only mapping of requirement / feature / screen / test IDs to canonical paths；unresolved required edge回傳`HNS-CTX-002`。相同repository commit、Work Item hash、governance hashes、traceability與compiler version必須產生相同`context_hash`。
 
@@ -990,6 +1188,8 @@ Policy dimensions：
 - Environment：name allowlist + source classification，不把secret value放入policy hash。
 - Approval-required：operation class / normalized resource pattern，approval不自動加入allow。
 
+Reviewer Profile只增加 required checks與 context constraints，不增加 filesystem / tool / command permission。Policy Compiler必須讓 Reviewer保持 read-only，唯一可寫路徑是 Work Item明確授權的 review evidence sink；reviewed artifact write永遠 deny。Risk downgrade、profile self-selection與 same-execution Checker都視為 policy conflict。
+
 互相矛盾且無法由deny-wins安全收斂的source回傳`HNS-POL-002`；缺失host baseline或critical adapter capability回傳對應fail-closed error。
 
 ## 20. Path Security
@@ -1032,13 +1232,14 @@ interface ExecutionProfileBuilder {
     context: ExecutionContextManifest;
     policy: ExecutionPolicy;
     gates: readonly GateId[];
+    review_assignment?: ReviewAssignment;
     adapter_requirements: readonly AdapterCapabilityRequirement[];
     audit: ExecutionProfile["audit"];
   }): ExecutionProfile;
 }
 ```
 
-Builder驗證task / role / feature / phase在Work Item、Context與Policy sources一致；repository commit等於context compile commit；gate set包含mandatory gates；context / policy hash可重算。Canonical serialization使用固定key order、UTF-8、no insignificant whitespace與normalized arrays。
+Builder驗證task / role / feature / phase / Risk / Review Profile在Work Item、Context與Policy sources一致；repository commit等於context compile commit；gate set包含mandatory gates；context / policy hash可重算。Reviewer task還必須驗證 assignment hash、Maker execution分離與 reviewed artifact hash。Canonical serialization使用固定key order、UTF-8、no insignificant whitespace與normalized arrays。
 
 `profile_hash = SHA-256(canonical profile without profile_hash)`。Profile deep-freeze後交給Adapter；任何field變更都必須建立新execution ID、重新compile context / policy並產生新hash。Adapter不得修改或補填permission。
 
@@ -1211,14 +1412,18 @@ Project Proposal approval由Project Approval Coordinator管理，不與runtime A
 ```ts
 interface GateRunner {
   resolveRequiredGates(workItem: WorkItem, governance: GovernanceIndex): Promise<readonly GateId[]>;
+  resolveRequiredReviews(workItem: WorkItem, risk: RiskClass, artifact: HashedFileRef): Promise<readonly ReviewAssignment[]>;
+  validateReviewEvidence(assignments: readonly ReviewAssignment[], evidence: readonly RoleCompletionEvidence[]): Promise<void>;
   runGate(gate: GateId, input: GateRunInput): Promise<GateResult>;
   recordGateResult(result: GateResult, audit: AuditSink): Promise<void>;
 }
 ```
 
-Runner只orchestrate `SPEC_GATE`、`DESIGN_GATE`、`IMPLEMENTATION_GATE`、`RELEASE_GATE`；criteria只讀`.ai/gates/**`的active document與hash。Work Item可增加Gate，不能移除Workflow mandatory gate。`REVIEW` Work Item必須明列被審查artifact所屬Gate。
+Runner只orchestrate `SPEC_GATE`、`DESIGN_GATE`、`IMPLEMENTATION_GATE`、`DELIVERY_ASSURANCE_GATE`、`RELEASE_GATE`；criteria只讀`.ai/gates/**`的active document與hash。Work Item可增加Gate，不能移除Workflow mandatory gate。`REVIEW` Work Item必須明列被審查artifact / delivery manifest、hash、profile與Gate。
 
 GateResult status正規化為`PASS`、`FAILED`、`NEEDS_CLARIFICATION`，包含evidence、UTC timestamp、artifact / gate definition hashes與reviewer identity。`FAILED` / required clarification阻止execution進`COMPLETED`；record failure本身也fail closed。
+
+Review evidence驗證先於 Gate criteria：Maker / Checker execution相同、profile非系統指派、required review缺失、artifact hash stale或 `OPEN BLOCKING` finding都直接阻止 Gate PASS。QA / Security requirement由 Risk Policy計算；Agent不能以 Work Item prose移除。
 
 ## 30. Audit Design
 
@@ -1232,6 +1437,10 @@ Host-owned conceptual layout；本次不建立：
   profile.json
   events.jsonl
   gates.json
+  review-assignments.json
+  role-evidence.jsonl
+  findings.jsonl
+  delivery-assurance.json
   approvals.json
   result.json
 ```
@@ -1241,6 +1450,7 @@ Design：
 - Directory不位於Agent writable repo；Agent只透過host event channel被觀察。
 - `events.jsonl` append-only；每event含sequence、timestamp、previous event hash與current hash。
 - Context、Policy、Profile、Gate definition / result與final result存content hash。
+- Review assignment、Role Completion Evidence、Finding transition與 Delivery Assurance Result全部append-only / content-addressed；Agent不可寫 state root。
 - Finalization以atomic write建立immutable`result.json`，內含events head hash；重複finalize相同hash為idempotent，不同內容衝突。
 - Tamper detection重算hash chain、artifact hashes與final references；v0.1不宣稱WORM。
 - Redaction在write前執行：token、credential、authorization、secret env value、sensitive path payload移除或不可逆摘要。
@@ -1316,6 +1526,12 @@ Child environment從空baseline建立，再逐項allowlist copy；不得`{...pro
 | `HNS-SPEC-001` | `SPEC_GAP` | After canonical spec update | Yes | `BLOCKED_SPEC_GAP` | 3 |
 | `HNS-SPEC-002` | `SPEC_CONFLICT` | After authority resolution | Yes | `BLOCKED_SPEC_CONFLICT` | 3 |
 | `HNS-GATE-001` | `GATE_FAILED` | After artifact correction | Maybe | `FAILED_GATE` | 6 |
+| `HNS-RISK-001` | `RISK_DOWNGRADE_REJECTED` | New trusted classification only | Maybe | `BLOCKED_PERMISSION` | 4 |
+| `HNS-RVW-001` | `SELF_APPROVAL_REJECTED` | Yes with independent execution | No | no review start / `FAILED_GATE` | 6 |
+| `HNS-RVW-002` | `REQUIRED_REVIEW_MISSING` | Yes after assignment / review | Maybe | `FAILED_GATE` | 6 |
+| `HNS-RVW-003` | `REVIEWED_ARTIFACT_CHANGED` | Yes with new artifact hash / review | No | `FAILED_GATE` | 6 |
+| `HNS-FND-001` | `OPEN_BLOCKING_FINDING` | Yes after authorized resolution | Maybe | `FAILED_GATE` | 6 |
+| `HNS-ASR-001` | `DELIVERY_ASSURANCE_FAILED` | Yes after findings / reviews resolved | Maybe | `FAILED_GATE` | 6 |
 | `HNS-APR-001` | `APPROVAL_REQUIRED` | Yes after decision | Yes | waiting / no operation | 7 |
 | `HNS-APR-002` | `APPROVAL_REJECTED` | No for same operation | Yes to create new request | `CANCELLED` or continue without optional op | 7 |
 | `HNS-RUN-001` | `RUNTIME_FAILED` | Conditional | Maybe | `FAILED_RUNTIME` | 5 |
@@ -1348,6 +1564,10 @@ CLI只有`errors/exit-code-registry`決定exit code；module回傳HarnessError�
 | Repository creation | Transaction ID + proposal hash idempotency key and provider read-back | Conditional | Target exists with different provider ID / owner |
 | Bootstrap | Manifest hash + framework SHA + repo ID; journaled steps | Resume incomplete idempotent steps | Unknown files、hash drift、destructive cleanup needed |
 | Work Item generation | Canonical inputs + allocator reservation; render / parse round-trip | Retry before commit with same reservation | Specs / scope / role changed |
+| Risk classification | Canonical trigger inputs + classifier version yield same assignment hash | Safe | Artifact / policy / trigger set changed |
+| Review assignment | Maker evidence + Risk + artifact hash + profile registry yield sorted assignment set | Safe before dispatch | Artifact hash、Maker execution或 Risk changed |
+| Finding transition | Finding ID + expected prior status + evidence hash | Safe same transition | Conflicting status / unauthorized accepted risk |
+| Delivery assurance | Candidate manifest hash + required review / Gate evidence | Safe for same immutable candidate | Candidate、finding、review或 Gate changed |
 | Context compilation | Pure for same commit / inputs / compiler version | Safe | Repository changed during read |
 | Policy compilation | Pure canonical set operations | Safe | Source hash / host baseline changed |
 | Gate recording | Gate result ID + artifact hashes; same payload no-op | Safe after read-back | Same ID has different result |
@@ -1360,6 +1580,8 @@ CLI只有`errors/exit-code-registry`決定exit code；module回傳HarnessError�
 v0.1 invariants：
 
 - 同一 Work Item同時最多一個active execution。
+- 同一 review assignment同時最多一個active Reviewer execution；不同 required profiles可並行read-only review同一 immutable artifact hash。
+- 任一 review期間 artifact hash改變，所有 affected review executions取消 / invalidate，Gate等待新 assignments完成。
 - 同一intake session同時最多一個state-mutating command；`status` / `inspect`可並行read。
 - 同一repo可並行read-only task；write task只有在branch不同、compiled write scopes可證明不重疊、Git index / worktree分離時才允許。
 - Scope pattern無法證明disjoint時採conservative serialization。
@@ -1472,8 +1694,12 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 | Project Context / Proposal | schema、revision、proposal hash changes、approval binding |
 | Bootstrap Manifest / Planner | operation kinds、duplicate target、path / source / pin hash、deterministic plan |
 | Repository Transaction | state journal、read-back、idempotent retry、partial failure、no destructive cleanup |
-| Work Item Generator | deterministic ID reservation / AC、gate mapping、scope intersection、round-trip |
-| Work Item Parser | metadata、sections、enum、filename、references、AC、Gate、duplicate / missing fields |
+| Work Item Generator | v2 deterministic ID / AC、Risk assignment input、review fields、gate mapping、scope intersection、round-trip |
+| Work Item Parser | v2 metadata、Risk、profile / artifact / hash、v1 migration rejection、references、AC、Gate、duplicate / missing fields |
+| Risk Classifier | artifact / path / auth / migration / payment / credential / production / destructive triggers、highest-risk wins、downgrade rejection |
+| Review Assignment Resolver | required profile calculation、Maker / Checker separation、one profile per execution、artifact hash binding |
+| Finding Registry | severity / status transitions、accepted-risk authority、open blocking query、append-only history |
+| Delivery Assurance Coordinator | candidate manifest、required reviews / gates、stale hash、open finding、release eligibility |
 | Dispatch Coordinator / Role Resolver | role-only selection、capability mismatch、no vendor authority、no bypass |
 | Context Compiler | mandatory order、traceability、exclusion、same hash、concurrent file drift |
 | Policy Compiler | multi-source intersection、deny union、adapter shrink、conflict、stable hash |
@@ -1481,7 +1707,7 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 | Command Classifier | argv、compound、pipe、redirect、subshell、quote、unknown command、env assignment |
 | Profile Builder | cross-artifact mismatch、deep freeze、stable hash、gate requirements |
 | Approval Handler | operation hash、expiry、one-time use、changed args rejection |
-| Gate Runner | mandatory gate retention、artifact hash、failure prevents complete |
+| Gate Runner | five canonical gates、mandatory review evidence、artifact hash、open finding、failure prevents complete |
 | Runtime Monitor | event sequence / gap、policy hash、termination trigger、vendor normalization |
 | Audit Recorder | sequence、hash chain、redaction、flush failure、idempotent finalize |
 | Config / Environment | precedence only narrows、unknown key、secret rejection、empty child baseline |
@@ -1508,8 +1734,10 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 - Host Project Context → redacted `docs/01_sources/**` projection → initial Spec Work Item reference。
 - Bootstrap failure → partial repo marked failed, no automatic delete。
 - Spec Work Item → parser → Context / Policy / Profile → fake PRODUCT_ARCHITECT adapter → Spec Gate。
-- Design Work Item → UX adapter → Design Gate。
-- Implementation Work Item → Implementer adapter → Implementation Gate。
+- Spec Maker → self review → independent SPEC_REVIEWER → Spec Gate。
+- Design Work Item → UX adapter → independent UX_REVIEWER → Design Gate。
+- Implementation Work Item → Implementer adapter → TECH / risk-required QA / Security reviews → Implementation Gate。
+- Delivery candidate → DELIVERY_ASSURANCE_REVIEWER → Delivery Assurance Gate → Release Gate。
 - Existing Project Change → no repo creation → delta Work Item。
 - Gate failure / approval rejection / Audit failure propagation。
 
@@ -1522,6 +1750,12 @@ Test pyramid：大量pure unit → port / adapter contract → bounded integrati
 - GitHub unavailable / name conflict / partial bootstrap。
 - Adapter unavailable / capability mismatch / event gap / timeout。
 - Gate failed、approval rejected / expired、Audit disk / permission failure。
+- Self approval rejection、Maker / Checker execution identity collision。
+- Artifact hash change invalidates prior review PASS。
+- Risk assignment highest-trigger / Agent downgrade rejection。
+- Required reviewer calculation；missing QA / Security review blocks applicable Gate。
+- `OPEN BLOCKING` finding blocks Delivery Assurance。
+- Delivery Assurance missing / failed blocks Release Gate。
 
 Fixtures必須synthetic且不含real token。Security regression test未通過不得release。
 
@@ -1542,6 +1776,11 @@ Fixtures必須synthetic且不含real token。Security regression test未通過�
 - `AC-HNS-013`：Existing Project Change / Bug / Design / Technical intent不呼叫RepositoryProvisioner create。
 - `AC-HNS-014`：Denied secret與未allowlist environment variable不出現在Agent env、log或Audit。
 - `AC-HNS-015`：正常`harness start` / generated task流程不要求使用者輸入Work Item、Role、Phase或scope。
+- `AC-HNS-016`：Maker與 final Checker execution相同時，Review Assignment被拒絕。
+- `AC-HNS-017`：Artifact hash變更後，先前 Review PASS與 dependent Gate evidence失效。
+- `AC-HNS-018`：相同 canonical Risk inputs產生相同 Risk與 required Reviewer set；Agent無法降低。
+- `AC-HNS-019`：Risk-required QA / Security evidence缺失或存在 `OPEN BLOCKING` finding時，對應 Gate無法 PASS。
+- `AC-HNS-020`：缺少有效 `DELIVERY_ASSURANCE_GATE` PASS時，Release Gate無法 PASS。
 
 ## 42. Non-Functional Requirements
 
@@ -1549,7 +1788,7 @@ Fixtures必須synthetic且不含real token。Security regression test未通過�
 |---|---|
 | Security | Every filesystem / command / tool operation is evaluated against immutable policy；critical hard capability unavailable prevents launch |
 | Reliability | State-changing orchestration and provisioning use journal + idempotency keys；crash recovery never reports unverified success |
-| Determinism | Same canonical Context / Policy inputs and compiler version yield byte-identical canonical artifact and hash |
+| Determinism | Same canonical Context / Policy / Risk / Review inputs and compiler version yield byte-identical artifact, assignment set and hash |
 | Auditability | Every execution has contiguous event sequence、source hashes、approval / gate evidence and immutable final record or explicit audit failure |
 | Portability | Core / schemas / ports run on selected Node LTS across supported OS；OS-specific enforcement isolated behind adapter and contract tests |
 | Performance | Bounds in section 43 enforced before content load；no unbounded repo scan or transcript accumulation |
@@ -1595,18 +1834,18 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 
 | Phase | Objective | Modules | Prerequisites | Acceptance / Dependency |
 |---:|---|---|---|---|
-| 1 | 建立typed foundation | `core`、`schemas`、`errors`、`config`、canonical hash | Approved SDD | Strict build；schema / error / hash tests；all later phases depend |
-| 2 | Parse and generate Work Items | `work-items`、Markdown AST port、fixtures | Phase 1、Work Item Contract | Round-trip、all validation / malformed tests pass |
+| 1 | 建立typed foundation | `core`、accountability types、`schemas`、`errors`、`config`、canonical hash | Independently Approved SDD | Strict build；schema / error / hash tests；all later phases depend |
+| 2 | Parse and generate Work Items | Work Item v2、Markdown AST port、Risk / review fields、fixtures | Phase 1、Work Item Contract | v2 round-trip、v1 migration rejection、all malformed tests pass |
 | 3 | Compile deterministic Context | `context`、traceability index、PathResolver read side | Phases 1-2 | Same input hash、scope / size / path tests pass |
 | 4 | Compile Policy | `policy`、path pattern algebra、host baseline port | Phases 1-3 | Intersection / deny / hash tests pass |
-| 5 | Persist state and evidence | `audit`、intake state store、locks、approval records | Phase 1 | Append / hash / recovery / redaction / lock tests pass |
+| 5 | Persist state and evidence | `audit`、role evidence、findings、review assignments、intake state、locks、approval records | Phase 1 | Append / hash / finding lifecycle / recovery / redaction / lock tests pass |
 | 6 | Build task execution core | `execution`、profile builder、lifecycle、`enforcement` ports | Phases 3-5 | Fake enforced process runs; stop conditions / profile freeze pass |
-| 7 | Add fake adapter, gates, Git port | fake `AgentAdapter`、`gates`、`git` | Phases 2、5-6 | Full Work Item → Gate integration without vendor side effect |
+| 7 | Add fake adapter, review / assurance, gates, Git port | fake `AgentAdapter`、Risk / Review Resolver、Finding Registry、Assurance、`gates`、`git` | Phases 2、5-6 | Work Item → independent review → five Gates without vendor side effect |
 | 8 | Implement Codex adapter | `adapters/codex` capability mapping | Phase 6-7 + capability verification | Shared adapter contract suite and hard-boundary pilot pass |
 | 9 | Implement Claude adapter | `adapters/claude` capability mapping | Phase 6-7 + capability verification | Shared adapter contract suite and hard-boundary pilot pass |
-| 10 | Implement Project Intake | `intake`、`orchestration`、proposal / session CLI | Phases 1、5、7 | Natural language → proposal / resume / cancel integration passes |
+| 10 | Implement Project Intake | `intake`、`orchestration`、risk / review generation、proposal / session CLI | Phases 1、5、7 | Natural language → proposal / reviews / resume / cancel integration passes |
 | 11 | Implement Repo Provisioning | `repository`、`bootstrap`、GitHub adapter、transaction journal | Phases 1、5、7、10 | Mock provider transaction / partial failure / approval tests pass |
-| 12 | End-to-End Pilot | `dispatch` wiring、all CLI commands、packaging | Phases 1-11 | AC-HNS-001 through AC-HNS-015 pass in controlled pilot |
+| 12 | End-to-End Pilot | `dispatch` wiring、all CLI commands、packaging | Phases 1-11 | AC-HNS-001 through AC-HNS-020 pass in controlled pilot |
 
 每Phase以work branch / PR進`develop`，不直接改`main`。Adapter phase前必須完成對應blocking capability decision；未解決不可用prompt substitute。
 
@@ -1631,6 +1870,10 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | Adapter capability assumptions | Runtime capability report + contract tests + `ADAPTER CAPABILITY TO VERIFY` |
 | God orchestrator | One use-case per component、ports、no business logic in CLI |
 | Non-idempotent side effects | Transaction journal、idempotency key、read-back before retry |
+| Self approval disguised as review | Maker / Checker execution identity validation；prompt label never establishes independence |
+| Agent-selected Risk / Reviewer | Host-owned Risk Classifier and Review Assignment Resolver；downgrade fails closed |
+| Stale review PASS | Artifact hash binding；change invalidates review and dependent Gate evidence |
+| Gate / Review enum collapse | Distinct ReviewDecision and GateResultStatus types + contract tests |
 
 ## 48. Open Questions
 
@@ -1659,6 +1902,7 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | Project Intake Contract 9：Provisioning | Repository Provisioner | Sections 13-14、37 | Repository contract + partial failure |
 | Project Intake Contract 10：Bootstrap Manifest | Bootstrap Manager | Sections 15、20、38 | Manifest + path + hash security |
 | Project Intake Contract 11：Initial specs | Specification Generation Orchestrator | Sections 16、18、29 | Spec Work Item integration |
+| Project Intake review / Risk integration | Risk Classifier / Review Assignment Resolver | Sections 5.2、5.5、16-19、29 | Risk、self-approval、required review tests |
 | Project Intake Contract 12-13：dispatch / work items | Work Item Generator / Dispatch Coordinator | Sections 16-17、22 | Work Item round-trip + adapter dispatch |
 | Project Intake Contract 14-15：Git / human approvals | GitIntegration / Approval components | Sections 28、37 | Branch policy + approval reuse tests |
 | Project Intake Contract 16-18：audit、failure、validation | Audit Recorder / Error Catalog | Sections 30、33-34、40-41 | Audit + failure + MVP acceptance |
@@ -1670,11 +1914,13 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | Harness Contract 8-10：lifecycle、stop、CR | Execution Core / Runtime Monitor | Sections 21、27、33 | State / stop / spec conflict failure |
 | Harness Contract 11：Gate Integration | Gate Runner | Section 29 | Gate failure prevents complete |
 | Harness Contract 12：Audit | Audit Recorder | Sections 30、39、44 | Hash chain + redaction + retention |
-| Harness Contract 13-15：adapters / non-goals | AgentAdapter / Enforcement | Sections 22-25、45 | Shared adapter contract + capability fail |
-| Architecture Project Orchestration Plane | 11 orchestration components | Sections 3、8-16、35-37 | End-to-end orchestration integration |
+| Harness Contract 13：Accountability / Assurance | Risk、Reviews、Findings、Assurance | Sections 5.5、16-19、29-30、33、40-41 | Separation / stale hash / assurance tests |
+| Harness Contract 14-16：adapters / non-goals | AgentAdapter / Enforcement | Sections 22-25、45 | Shared adapter contract + capability fail |
+| Architecture Project Orchestration Plane | Intake + Risk + Review Assignment + Assurance components | Sections 3、8-16、35-37 | End-to-end orchestration integration |
 | Architecture Task Execution Plane | Runtime components | Sections 17-34 | Unit + contract + integration + security |
-| Architecture v0.1 Boundary | Full modular monolith | Sections 2-4、41-47 | AC-HNS-001..015 + architecture checks |
-| Work Item Contract | Work Item Generator / Parser | Sections 5.2、16-17 | Canonical template contract suite |
+| Architecture v0.1 Boundary | Full modular monolith | Sections 2-4、41-47 | AC-HNS-001..020 + architecture checks |
+| Work Item Contract v2 | Work Item Generator / Parser | Sections 5.2、6、16-17 | Canonical template / migration contract suite |
+| Role Accountability canonical governance | Review / Finding / Assurance modules | Sections 5.5、18-19、29-30、40 | Professional evidence + independence tests |
 
 ## 50. Final Self Review
 
@@ -1693,5 +1939,6 @@ Distribution proposal：未來可發布private npm package / internal CLI，使�
 | 11. Claude / Codex remain adapters | PASS | Dependency rule + Sections 22-24 |
 | 12. Project Intake and Task Runtime separated | PASS | Modules、Work Item handoff、separate state machines |
 | 13. Can split into engineering tasks | PASS | Section 46 phases and acceptance dependencies |
-| 14. No code implementation started | PASS | Only this Markdown SDD is produced |
+| 14. No code implementation started | PASS | Governance / design / plan / Work Items only；no runtime source、package或 install |
 | 15. Architecture / Contract conflict | NONE FOUND | Section 49 traceability; open questions are implementation choices |
+| 16. SDD approval separation | REVIEW REQUIRED | Status is `Review`; this Maker execution does not approve it |

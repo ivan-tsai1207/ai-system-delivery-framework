@@ -48,7 +48,10 @@ flowchart TD
         RP["Repository Provisioner"]
         PBM["Project Bootstrap Manager"]
         SGO["Specification Generation Orchestrator"]
+        RC["Risk Classifier"]
         WIG["Work Item Generator"]
+        RAR["Review Assignment Resolver"]
+        DAC["Delivery Assurance Coordinator"]
         DC["Dispatch Coordinator"]
     end
 
@@ -65,6 +68,7 @@ flowchart TD
         ENF["Enforcement Backend"]
         RM["Runtime Monitor"]
         GR["Gate Runner"]
+        FR["Finding Registry"]
         AH["Approval Handler"]
         AR["Audit Recorder"]
     end
@@ -76,7 +80,7 @@ flowchart TD
     U --> IC --> PIO --> DM --> PCB --> PPB --> PAC
     PAC -->|"APPROVE_PROJECT"| RP --> PBM
     PBM --> PR
-    PBM --> SGO --> WIG --> DC --> WI --> IV
+    PBM --> SGO --> RC --> WIG --> DC --> WI --> IV
     IV --> RR
     RR --> CC
     RR --> PC
@@ -89,12 +93,16 @@ flowchart TD
     CO --> ENF
     ENF --> RM
     RM --> GR
+    RM --> FR
     RM --> AH
     GR --> AR
+    FR --> AR
     AH --> AR
     RM --> AR
     AR --> OUT --> PR
-    GR -->|"Gate result / next phase"| WIG
+    GR -->|"Maker / gate evidence"| RAR --> WIG
+    GR -->|"Required reviews / phase gates"| DAC -->|"Assurance Work Item"| WIG
+    GR -->|"Assurance result / next phase"| WIG
 ```
 
 核心原則：
@@ -107,6 +115,9 @@ flowchart TD
 - Enforcement Backend 必須在 Agent process 外部或由不可被 Agent 改寫的 vendor / OS enforcement surface 提供。
 - Runtime Monitor 是偵測與協調層，不取代 hard enforcement。
 - Audit Recorder 使用 Agent 不可寫入的 host-owned storage。
+- Risk Classifier、Review Assignment Resolver與 Delivery Assurance Coordinator都屬 Project Orchestration Plane；它們只能產生 policy decision、Work Item或 handoff，不能直接啟動 Agent。
+- Finding Registry屬 Task Execution Plane的 host-owned evidence component；它不修改受審 artifact或 canonical spec。
+- 本整合仍只有 Project Orchestration Plane與 Task Execution Plane，沒有第三個 Assurance Plane。
 
 ### 2.1 A. Project Orchestration Plane
 
@@ -144,7 +155,10 @@ RECEIVED
 | Repository Provisioner | 驗證 availability，建立 private Project Repo、initial `main` / `develop`、bootstrap commit 與 metadata | Approved proposal、repo target、immutable framework pin | Provisioned Project Repo identity、bootstrap target | GitHub integration、Git policy、credential boundary | Repository creation、initial branches、one bootstrap push | Name conflict、creation 或 bootstrap prerequisite failure 時停止；不交由 Agent 自行補救 |
 | Project Bootstrap Manager | 依 manifest 從 pinned Framework version 複製、生成或排除 project artifacts | Project Bootstrap Manifest、framework pin、Project Context、empty Project Repo | Canonical project structure、README、framework provenance | Framework repository、project repo structure | Project Repo file generation within bootstrap transaction | Manifest、version 或 write 失敗時 `BOOTSTRAP_FAILED`，不留下可誤認為完成的 repo |
 | Specification Generation Orchestrator | 建立 specification Work Item 並協調 `PRODUCT_ARCHITECT` execution；本身不寫規格邏輯 | Project Context、bootstrapped repo、canonical paths | Spec Work Item、spec execution result、Spec Gate request | Work Item Generator、Dispatch Coordinator、Task Execution Plane | None directly | Spec generation / Gate failure 依 Intake Contract block，不把問題交給 UX Designer |
+| Risk Classifier | 依 canonical triggers計算 Work Item Risk，不接受 Agent降級 | Artifact type、changed paths、data / operation / environment signals、project policy | `LOW / MEDIUM / HIGH / CRITICAL` assignment與 evidence | Workflow、Work Item Contract、host policy | None | 無法解析 sensitive trigger時 fail closed，至少 HIGH並要求 clarification |
 | Work Item Generator | 將 approved inputs 與 phase 轉成唯一 schema 的 system-generated Work Item | Approved canonical specs；初始 `SPEC` 時為 approved Project Context、proposal 與 source references；另含 phase、feature、traceability、active role | `work-items/<ID>.md` | `templates/Work_Item.md`、Role boundary、Gate registry | Project Repo Work Item write through governed integration | Schema、traceability 或 permission intersection 無效時拒絕生成；不得新增需求或擴權 |
+| Review Assignment Resolver | 根據 artifact、Risk與 policy建立 independent Reviewer Work Items | Maker evidence、artifact / hash、Maker execution、Risk assignment | Required profile set、review assignments、REVIEWER Work Items | Reviewer Profile registry、Work Item Generator | Governed review Work Item generation | Self review、profile缺失、hash不明或 Agent自選時拒絕 assignment |
+| Delivery Assurance Coordinator | 凍結 delivery candidate並建立 final assurance handoff | Required reviews、phase Gates、findings、candidate commit / manifest | Delivery candidate manifest、Delivery Assurance Work Item、release eligibility | Review Assignment Resolver、Finding Registry、Gate evidence | Governed manifest / Work Item write | Missing review、open blocking finding、stale hash或 conflict時 block |
 | Dispatch Coordinator | 依 Work Item Role 選擇 compatible adapter，呼叫 Task Execution Plane | Valid Work Item、repo identity、adapter capability inventory | Harness invocation、dispatch record | Harness Input Contract、adapter registry | Agent execution request only | 無 compatible adapter 或 Harness 拒絕時 `AGENT_DISPATCH_FAILED`，不得繞過 Harness |
 
 Role 決定 workflow authority；vendor 只決定 runtime adapter。`UX_DESIGNER` 可選 Claude-compatible adapter，`IMPLEMENTER` 可選 Codex 或 Claude-compatible adapter，`REVIEWER` 可選 review-capable adapter，但 vendor 不得修改 Role、Phase、Scope 或 Gate。
@@ -235,7 +249,8 @@ Task Execution Plane 沿用 `.ai/HARNESS_CONTRACT.md`，只負責一張 canonica
 | Codex Adapter | 將 profile 映射到 Codex surfaces | Immutable Execution Profile | Codex launch plan | Codex CLI / config capabilities | 無法硬性映射時 fail closed |
 | Enforcement Backend | 實際限制 filesystem、tools、commands、env | Compiled Policy、adapter capability | Enforced process boundary | Vendor sandbox / OS controls | 不可驗證時不 launch |
 | Runtime Monitor | 消費 events、比對 policy、觸發 stop / approval | Runtime events、policy | Normalized Events、violations | Adapter、Enforcement Backend | violation 時 terminate / block |
-| Gate Runner | 依 phase orchestration required gates | Artifacts、gate docs、evidence | Gate Results | `.ai/gates/**`、Reviewer / validators | failed gate 進入 `FAILED_GATE` |
+| Gate Runner | 依 phase orchestration required gates並驗證 required review evidence | Artifacts、gate docs、role evidence、findings | Gate Results | `.ai/gates/**`、Reviewer / validators | missing review、open blocking finding或 failed gate進入 `FAILED_GATE` |
+| Finding Registry | 保存 append-only finding lifecycle並驗證 owner / status transition | Review events、artifact hashes、accepted-risk evidence | Findings、closure / invalidation evidence | Audit Recorder、Authority、review profile | 非法 transition、Agent accepted risk或 stale hash時 fail closed |
 | Audit Recorder | 記錄 execution facts 與 hashes | 所有 normalized events | Audit Event Stream、Final Record | Host-owned state store | audit 不可寫時不得開始 execution |
 | Approval Handler | 管理 restricted operation 的人工決策 | Approval Request、policy hash | Approval Decision | Human channel、Audit Recorder | deny / timeout 時不執行 operation |
 
@@ -274,20 +289,27 @@ User
 → Dispatch Coordinator
 → Task Execution Plane / PRODUCT_ARCHITECT
 → Canonical Specs
+→ Self Review / Artifact Hash / Risk Classification
+→ Review Work Item / SPEC_REVIEWER
 → SPEC_GATE
 → Design Work Item Generator
 → Dispatch Coordinator
 → Task Execution Plane / UX_DESIGNER
 → Design Contract
+→ UX_REVIEWER
 → DESIGN_GATE
 → Implementation Work Item Generator
 → Dispatch Coordinator
 → Task Execution Plane / IMPLEMENTER
 → Source Code and Tests
+→ TECH_REVIEWER
+→ QA_REVIEWER / SECURITY_REVIEWER when required
 → IMPLEMENTATION_GATE
-→ Review Work Item
-→ Task Execution Plane / REVIEWER
-→ Review Evidence
+→ Verify Required Independent Reviews Complete
+→ Delivery Candidate Manifest
+→ DELIVERY_ASSURANCE_REVIEWER
+→ DELIVERY_ASSURANCE_GATE
+→ RELEASE_GATE
 → PR / Merge under Git policy
 ```
 
@@ -380,6 +402,8 @@ Harness 應從目前 repository 與 `work-items/PBI-INV-003.md` 取得：
 - `role`：work item `Role`。
 - `feature`：work item 明確 metadata。
 - `phase`：work item 明確 metadata。
+- `risk_class`：Orchestrator / Harness產生的 canonical Risk assignment。
+- `review_profile`、`reviewed_artifact`、`reviewed_artifact_hash`、`maker_execution_id`：Reviewer Work Item的 explicit binding；其他 Role為 `N/A`。
 - `work_item`：由 task ID canonical resolution。
 - `repository`：Git remote / repository identity。
 - `branch`：目前 checkout branch。
@@ -392,12 +416,13 @@ CLI 提供的重複欄位只能用於 assertion，不得覆蓋 work item。若 `
 
 `templates/Work_Item.md` 是唯一 canonical Work Item schema，已明確定義 Metadata、Requirement References、task-specific scopes、Acceptance Criteria、Required Gates、Dependencies、Blockers 與 validation rules。
 
-- Harness 必須直接解析 Work Item 的 `ID`、`Role`、`Feature`、`Phase`、`Status`、`Spec Version` 與 `Design Version`。
+- Harness 必須直接解析 Work Item v2 的 `ID`、`Role`、`Feature`、`Phase`、`Status`、versions、Risk與 review binding。
 - `task_id`、Metadata `ID` 與 `<ID>.md` filename 必須一致。
 - Harness 不得從 ID prefix、Title、filename、directory 或 Agent assumption 猜測 `Role`、`Feature` 或 `Phase`。
 - Work Item scope 只能縮小 active role boundary；effective permission 由 Governance、Role、Work Item 與 Host Baseline 取交集。
 - `Forbidden Scope` 永遠優先於 `Write Scope`。
 - Parser、validator 與 adapter 不得另建 enum、section name 或 Work Item schema。
+- v1 Work Item只能經 deterministic migration成 v2後執行；不得猜測 Risk或 Reviewer Profile補欄位。
 
 Work Item Status 與 Harness execution lifecycle 是不同狀態機；runtime 不得以 `IN_PROGRESS`、`DONE` 等 Work Item Status 取代 `RUNNING`、`COMPLETED` 等 execution state。
 
@@ -693,6 +718,8 @@ Gate Runner interface：
 
 ```text
 resolve_required_gates(profile) -> gate_plan
+resolve_required_reviews(work_item, risk, artifact) -> review_plan
+validate_review_independence(review_plan, evidence) -> valid | rejected
 load_gate_definition(gate_id) -> gate_definition
 prepare_gate_context(profile, artifacts, audit) -> gate_context
 execute_gate(gate_context) -> gate_result
@@ -706,23 +733,23 @@ Orchestration mapping：
 | `SPEC` | `SPEC_GATE` | `.ai/gates/spec-gate.md` |
 | `DESIGN` | `DESIGN_GATE` | `.ai/gates/design-gate.md` |
 | `IMPLEMENTATION` | `IMPLEMENTATION_GATE` | `.ai/gates/implementation-gate.md` |
+| `REVIEW` | Work Item 明確指定 | 被審查 phase Gate或 `DELIVERY_ASSURANCE_GATE`；不得自行推測 |
 | `RELEASE` | `RELEASE_GATE` | `.ai/gates/release-gate.md` |
-| `REVIEW` | Work Item 明確指定 | 依被審查 artifact phase 解析；不得自行推測 |
 
 Mapping 與 enum 的 canonical definition 來自 `templates/Work_Item.md`。Required Gates 可以增加 Gate，但不能移除 Governance / Workflow 強制要求的 Gate。
 
 Gate Runner 不重新定義 criteria。未來 validator 可以是 deterministic checks、Reviewer Agent 或 human review，但都必須輸出統一結果：
 
 ```yaml
-gate_id: string
-status: Pass | Failed | Needs Clarification
+gate_id: SPEC_GATE | DESIGN_GATE | IMPLEMENTATION_GATE | DELIVERY_ASSURANCE_GATE | RELEASE_GATE
+status: PASS | FAILED | NEEDS_CLARIFICATION
 definition_hash: string
 evidence: []
 findings: []
 reviewer: string
 ```
 
-本階段不實作 validator。
+Review decision另外使用 `PASS / REQUEST_CHANGES / BLOCK`，不得與 GateResult混為同一 enum。Gate Runner必須拒絕 self approval、missing required profile、stale artifact hash與 `OPEN BLOCKING` finding。本階段不實作 validator。
 
 ## 13. Audit Architecture
 
@@ -830,6 +857,9 @@ Project Orchestration Plane 的 failure ID、retry 與 human intervention 規則
 | `BOOTSTRAP_FAILED` | Project Bootstrap Manager | Mark provisioning incomplete；不得進入 spec generation |
 | `SPEC_GENERATION_FAILED` | Specification Generation Orchestrator / Task Execution Plane | New governed spec execution |
 | `SPEC_GATE_FAILED` | Gate Runner | Block before design，retain findings |
+| `REQUIRED_REVIEW_MISSING` | Review Assignment Resolver / Gate Runner | Generate missing Reviewer Work Item；Gate不得 PASS |
+| `SELF_APPROVAL_REJECTED` | Review Assignment Resolver | Reject assignment；new independent execution required |
+| `DELIVERY_ASSURANCE_FAILED` | Delivery Assurance Coordinator | Return findings to owners；Release不可繼續 |
 | `AGENT_DISPATCH_FAILED` | Dispatch Coordinator | Do not bypass Harness；retry with compatible capability |
 
 Task Execution Plane failure mapping 沿用 Harness Contract：
@@ -844,6 +874,8 @@ Task Execution Plane failure mapping 沿用 Harness Contract：
 | `SPEC_GAP` | Compiler、Agent、Gate | `→ BLOCKED_SPEC_GAP` | CR 流程與新 execution |
 | `SPEC_CONFLICT` | Compiler、Agent、Gate | `→ BLOCKED_SPEC_CONFLICT` | 依 Authority 回報衝突 |
 | `GATE_FAILED` | Gate Runner | `VALIDATING → FAILED_GATE` | 保存 evidence，不得 complete |
+| `REVIEWED_ARTIFACT_CHANGED` | Context / Gate validation | `VALIDATING → FAILED_GATE` | Invalidate old review and recalculate required reviews |
+| `OPEN_BLOCKING_FINDING` | Finding Registry / Assurance | `VALIDATING → FAILED_GATE` | Return to owner；Assurance不得 PASS |
 | `APPROVAL_DENIED` | Approval Handler | `RUNNING → CANCELLED`，若 operation 可選則維持 `RUNNING` | operation 絕不執行 |
 
 所有 failure 都必須先記錄 audit 再回傳；若 Audit Recorder 本身失敗，parent process 立即終止 Agent。
@@ -867,7 +899,10 @@ harness/
       provisioning/
       bootstrap/
       specifications/
+      risk/
       work-items/
+      review-assignment/
+      delivery-assurance/
       dispatch/
     core/
     input/
@@ -881,6 +916,7 @@ harness/
     enforcement/
     runtime/
     gates/
+    findings/
     audit/
     approvals/
     security/
@@ -979,6 +1015,8 @@ Security invariants：
 - Lifecycle 與所有 Harness Contract Stop Conditions。
 - Host-owned Audit Recorder 與 final record。
 - Gate orchestration interface for Spec / Design / Implementation / Release。
+- Risk Classifier、Review Assignment Resolver、Finding Registry與 Delivery Assurance Coordinator。
+- Gate orchestration interface for Spec / Design / Implementation / Delivery Assurance / Release。
 - Local Human Approval Handler for restricted operations。
 
 ### Should Have
@@ -1023,6 +1061,11 @@ Security invariants：
 | Lifecycle / stop conditions | Execution Flow 與 Failure Model 已對應 |
 | Audit evidence | Host-owned event stream、hash 與 final record |
 | Gate orchestration | 讀取 `.ai/gates/**`，不重寫 criteria |
+| Accountability separation | Maker / Checker / Assurer有不同 execution與 artifact hash binding |
+| Reviewer Profile model | 六個 profile都派生自 `REVIEWER`，未新增 top-level Role |
+| Risk-based review | Orchestrator / Harness計算 Risk；QA / Security依 trigger而非全量套用 |
+| Delivery Assurance | Delivery candidate經 independent Assurer與 `DELIVERY_ASSURANCE_GATE`後才可進 Release Gate |
+| Two-Plane preservation | 新元件已分配至既有 Orchestration或 Task Execution Plane，沒有第三 Plane |
 | Project Intake Contract alignment | Intent、lifecycle、approval、provisioning 與 blocked route 均引用既有 Contract |
 | Harness Contract alignment | Task lifecycle、permissions、gates、stop conditions 與 audit 均沿用既有 Contract |
 | No implementation | 本次只更新 architecture 文件，未建立 runtime code |

@@ -1,33 +1,46 @@
 # UX Designer Role
 
-## 職責
+Role ID：`UX_DESIGNER`
 
-- 在既定 Product Spec 與 Feature Spec 內解決 UI/UX 問題。
+## Responsibility
+
+- 在既定 Product / Feature Spec 內解決 UI/UX 問題。
 - 產出 User Flow、Screen Spec、Component Spec、Design Tokens 與 visual references。
-- 將所有 screen、action、state 追溯到 requirement 或 feature spec。
-- 整理 Figma、Claude design output、HTML prototype 或其他 raw design source，並轉成正式 Design Contract。
+- 將 Figma、Claude design、HTML prototype等 raw source 轉成正式 Design Contract。
 
-## 可寫入
+## Professional Baseline
 
-- `design/<feature>/**`
-- `work-items/DESIGN-*.md`
-- `traceability/**` 中與 design 對應的項目
+交付前必須涵蓋 User Role / Permission、User Task、Information Architecture、Main Flow、Loading、Empty、Error、Permission Denied、Validation、Success / Failure feedback、Responsive behavior、Accessibility、Design consistency、token / component consistency、Screen Spec traceability 與 unauthorized capability detection。
 
-## 不可寫入
+## Mandatory Self Review
 
-- `src/**`
-- `specs/**`
-- `migrations/**`
-- `docs/02_product/PRD.md`
-- `docs/03_requirements/SRS.md`
-- `docs/04_system/ARCHITECTURE.md`
-- `docs/04_system/SDD.md`
+- 核對每個 screen、action、state與 canonical requirement。
+- 檢查 role visibility、permission、API binding、responsive與 accessibility。
+- 確認 raw design source 已登錄且未升格為 Source of Truth。
+- 記錄 changed artifacts、hash、known limitations、SPEC GAP / CONFLICT。
 
-## 必須停止的情況
+Self Review 不具 Independent Review 或 Gate final approval 權。
 
-- UI 需要新增未授權 API、permission、role、business rule 或 feature scope。
-- Feature Spec 與 Product Vision 衝突。
-- Screen 需要支援規格未定義的狀態或操作。
-- Raw design source 包含規格未授權的功能、欄位、流程、權限或 API。
+## Required Evidence
 
-遇到以上情況，提出 Change Request。
+- Work Item、execution ID、artifact path / hash。
+- Screen / flow / requirement traceability。
+- State、responsive、accessibility與 unauthorized-feature checklist。
+- Design source mapping、checks performed、known limitations與 result。
+
+## Forbidden Behavior
+
+- 自行新增或修改 Business Rule、Role、Permission、API、Data Field、System Capability、Feature Scope 或未授權 screen / flow。
+- 修改 `src/**`、`specs/**`、`migrations/**` 或 canonical Product / System Spec。
+- Final approve 自己產出的 Design。
+
+## Escalation Rule
+
+設計需要規格未授權能力時停止，回報 `SPEC_GAP` 並提出 Change Request。Feature Spec 與上層規格衝突時回報 `SPEC CONFLICT`，不得自行補需求。
+
+## Handoff Conditions
+
+- Professional Baseline、Self Review與 evidence 完成。
+- Artifact hash固定，無未授權 capability。
+- 已建立由獨立 `UX_REVIEWER` 執行的 Review Work Item。
+- UI dependency只有在 Design review與 `DESIGN_GATE` 通過後才可交給 Implementer。
