@@ -152,22 +152,22 @@ Harness 應從目前 repository 與 `work-items/PBI-INV-003.md` 取得：
 - `repository`：Git remote / repository identity。
 - `branch`：目前 checkout branch。
 - `spec_version`、`design_version`：work item metadata。
-- `read`、`write`、`forbidden`、`required_gates`：work item sections。
+- `read_scope`、`write_scope`、`forbidden_scope`、`required_gates`：Work Item canonical sections。
 
 CLI 提供的重複欄位只能用於 assertion，不得覆蓋 work item。若 `--role`、`--feature` 或 `--branch` 與 repository facts 不一致，Input Validator 必須 fail closed。
 
-### 4.2 Work Item Schema Prerequisite
+### 4.2 Canonical Work Item Schema
 
-目前 `templates/Work_Item.md` 已有 Role、Spec Version、Design Version、Read、Write、Forbidden 與 Required Gates，但沒有明確 `Feature` 與 `Phase` metadata。Harness 不得從 task prefix、路徑或 Agent 偏好猜測這兩個欄位。
+`templates/Work_Item.md` 是唯一 canonical Work Item schema，已明確定義 Metadata、Requirement References、task-specific scopes、Acceptance Criteria、Required Gates、Dependencies、Blockers 與 validation rules。
 
-在 v0.1 實作前，SDD / task breakdown 必須提出一個獨立且經核准的 Work Item schema 更新，至少加入：
+- Harness 必須直接解析 Work Item 的 `ID`、`Role`、`Feature`、`Phase`、`Status`、`Spec Version` 與 `Design Version`。
+- `task_id`、Metadata `ID` 與 `<ID>.md` filename 必須一致。
+- Harness 不得從 ID prefix、Title、filename、directory 或 Agent assumption 猜測 `Role`、`Feature` 或 `Phase`。
+- Work Item scope 只能縮小 active role boundary；effective permission 由 Governance、Role、Work Item 與 Host Baseline 取交集。
+- `Forbidden Scope` 永遠優先於 `Write Scope`。
+- Parser、validator 與 adapter 不得另建 enum、section name 或 Work Item schema。
 
-```text
-Feature
-Phase
-```
-
-本文件只記錄 prerequisite，不修改模板。
+Work Item Status 與 Harness execution lifecycle 是不同狀態機；runtime 不得以 `IN_PROGRESS`、`DONE` 等 Work Item Status 取代 `RUNNING`、`COMPLETED` 等 execution state。
 
 ## 5. Context Compiler Architecture
 
@@ -464,13 +464,15 @@ record_gate_result(gate_result) -> audit_reference
 
 Orchestration mapping：
 
-| Phase | Default Gate Source |
-|---|---|
-| `SPEC` | `.ai/gates/spec-gate.md` |
-| `DESIGN` | `.ai/gates/design-gate.md` |
-| `IMPLEMENTATION` | `.ai/gates/implementation-gate.md` |
-| `RELEASE` | `.ai/gates/release-gate.md` |
-| `REVIEW` | Work item 指定 gate；不得自行推測 |
+| Phase | Default Gate ID | Gate Source |
+|---|---|---|
+| `SPEC` | `SPEC_GATE` | `.ai/gates/spec-gate.md` |
+| `DESIGN` | `DESIGN_GATE` | `.ai/gates/design-gate.md` |
+| `IMPLEMENTATION` | `IMPLEMENTATION_GATE` | `.ai/gates/implementation-gate.md` |
+| `RELEASE` | `RELEASE_GATE` | `.ai/gates/release-gate.md` |
+| `REVIEW` | Work Item 明確指定 | 依被審查 artifact phase 解析；不得自行推測 |
+
+Mapping 與 enum 的 canonical definition 來自 `templates/Work_Item.md`。Required Gates 可以增加 Gate，但不能移除 Governance / Workflow 強制要求的 Gate。
 
 Gate Runner 不重新定義 criteria。未來 validator 可以是 deterministic checks、Reviewer Agent 或 human review，但都必須輸出統一結果：
 

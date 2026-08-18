@@ -370,7 +370,9 @@ Source code 必須保存在 Project Repo 的 `src/**`、`app/**`、`tests/**`、
 
 ## 13. Internal Work Items and Agent Selection
 
-Work Item 是 system-generated internal execution contract。Project Architect / Orchestrator 根據 approved specs 自動建立 task ID、Role、Phase、read / write scope、required context 與 gates。正常情況下，使用者不需自行建立或填寫這些欄位。
+Work Item 是 system-generated internal execution contract，唯一 schema 為 `templates/Work_Item.md`。Project Architect / Orchestrator 根據 approved canonical specs 自動建立 task ID、Role、Feature、Phase、read / write / forbidden scope、requirement references、acceptance criteria 與 required gates。正常情況下，使用者不需自行建立或填寫這些欄位。
+
+Project Intake 可以依流程自動產生 Specification、Design、Implementation 與 Review Work Item，再交由 Harness 執行。Work Item 只能將 approved specs 轉成單次 task delta 與較小 execution boundary，不得新增、改寫或擴張產品需求，也不得取代 PRD、SRS、Architecture、SDD、Feature Spec 或 Screen Spec。
 
 Agent 選擇以 Role 為核心：
 

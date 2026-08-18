@@ -27,37 +27,42 @@ Harness 不負責：
 
 ## 2. Harness Input Contract
 
-每次啟動 Agent 必須提供以下 input：
+每次啟動 Harness 必須提供可定位 execution 與 canonical Work Item 的 input：
 
 ```yaml
 task_id: string
-role: PRODUCT_ARCHITECT | UX_DESIGNER | IMPLEMENTER | REVIEWER
-feature: string
-phase: SPEC | DESIGN | IMPLEMENTATION | RELEASE | REVIEW
 work_item: work-items/<WORK-ITEM-ID>.md
 repository: string
 branch: string
 ```
 
-可選 input：
+Work Item 必須符合唯一 schema `templates/Work_Item.md`。Harness 直接從 Work Item 解析：
 
 ```yaml
-screen_ids:
-  - <SCREEN-ID>
+role: string
+feature: string
+phase: string
 spec_version: string
 design_version: string
-allowed_tools:
-  - tool-or-capability
-additional_context:
-  - repository-relative-path
+read_scope: []
+write_scope: []
+forbidden_scope: []
+required_gates: []
 ```
+
+Invocation 可選擇提供 `role`、`feature`、`phase`、`spec_version` 或 `design_version` 作 assertion，但不得覆蓋 Work Item metadata。`screen_ids`、`allowed_tools` 與 `additional_context` 是可選 runtime input，只能縮小或補充候選 context，不能擴張 Work Item、Role 或 Governance 權限。
 
 Input validation 規則：
 
 - Required field 不可缺少或為空。
+- `task_id`、Work Item `ID` 與 filename 必須一致。
 - `role` 必須能映射到既有 role 文件。
-- `work_item` 必須是 repository-relative path，且與 `task_id` 相符。
+- Work Item `Role`、`Feature` 與 `Phase` 必須明確存在；Harness 不得從 ID prefix、Title、filename、directory 或 Agent assumption 推導。
+- Work Item enum、required sections、Requirement References、scope 與 Required Gates 必須通過 `templates/Work_Item.md` 的 Validation Rules。
+- `work_item` 必須是 repository-relative path，且符合 canonical path。
 - `repository`、`branch` 與啟動時實際 checkout 必須一致。
+- Effective read / write permissions 是 Governance、active role 與 Work Item scope 的交集；Work Item 只能縮小權限。
+- `forbidden_scope` 優先於 `write_scope`；scope 衝突時必須拒絕 write。
 - `additional_context` 只增加候選 read context，不會自動增加 write 或 tool permission。
 - Input 無效或 required file 不存在時，進入 `BLOCKED_PERMISSION` 或 `MISSING_REQUIRED_CONTEXT` 對應的停止流程。
 
@@ -128,6 +133,7 @@ deny_write
 - `deny_write` 優先於 `write`。
 - `read` 不隱含 `write`；未明確允許的 write 預設拒絕。
 - Work item 只能在 active role 允許範圍內縮小或具體化權限，不能擴張 role 權限。
+- Work Item `Read Scope`、`Write Scope`、`Forbidden Scope` 由 Harness 分別正規化為 task-specific read、write 與 deny-write policy；`Forbidden Scope` 永遠優先。
 - Path 必須先正規化；path traversal、symlink escape 或 repository 外路徑一律拒絕。
 - Harness 自身的 audit sink 與 Agent write boundary 分離，Agent 不得修改 audit evidence。
 
@@ -344,6 +350,8 @@ RELEASE_GATE
 
 - Gate 規則只來自 `.ai/gates/**`，Harness 不得修改、放寬或建立第二套判定標準。
 - Harness 依 `phase`、active role 與 work item 的 `required_gates` 選擇 active gate。
+- Phase 的 default gate 與 canonical Gate ID 以 `templates/Work_Item.md` 為準；Work Item 可增加 Gate，但不能移除 Governance / Workflow 強制要求的 Gate。
+- `REVIEW` 必須由 Work Item 明確引用被審查 artifact 並列出其對應 Gate；Harness 不得自行猜測 artifact phase。
 - Active gate 文件必須加入 Context Package。
 - Gate 結果必須記錄為 `Pass`、`Failed` 或 `Needs Clarification`，並連結 evidence。
 - Gate failure 進入 `FAILED_GATE`；豁免必須來自治理規則允許的授權者並留下 audit evidence。
