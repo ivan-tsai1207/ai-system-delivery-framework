@@ -6,7 +6,7 @@
 |---|---|
 | Plan Status | Implementation Active |
 | SDD Status | Approved |
-| Runtime Implementation | Not started |
+| Runtime Implementation | `HNS-CORE-001` implementation committed; independent technical review pending |
 | Execution Blocker | None for `HNS-CORE-001`; phase dependencies remain enforced |
 | First Implementation Work Item | `HNS-CORE-001` |
 

@@ -75,3 +75,87 @@ Open findings：`BLOCKING = 0`、`MAJOR = 0`。
 - [x] Evidence recorder未修改reviewed normative body後沿用PASS。
 - [x] External Reviewer未由本次Codex execution冒充或重新產生。
 - [x] Artifact normative body變更時，本evidence必須失效並重新review。
+
+## RCE-HNS-CORE-001 - Implementer Role Completion Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-001` |
+| Execution ID | `maker-hns-core-001-b1d635a` |
+| Work Item | `work-items/HNS-CORE-001.md` |
+| Role | `IMPLEMENTER` |
+| Review Profile | `N/A` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `maker-hns-core-001-b1d635a` |
+| Reviewer Execution ID | `N/A - independent review pending` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` |
+| Artifact Hash | `sha256:4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8` |
+| Commit Hash | `b1d635a34271b4bafa39891a167e6d83412e4083` |
+| Timestamp | `2026-08-19T00:12:02+08:00` |
+
+### Specification References
+
+- Architecture / SDD：`docs/harness_implementation_architecture.md` Sections 16-17；`docs/harness_v0.1_SDD.md` Sections 2-4、45-46.
+- Work Item：`work-items/HNS-CORE-001.md`.
+- Independent SDD Approval：`REV-HNS-SDD-001`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `RCE-HNS-CORE-001-01` | Write / Forbidden Scope | Staged diff and committed path inspection | Implementation commit file list | `PASS` |
+| `RCE-HNS-CORE-001-02` | Dependency scope | `npm ls --depth=0` and lockfile inspection | Manifest dependency section | `PASS` |
+| `RCE-HNS-CORE-001-03` | TypeScript strict / ESM | Config inspection plus build / typecheck | `package.json`、`tsconfig.json` | `PASS` |
+| `RCE-HNS-CORE-001-04` | No vendor runtime / Phase 2 logic | Source and test content search | `harness/src/index.ts` and manifest | `PASS` |
+| `RCE-HNS-CORE-001-05` | No TODO pretending complete | Repository content search in reviewed files | Implementation commit | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Clean Install | `npm ci` | `PASS` (`exit 0`) | Node `v24.19.0`、npm `11.17.0` |
+| Typecheck | `npm run typecheck` | `PASS` (`exit 0`) | Strict no-emit compile |
+| Lint | Not run; no lint dependency or script is required by HNS-CORE-001 | `NOT_APPLICABLE` | Scope keeps dependencies minimal; TypeScript compiler performs static validation |
+| Unit / Smoke Test | `npm test` | `PASS` (`3 passed, 0 failed`) | Node built-in test runner |
+| Integration Test | Not applicable; no runtime integration exists in this Work Item | `NOT_APPLICABLE` | HNS-CORE-001 Out of Scope |
+| Build | `npm run build` | `PASS` (`exit 0`) | ESM declarations and JavaScript emitted |
+| Security Check | `npm audit --audit-level=high` | `PASS` (`0 vulnerabilities`) | npm lockfile audit |
+
+### Implementer Scope Evidence
+
+- Changed Files：`harness/package.json`、`harness/package-lock.json`、`harness/tsconfig.json`、`harness/src/index.ts`、`harness/tests/package-smoke.test.mjs`.
+- Diff Scope：Only HNS-CORE-001 Write Scope in implementation commit.
+- Unauthorized Change Check：No `.ai/**`、canonical Contract、Architecture、SDD body、Work Item AC、adapter or Phase 2 implementation change.
+- Backward Compatibility：New private package foundation; no previous runtime API exists.
+- Direct Dependencies：0 runtime；1 development (`typescript@7.0.2`).
+
+### Acceptance Criteria Result
+
+- `AC-HNS-CORE-001-001`：`PASS` - ESM、strict TypeScript、NodeNext module policy、Node 24 baseline.
+- `AC-HNS-CORE-001-002`：`PASS` - lockfile exists；clean `npm ci`、build、typecheck and test all exit 0.
+- `AC-HNS-CORE-001-003`：`PASS` - 3 smoke/config tests pass；source contains only package marker and no vendor / Harness runtime behavior.
+- `AC-HNS-CORE-001-004`：`PASS` - implementation commit contains only the five authorized `harness/**` files.
+
+### Findings
+
+- Implementer self-review found no blocking、major、minor or observation finding.
+
+### Known Limitations and Unresolved Issues
+
+- Foundation intentionally contains no Harness domain or runtime behavior.
+- `TECH_REVIEWER` decision and `IMPLEMENTATION_GATE` remain pending.
+- This Maker evidence is not independent review evidence and cannot pass the Gate.
+
+### Result
+
+Maker completion result：`READY_FOR_REVIEW`.
+
+### Integrity and Independence Validation
+
+- [x] Artifact manifest binds the exact implementation commit and five file hashes.
+- [x] Maker only produced self-review evidence and did not issue Reviewer PASS.
+- [x] `TECH_REVIEWER` profile is assigned through a separate Review Work Item.
+- [ ] Independent Reviewer decision pending.
+- [ ] `IMPLEMENTATION_GATE` pending.

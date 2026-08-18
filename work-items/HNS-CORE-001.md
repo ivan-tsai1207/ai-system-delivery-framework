@@ -8,7 +8,7 @@
 | Role | `IMPLEMENTER` |
 | Feature | `harness-core` |
 | Phase | `IMPLEMENTATION` |
-| Status | `IN_PROGRESS` |
+| Status | `REVIEW` |
 | Spec Version | `harness-v0.1-approved-d98137c` |
 | Design Version | `N/A` |
 | Risk Class | `MEDIUM` |
@@ -98,4 +98,6 @@
 
 - FIRST IMPLEMENTATION WORK ITEM。
 - Approval evidence：`docs/08_agent_reviews/review_log.md#rev-hns-sdd-001---harness-v01-sdd-independent-review`。
+- Implementer evidence：`docs/08_agent_reviews/review_log.md#rce-hns-core-001---implementer-role-completion-evidence`。
+- Reviewed artifact manifest：`docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` (`sha256:4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8`)。
 - 不依賴 Hard Enforcement、Codex / Claude Adapter capability或 GitHub Provisioning transport決策。
