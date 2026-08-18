@@ -930,3 +930,114 @@ GateResult: `N/A`; `IMPLEMENTATION_GATE` remains pending.
 - [x] Reviewer execution did not modify implementation, tests, manifest, work items, SDD, Architecture, governance, or templates.
 - [x] Required independent QA review evidence was appended only to `docs/08_agent_reviews/review_log.md`.
 - [x] Artifact change invalidation rules were not overwritten; this evidence binds the R3 manifest hash and candidate commit.
+
+---
+
+## IG-HNS-CORE-002-001 - HNS-CORE-002 Implementation Gate
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `IG-HNS-CORE-002-001` |
+| Execution ID | `implementation-gate-hns-core-002-20260818T183509Z` |
+| Work Item | `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md` |
+| Gate | `IMPLEMENTATION_GATE` |
+| GateResult | `PASS` |
+| Risk Class | `LOW` |
+| Repository | `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git` |
+| Branch | `fix/hns-core-002-immutability-r3` |
+| Branch HEAD at Gate Start | `1b999c71a9083f7b25a9eb302e45bbd46a9dc655` |
+| Reviewed Candidate Commit | `1599ca268c89f2ed2e130ecb159b16f89da2a8b5` |
+| Preparation Commit | `8d56323188fd46b4f7ee89093a29017fe63bf24d` |
+| TECH_REVIEWER Evidence | `REV-HNS-CORE-002-TECH-003` |
+| TECH_REVIEWER Review Commit | `9f89ccfa81c5d4d9fe1a56af4b88bc8f7e544679` |
+| QA_REVIEWER Evidence | `REV-HNS-CORE-002-QA-002` |
+| QA_REVIEWER Review Commit | `1b999c71a9083f7b25a9eb302e45bbd46a9dc655` |
+| Maker Evidence | `RCE-HNS-CORE-002-REMEDIATION-R3-001` |
+| Reviewed Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r3.md` |
+| Reviewed Artifact Hash | `sha256:89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec` |
+| Timestamp | `2026-08-18T18:35:09Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-002-001` through `AC-HNS-CORE-002-004`; `AC-HNS-CORE-002-TEST-FIX-001` through `AC-HNS-CORE-002-TEST-FIX-004`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 4, 5, 42, and 46 Phase 1.
+- Gate: `.ai/gates/implementation-gate.md`.
+- Governance: `.ai/CONSTITUTION.md`; `.ai/AUTHORITY.md`; `.ai/WORKFLOW.md`; `.ai/HARNESS_CONTRACT.md`; `.ai/roles/reviewer.md`; `templates/Work_Item.md`; `templates/Agent_Review_Log.md`.
+- Accountability context note: `.ai/ACCOUNTABILITY_MODEL.md` is not present at this branch HEAD; accountability rules were verified through the executable canonical governance above and `docs/role_accountability_and_assurance_model.md`, which states the model is integrated into canonical governance and subordinate to it.
+
+### Gate Checks
+
+| Check ID | Check | Evidence Reference | Result |
+|---|---|---|---|
+| `IG-HNS-CORE-002-001-01` | Repository preflight | Fresh clone; origin URL `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; branch `fix/hns-core-002-immutability-r3`; HEAD `1b999c71a9083f7b25a9eb302e45bbd46a9dc655`; clean worktree before evidence append | `PASS` |
+| `IG-HNS-CORE-002-001-02` | Runtime preflight | `export PATH="/Users/ivan/.nvm/versions/node/v24.19.0/bin:$PATH"`; `hash -r`; Node `v24.19.0`; npm `11.17.0` | `PASS` |
+| `IG-HNS-CORE-002-001-03` | Candidate and review lineage | `git show -s --format=%H%n%P%n%s` and `git merge-base --is-ancestor` verify candidate `1599ca268c89f2ed2e130ecb159b16f89da2a8b5` -> preparation `8d56323188fd46b4f7ee89093a29017fe63bf24d` -> TECH `9f89ccfa81c5d4d9fe1a56af4b88bc8f7e544679` -> QA / gate-start HEAD `1b999c71a9083f7b25a9eb302e45bbd46a9dc655` | `PASS` |
+| `IG-HNS-CORE-002-001-04` | Manifest hash and file identity | `shasum -a 256 docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r3.md` = `89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec`; manifest blob IDs and SHA-256 values match candidate commit for `harness/src/core/domain.ts`, `harness/src/index.ts`, `harness/tests/unit/core/domain.test.mjs`, and `harness/package.json` | `PASS` |
+| `IG-HNS-CORE-002-001-05` | Maker evidence | `RCE-HNS-CORE-002-REMEDIATION-R3-001` records `READY_FOR_REVIEW`, candidate commit `1599ca268c89f2ed2e130ecb159b16f89da2a8b5`, artifact hash `sha256:89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec`, Node `v24.19.0`, npm `11.17.0`, build / typecheck / test / audit PASS, and does not mark `FIND-HNS-CORE-002-TECH-004` resolved or pass the gate | `PASS` |
+| `IG-HNS-CORE-002-001-06` | TECH evidence | `REV-HNS-CORE-002-TECH-003` records `TECH_REVIEWER`, Reviewer decision `PASS`, reviewed candidate commit `1599ca268c89f2ed2e130ecb159b16f89da2a8b5`, matching R3 manifest hash, and `FIND-HNS-CORE-002-TECH-004` closure as `RESOLVED` | `PASS` |
+| `IG-HNS-CORE-002-001-07` | QA evidence | `REV-HNS-CORE-002-QA-002` records `QA_REVIEWER`, Reviewer decision `PASS`, reviewed candidate commit `1599ca268c89f2ed2e130ecb159b16f89da2a8b5`, matching R3 manifest hash, TECH evidence `REV-HNS-CORE-002-TECH-003`, and complete acceptance / test discovery validation | `PASS` |
+| `IG-HNS-CORE-002-001-08` | Independence | Maker execution `RCE-HNS-CORE-002-REMEDIATION-R3-001`, TECH reviewer execution `REV-HNS-CORE-002-TECH-R3-20260818T182246Z`, QA reviewer execution `REV-HNS-CORE-002-QA-R3-20260818T182834Z`, and gate checker execution `implementation-gate-hns-core-002-20260818T183509Z` are distinct; this gate checker did not modify implementation, tests, manifest, or prior review evidence | `PASS` |
+| `IG-HNS-CORE-002-001-09` | Dependency validation | `work-items/HNS-CORE-001.md` status is `DONE`; `IG-HNS-CORE-001-001` records `IMPLEMENTATION_GATE` `PASS` for HNS-CORE-001 | `PASS` |
+| `IG-HNS-CORE-002-001-10` | Acceptance criteria validation | HNS-CORE-002 ACs and HNS-CORE-002-TEST-FIX ACs validated by SDD / Work Item comparison, source and package inspection, reviewer evidence, checked-in tests, and gate command reruns | `PASS` |
+| `IG-HNS-CORE-002-001-11` | Scope validation | Candidate diff `0df54ae9f1ff26889b8d47f33c05d091326c6aa7..1599ca268c89f2ed2e130ecb159b16f89da2a8b5` changes only `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs`; scoped searches found no broad `any`, parser, filesystem I/O, process execution, adapter, external/network capability, or HNS-CORE-003 implementation marker | `PASS` |
+| `IG-HNS-CORE-002-001-12` | Review commits did not mutate reviewed implementation | Diff `1599ca268c89f2ed2e130ecb159b16f89da2a8b5..9f89ccfa81c5d4d9fe1a56af4b88bc8f7e544679` contains only manifest / review log / review Work Item evidence files; diff `9f89ccfa81c5d4d9fe1a56af4b88bc8f7e544679..1b999c71a9083f7b25a9eb302e45bbd46a9dc655` contains only `docs/08_agent_reviews/review_log.md`; no `harness/src/**`, `harness/tests/**`, package, or lockfile change after the candidate | `PASS` |
+| `IG-HNS-CORE-002-001-13` | Finding closure validation | Latest closure evidence records `FIND-HNS-CORE-002-TECH-001`, `002`, and `003` as `RESOLVED` in `REV-HNS-CORE-002-TECH-002`; `FIND-HNS-CORE-002-TECH-004` as `RESOLVED` in `REV-HNS-CORE-002-TECH-003`; historical append-only `OPEN` rows are superseded by later closure evidence; no unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains for this gate candidate | `PASS` |
+| `IG-HNS-CORE-002-001-14` | Required review calculation | `TECH_REVIEWER` is required for implementation review and satisfied by `REV-HNS-CORE-002-TECH-003`; `QA_REVIEWER` is required for behavior / regression / test-discovery validation and satisfied by `REV-HNS-CORE-002-QA-002`; `SECURITY_REVIEWER` is not required for LOW risk with no security trigger | `PASS` |
+| `IG-HNS-CORE-002-001-15` | No invalid prior review reliance | Gate PASS relies on R3 Maker evidence `RCE-HNS-CORE-002-REMEDIATION-R3-001`, TECH `REV-HNS-CORE-002-TECH-003`, QA `REV-HNS-CORE-002-QA-002`, and this gate execution rerun; stale / invalid prior attempts are not used as PASS basis | `PASS` |
+
+### Test Evidence
+
+| Command | Result | Notes |
+|---|---|---|
+| `node --version; npm --version` | `PASS` (`v24.19.0`; `11.17.0`) | Executed after `export PATH="/Users/ivan/.nvm/versions/node/v24.19.0/bin:$PATH"` and `hash -r`. |
+| `npm ci` | `PASS` (`exit 0`) | Added 2 packages, audited 3 packages, found 0 vulnerabilities. |
+| `npm run build` | `PASS` (`exit 0`) | `tsc --project tsconfig.json` completed. |
+| `npm run typecheck` | `PASS` (`exit 0`) | `tsc --project tsconfig.json --noEmit` completed. |
+| `npm test` | `PASS` (`exit 0`) | Default script ran `node --test tests/*.test.mjs tests/unit/core/*.test.mjs`; discovered `harness/tests/package-smoke.test.mjs` and `harness/tests/unit/core/domain.test.mjs`; summary: 16 tests, 16 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo. |
+| `npm audit --audit-level=high` | `PASS` (`exit 0`) | Found 0 vulnerabilities. |
+| Test disable scan | `PASS` | Targeted `rg` for skip / todo / only markers under `harness/tests` returned no matches. |
+
+### Acceptance Criteria Validation
+
+| Acceptance Criterion | Result | Evidence Reference |
+|---|---|---|
+| `AC-HNS-CORE-002-001` | `PASS` | Strict build and typecheck pass; source has no broad `any` or vendor import; scoped search found no parser, I/O, process, adapter, or external capability. |
+| `AC-HNS-CORE-002-002` | `PASS` | Core enums for four roles, five phases, six statuses, four risk classes, six reviewer profiles, five gate IDs, finding severity/status, reviewer decisions, and gate result statuses match SDD / Work Item Contract exactly and remain distinct. |
+| `AC-HNS-CORE-002-003` | `PASS` | Checked-in tests and reviewer runtime probes cover valid construction, invalid enum rejection, immutable snapshot behavior, shared aliases, true cycles, accessors, proxy descriptor semantics, symbol-keyed data, and unsupported mutable / non-plain values. |
+| `AC-HNS-CORE-002-004` | `PASS` | Candidate introduces no parser, I/O, process, persistence, adapter, orchestration, runtime service, HNS-CORE-003 work, or unauthorized scope. |
+| `AC-HNS-CORE-002-TEST-FIX-001` | `PASS` | Default `npm test` executed root smoke tests from `tests/*.test.mjs`. |
+| `AC-HNS-CORE-002-TEST-FIX-002` | `PASS` | Default `npm test` executed nested core tests from `tests/unit/core/*.test.mjs`. |
+| `AC-HNS-CORE-002-TEST-FIX-003` | `PASS` | Gate rerun `npm test`: 16 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo. |
+| `AC-HNS-CORE-002-TEST-FIX-004` | `PASS` | Test-discovery remediation is limited to `harness/package.json`; R3 candidate does not modify runtime, parser, adapter, SDD, Architecture, unrelated Work Item, or out-of-scope implementation files. |
+
+### Risk-Based Review Requirements
+
+- `TECH_REVIEWER`: required for implementation review and satisfied by `REV-HNS-CORE-002-TECH-003` with decision `PASS`.
+- `QA_REVIEWER`: required because this candidate validates observable domain behavior, regression coverage, and test discovery; satisfied by `REV-HNS-CORE-002-QA-002` with decision `PASS`.
+- `SECURITY_REVIEWER`: not required. Canonical LOW risk policy requires Security only on security triggers; none are present because the candidate introduces no authentication, authorization, permission change, secret / credential handling, PII, payment, external API / external write, dependency trust change, filesystem or command boundary behavior, production operation, migration, destructive operation, or security boundary change.
+
+### Open Findings
+
+No unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains for the R3 gate candidate.
+
+Final finding states:
+
+| Finding | Final Status | Closure Evidence |
+|---|---|---|
+| `FIND-HNS-CORE-002-TECH-001` | `RESOLVED` | `REV-HNS-CORE-002-TECH-002-06` |
+| `FIND-HNS-CORE-002-TECH-002` | `RESOLVED` | `REV-HNS-CORE-002-TECH-002-07` |
+| `FIND-HNS-CORE-002-TECH-003` | `RESOLVED` | `REV-HNS-CORE-002-TECH-002-09` |
+| `FIND-HNS-CORE-002-TECH-004` | `RESOLVED` | `REV-HNS-CORE-002-TECH-003-05` through `REV-HNS-CORE-002-TECH-003-08` |
+
+### Status Updates
+
+- No Work Item lifecycle closure was performed in this gate execution.
+- `work-items/HNS-CORE-002.md` remains `REVIEW`.
+- `work-items/HNS-CORE-002-TEST-FIX.md` remains `REVIEW`.
+- No implementation, test, manifest, governance, SDD, Architecture, HNS-CORE-003, merge, release, or lifecycle-closure change was made.
+
+### Result
+
+GateResult: `PASS`.
