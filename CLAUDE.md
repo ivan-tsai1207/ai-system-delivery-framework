@@ -11,17 +11,19 @@
 3. `.ai/AUTHORITY.md`
 4. `.ai/WORKFLOW.md`
 5. `.ai/roles/<active-role>.md`
-6. `.ai/gates/<active-gate>.md`
-7. `LLM_OPERATING_RULES.md`
-8. 目標專案中與任務相關的 canonical specs、design contract 與 work item
-9. 依任務類型讀取 `skills/` 中的對應工作流與 `templates/`
-10. 需要角色審查時讀取 `agent_roles/` 與 `docs/review_role_matrix.md`
+6. `.ai/HARNESS_CONTRACT.md`（若由 Harness 執行或需要 runtime boundary）
+7. `.ai/gates/<active-gate>.md`
+8. `LLM_OPERATING_RULES.md`
+9. 目標專案中與任務相關的 canonical specs、design contract 與 work item
+10. 依任務類型讀取 `skills/` 中的對應工作流與 `templates/`
+11. 需要角色審查時讀取 `agent_roles/` 與 `docs/review_role_matrix.md`
 
 ## 執行規則
 
 - 全程使用繁體中文與使用者溝通，除非使用者明確指定其他語言。
 - 以 `AGENTS.md` 作為 repository entrypoint；它不凌駕 `.ai/CONSTITUTION.md`。
 - 以 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md`、`.ai/WORKFLOW.md` 作為 Agentic Substrate 治理層。
+- `.ai/HARNESS_CONTRACT.md` 是 vendor-neutral runtime contract，不是新的 Authority；Claude adapter 不得藉此擴張 role 或 tool permission。
 - 以 `LLM_OPERATING_RULES.md` 作為跨 LLM 通用補充。
 - 若任務涉及新專案、新概念、MVP 或正式系統規劃，先啟動 `skills/project-intake.md`。
 - 若使用者提供資料來源，先依 `skills/source-map-builder.md` 建立 Source Map。

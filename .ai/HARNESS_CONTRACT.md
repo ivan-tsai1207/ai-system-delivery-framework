@@ -1,0 +1,540 @@
+# Agent Harness Runtime Contract
+
+本文件定義 vendor-neutral 的 Agent runtime contract。Harness 將既有 Constitution、Authority、Workflow、Role 與 Gate 轉換成可執行限制，但不是新的 Governance Authority，也不得創造產品規則、角色權限或規格優先順序。
+
+若本文件與較高層級治理文件或 active role / gate 衝突，必須依 `.ai/AUTHORITY.md` 停止並回報，不得由 Harness 自行選邊。
+
+## 1. Purpose
+
+Harness 負責：
+
+- Runtime context assembly。
+- Role binding。
+- Filesystem read / write boundary enforcement。
+- Tool permission boundary enforcement。
+- Task lifecycle control。
+- Gate execution orchestration。
+- Audit evidence collection。
+
+Harness 不負責：
+
+- 定義或修改產品需求。
+- 修改 business rule、role、permission、API contract、data model 或 UX flow。
+- 修改 Governance Authority hierarchy。
+- 自行核准 Change Request。
+- 自行修改 canonical spec。
+- 取代 Human、Product Architect、Reviewer 或 Gate 的判斷責任。
+
+## 2. Harness Input Contract
+
+每次啟動 Agent 必須提供以下 input：
+
+```yaml
+task_id: string
+role: PRODUCT_ARCHITECT | UX_DESIGNER | IMPLEMENTER | REVIEWER
+feature: string
+phase: SPEC | DESIGN | IMPLEMENTATION | RELEASE | REVIEW
+work_item: work-items/<WORK-ITEM-ID>.md
+repository: string
+branch: string
+```
+
+可選 input：
+
+```yaml
+screen_ids:
+  - <SCREEN-ID>
+spec_version: string
+design_version: string
+allowed_tools:
+  - tool-or-capability
+additional_context:
+  - repository-relative-path
+```
+
+Input validation 規則：
+
+- Required field 不可缺少或為空。
+- `role` 必須能映射到既有 role 文件。
+- `work_item` 必須是 repository-relative path，且與 `task_id` 相符。
+- `repository`、`branch` 與啟動時實際 checkout 必須一致。
+- `additional_context` 只增加候選 read context，不會自動增加 write 或 tool permission。
+- Input 無效或 required file 不存在時，進入 `BLOCKED_PERMISSION` 或 `MISSING_REQUIRED_CONTEXT` 對應的停止流程。
+
+## 3. Role Binding
+
+Role binding 必須使用下列固定映射：
+
+| Role ID | Governance Source |
+|---|---|
+| `PRODUCT_ARCHITECT` | `.ai/roles/product-architect.md` |
+| `UX_DESIGNER` | `.ai/roles/ux-designer.md` |
+| `IMPLEMENTER` | `.ai/roles/implementer.md` |
+| `REVIEWER` | `.ai/roles/reviewer.md` |
+
+- 一個 execution context 只能綁定一個 active role。
+- Agent 不得在執行期間自行修改、提升或切換 role。
+- 任務需要另一個 role 時，必須結束目前 execution，建立新的 task 或 execution context，重新編譯 context 與 permissions。
+- Role permission 來自 active role、assigned work item 與既有 Governance Authority；Harness 只能取其交集，不得擴張。
+
+## 4. Context Compiler
+
+Harness 必須根據 `role`、`feature`、`phase` 與 `work_item` 建立最小必要 Context Package。
+
+Mandatory Governance Context：
+
+```text
+.ai/CONSTITUTION.md
+.ai/AUTHORITY.md
+.ai/WORKFLOW.md
+.ai/roles/<active-role>.md
+```
+
+若目前階段有 active gate，還必須載入：
+
+```text
+.ai/gates/<active-gate>.md
+```
+
+Delivery Context 選擇原則：
+
+| Role | Required Delivery Context |
+|---|---|
+| `PRODUCT_ARCHITECT` | 使用者資料來源、Source Map、相關 canonical specs、assigned work item |
+| `UX_DESIGNER` | Product Vision、PRD、相關 SRS、Feature Spec、assigned work item、現有 Design Contract |
+| `IMPLEMENTER` | 相關 Architecture / SDD、Feature Spec、Screen Spec、assigned work item、相關 source code 與 tests |
+| `REVIEWER` | 被審查產物、其上層 canonical specs、assigned work item、active gate 與必要 evidence |
+
+Context Compiler 必須：
+
+- 遵守 Principle of Least Context，不得預設無差別載入整個 repository。
+- 依 feature、requirement、screen ID、work item 與版本縮小 context。
+- 將實際載入清單寫入 `context_files` audit evidence。
+- 驗證 context path 位於允許的 repository scope 內。
+- Required context 缺失、版本不符或互相衝突時停止，不得以 Agent 推論補齊。
+
+## 5. Filesystem Boundary
+
+Filesystem permission 分為：
+
+```text
+read
+write
+deny_write
+```
+
+共同語意：
+
+- `deny_write` 優先於 `write`。
+- `read` 不隱含 `write`；未明確允許的 write 預設拒絕。
+- Work item 只能在 active role 允許範圍內縮小或具體化權限，不能擴張 role 權限。
+- Path 必須先正規化；path traversal、symlink escape 或 repository 外路徑一律拒絕。
+- Harness 自身的 audit sink 與 Agent write boundary 分離，Agent 不得修改 audit evidence。
+
+### PRODUCT_ARCHITECT Default
+
+```yaml
+read:
+  - docs/**
+  - specs/**
+  - design/**
+  - work-items/<assigned-work-item>.md
+  - traceability/**
+write:
+  - docs/**
+  - specs/**
+  - docs/05_decisions/**
+  - work-items/<assigned-work-item>.md
+  - traceability/**
+deny_write:
+  - src/**
+  - migrations/**
+  - design/**
+```
+
+### UX_DESIGNER Default
+
+```yaml
+read:
+  - docs/**
+  - specs/**
+  - design/<feature>/**
+  - work-items/<assigned-design-work-item>.md
+write:
+  - design/<feature>/**
+  - work-items/<assigned-design-work-item>.md
+  - traceability/** # 僅限 design mapping
+deny_write:
+  - docs/**
+  - specs/**
+  - src/**
+  - migrations/**
+```
+
+### IMPLEMENTER Default
+
+```yaml
+read:
+  - docs/04_system/**
+  - specs/<feature>/**
+  - design/<feature>/**
+  - work-items/<assigned-work-item>.md
+  - src/**
+  - tests/**
+write:
+  - src/**
+  - tests/**
+deny_write:
+  - docs/**
+  - specs/**
+  - design/**
+  - migrations/**
+```
+
+必要工程設定或 migration 只有在既有規格、active role 與 assigned work item 都明確授權時，才能由專用 execution context 開放；不得由 Implementer 自行擴張。
+
+### REVIEWER Default
+
+```yaml
+read:
+  - relevant canonical specs
+  - artifact under review
+  - assigned work item
+  - related source code and tests
+write: []
+deny_write:
+  - docs/02_product/**
+  - docs/03_requirements/**
+  - docs/04_system/**
+  - specs/**
+  - design/**
+  - src/**
+  - migrations/**
+```
+
+Reviewer 預設為 read-only。若 assigned work item 明確要求產出 review log，可只開放指定的 `docs/08_agent_reviews/**` 路徑，不得同時開放被審查產物。
+
+## 6. Tool Boundary
+
+Harness 必須支援：
+
+```yaml
+allow_tools: []
+deny_tools: []
+```
+
+Input Contract 的 `allowed_tools` 是任務要求；Context Compiler 必須將它與 role、work item 及治理限制取交集，產生 runtime `allow_tools`。`deny_tools` 可由治理規則、role、environment 或 Harness policy 產生。
+
+`deny_tools` 優先於 `allow_tools`。工具至少分為：
+
+- `filesystem`
+- `shell`
+- `git`
+- `github`
+- `browser`
+- `figma`
+- `database`
+- `deployment`
+- `external_api`
+
+工具權限必須遵守 least privilege，並可限制 operation、environment、resource 與 path：
+
+- `UX_DESIGNER` 可依 work item 使用 design、browser、Figma 與必要的 read-only repo 工具，但預設不得取得 production database、migration、source write 或 production deployment 權限。
+- `IMPLEMENTER` 可使用實作與測試所需的 filesystem、shell、git 或 development tools，但不得透過工具修改 canonical Product Spec 或繞過 filesystem boundary。
+- `PRODUCT_ARCHITECT` 不因可修改規格而自動取得 source code、database 或 deployment write capability。
+- `REVIEWER` 預設使用 read-only tools；任何修正行為需建立新的對應 role execution。
+
+## 7. Command Boundary
+
+Shell command 必須先分類：
+
+| Class | 說明 | Default Policy |
+|---|---|---|
+| `safe_read` | 查詢檔案、狀態、logs、diff、metadata | 依 read boundary 允許 |
+| `development_write` | formatter、test output、build、一般開發檔案修改 | 依 role、work item 與 write boundary 允許 |
+| `destructive` | 刪除、覆蓋、資料破壞、history rewrite | Restricted |
+| `deployment` | preview、staging、production deployment | 依環境與明確授權限制 |
+| `credential_sensitive` | secret、token、API key、credential 操作 | Restricted |
+
+Restricted operations 至少包含：
+
+- `rm` 或其他 destructive delete。
+- Destructive database migration、drop、truncate 或 production data write。
+- Force push、history rewrite 或刪除 remote branch / tag。
+- Production deploy、production resource change 或 release promotion。
+- Secret、credential、API key 的讀取、輸出、建立、修改或分享。
+
+Restricted operation 不得由 Agent 自行核准。Harness 必須阻擋或暫停，取得既有治理規則要求的人類明確授權，並記錄 approval 與實際執行結果。
+
+## 8. Task Lifecycle
+
+正常狀態：
+
+```text
+CREATED
+→ CONTEXT_READY
+→ RUNNING
+→ VALIDATING
+→ COMPLETED
+```
+
+例外狀態：
+
+```text
+BLOCKED_SPEC_GAP
+BLOCKED_SPEC_CONFLICT
+BLOCKED_PERMISSION
+FAILED_GATE
+FAILED_RUNTIME
+CANCELLED
+```
+
+Lifecycle 規則：
+
+- 只有 Input Contract、Role Binding、Context Package 與 permissions 驗證完成後，才能進入 `CONTEXT_READY`。
+- Agent 只能在 `RUNNING` 執行工作。
+- 任務完成後必須進入 `VALIDATING` 並執行 required gates。
+- 只有 required gates 全部通過，且沒有未處理 stop condition，才能進入 `COMPLETED`。
+- Blocked execution 不得偷換 context、role、spec version 或 permissions 後原地繼續；需要更新時建立新的 execution context。
+
+## 9. Stop Conditions
+
+Harness 必須停止受影響工作：
+
+| Condition | Required Result |
+|---|---|
+| `SPEC_GAP` | `BLOCKED_SPEC_GAP`，提出或建議 Change Request |
+| `SPEC_CONFLICT` | `BLOCKED_SPEC_CONFLICT`，列出衝突與權威來源 |
+| `UNAUTHORIZED_WRITE` | 阻擋 write，進入 `BLOCKED_PERMISSION` |
+| `UNAUTHORIZED_TOOL` | 阻擋 tool call，進入 `BLOCKED_PERMISSION` |
+| `OUT_OF_SCOPE_CHANGE` | 阻擋變更並回報 work item scope deviation |
+| `MISSING_REQUIRED_CONTEXT` | 不啟動或停止 execution，補齊後建立新 context |
+| `GATE_FAILURE` | `FAILED_GATE`，保留 gate evidence |
+
+- Agent 不得忽略、重新命名、降低嚴重度或自動繞過 Stop Condition。
+- Harness 只停止受影響範圍；是否終止整個 task 依 active gate、work item 與治理規則判定。
+
+## 10. Change Request Integration
+
+```text
+Agent reports SPEC GAP
+→ Execution blocked where necessary
+→ Change Request
+→ Human / authorized role review
+→ Canonical Spec Updated
+→ New execution context
+→ Continue
+```
+
+- Harness 不得允許 Agent 直接修改 canonical spec 來解除自己的 `SPEC_GAP`。
+- Change Request lifecycle 與權威規則來自 `.ai/AUTHORITY.md`。
+- CR 核准但尚未寫回 canonical spec 時，不得解除 blocked state。
+- Canonical spec 更新後必須建立新的 execution ID，重新綁定 spec version、context 與 permissions；不得沿用舊 execution context 偷渡需求。
+
+## 11. Gate Integration
+
+Harness 負責 orchestrate：
+
+```text
+SPEC_GATE
+DESIGN_GATE
+IMPLEMENTATION_GATE
+RELEASE_GATE
+```
+
+- Gate 規則只來自 `.ai/gates/**`，Harness 不得修改、放寬或建立第二套判定標準。
+- Harness 依 `phase`、active role 與 work item 的 `required_gates` 選擇 active gate。
+- Active gate 文件必須加入 Context Package。
+- Gate 結果必須記錄為 `Pass`、`Failed` 或 `Needs Clarification`，並連結 evidence。
+- Gate failure 進入 `FAILED_GATE`；豁免必須來自治理規則允許的授權者並留下 audit evidence。
+
+## 12. Audit Contract
+
+每次 execution 必須能記錄：
+
+```yaml
+execution_id: string
+task_id: string
+role: string
+agent: string
+model: string
+tool_adapter: string
+repository: string
+branch: string
+commit_before: string
+context_files: []
+files_read: []
+files_written: []
+commands_executed: []
+tools_used: []
+blocked_actions: []
+gate_results: []
+spec_gaps: []
+spec_conflicts: []
+commit_after: string | null
+final_status: string
+```
+
+- Audit evidence 記錄 execution facts，不是產品或系統 Source of Truth。
+- Audit evidence 不得覆蓋 canonical spec、Gate rule 或 Change Request decision。
+- Agent 不得修改、刪除或偽造 Harness 已記錄的 evidence。
+- 敏感資訊必須遮罩；不得將 secret 或 credential 寫入 audit log。
+
+## 13. Agent Adapter Principle
+
+Harness Contract 必須保持 vendor-neutral：
+
+- Claude、Codex、Gemini、Hermes 與其他 Agent 都只是 adapter。
+- 所有 adapter 共用 Harness Contract、Governance 與 canonical Specifications。
+- Adapter 只負責將共用限制轉換成工具支援的 permission、prompt、hook、sandbox 與 tool configuration。
+- Adapter 不得另建互相矛盾的 Authority、Role、Gate、Stop Condition 或 Specification hierarchy。
+- 工具缺少必要 enforcement capability 時，adapter 必須回報限制或拒絕啟動，不得假裝已強制執行。
+
+## 14. Example Execution Profiles
+
+以下內容只示範 Contract，不建立實際 project artifact。
+
+### UX_DESIGNER Example
+
+```yaml
+task:
+  task_id: DESIGN-INV-001
+  role: UX_DESIGNER
+  feature: inventory
+  phase: DESIGN
+  work_item: work-items/DESIGN-INV-001.md
+  repository: example/inventory-system
+  branch: feature/inventory_design
+
+context:
+  required:
+    - .ai/CONSTITUTION.md
+    - .ai/AUTHORITY.md
+    - .ai/WORKFLOW.md
+    - .ai/roles/ux-designer.md
+    - .ai/gates/design-gate.md
+    - docs/02_product/PRODUCT_VISION.md
+    - docs/02_product/PRD.md
+    - docs/03_requirements/SRS.md
+    - specs/inventory/spec.md
+    - work-items/DESIGN-INV-001.md
+
+filesystem:
+  read:
+    - docs/**
+    - specs/**
+    - design/inventory/**
+    - work-items/DESIGN-INV-001.md
+  write:
+    - design/inventory/**
+    - work-items/DESIGN-INV-001.md
+  deny_write:
+    - docs/**
+    - specs/**
+    - src/**
+    - migrations/**
+
+tools:
+  allow:
+    - filesystem:scoped
+    - browser:design-reference
+    - figma:assigned-file
+    - git:read
+  deny:
+    - database:production
+    - deployment:production
+    - external_api:unapproved
+
+required_gates:
+  - DESIGN_GATE
+
+stop_on:
+  - SPEC_GAP
+  - SPEC_CONFLICT
+  - UNAUTHORIZED_WRITE
+  - UNAUTHORIZED_TOOL
+  - OUT_OF_SCOPE_CHANGE
+  - MISSING_REQUIRED_CONTEXT
+  - GATE_FAILURE
+```
+
+### IMPLEMENTER Example
+
+```yaml
+task:
+  task_id: PBI-INV-003
+  role: IMPLEMENTER
+  feature: inventory
+  phase: IMPLEMENTATION
+  work_item: work-items/PBI-INV-003.md
+  repository: example/inventory-system
+  branch: feature/inventory_list
+
+context:
+  required:
+    - .ai/CONSTITUTION.md
+    - .ai/AUTHORITY.md
+    - .ai/WORKFLOW.md
+    - .ai/roles/implementer.md
+    - .ai/gates/implementation-gate.md
+    - docs/04_system/ARCHITECTURE.md
+    - docs/04_system/SDD.md
+    - specs/inventory/spec.md
+    - design/inventory/screens/SCR-INV-001.md
+    - work-items/PBI-INV-003.md
+
+filesystem:
+  read:
+    - docs/04_system/**
+    - specs/inventory/**
+    - design/inventory/**
+    - work-items/PBI-INV-003.md
+    - src/**
+    - tests/**
+  write:
+    - src/**
+    - tests/**
+  deny_write:
+    - docs/**
+    - specs/**
+    - design/**
+    - migrations/**
+
+tools:
+  allow:
+    - filesystem:scoped
+    - shell:development
+    - git:development
+    - github:read
+    - browser:test
+  deny:
+    - database:production
+    - deployment:production
+    - external_api:unapproved
+
+required_gates:
+  - IMPLEMENTATION_GATE
+
+stop_on:
+  - SPEC_GAP
+  - SPEC_CONFLICT
+  - UNAUTHORIZED_WRITE
+  - UNAUTHORIZED_TOOL
+  - OUT_OF_SCOPE_CHANGE
+  - MISSING_REQUIRED_CONTEXT
+  - GATE_FAILURE
+```
+
+## 15. Non-Goals
+
+本版本不處理：
+
+- 實際 sandbox implementation。
+- Docker。
+- GitHub Actions。
+- CI implementation。
+- Claude hooks implementation。
+- Codex sandbox configuration。
+- Production deployment enforcement。
+
+以上項目屬於後續 Harness Implementation；本文件只定義 contract。

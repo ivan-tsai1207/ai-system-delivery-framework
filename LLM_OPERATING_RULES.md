@@ -17,6 +17,7 @@
 - `.ai/CONSTITUTION.md` 定義最高治理規則。
 - `.ai/AUTHORITY.md` 定義規格衝突時的權威順序。
 - `.ai/WORKFLOW.md` 定義 ChatGPT / Claude / Codex 的交接流程。
+- `.ai/HARNESS_CONTRACT.md` 將既有治理規則轉換成 vendor-neutral runtime boundary，但不加入 Authority hierarchy。
 - `specs/<feature>/spec.md` 是功能開發的 Living Feature Spec。
 - `design/<feature>/screens/<SCREEN-ID>.md` 是 UX Contract，不得新增未授權 product capability。
 - `work-items/<WORK-ITEM-ID>.md` 定義單次任務的 delta、read / write / forbidden 範圍。

@@ -7,6 +7,7 @@
 - 本 repo 是 AI 系統開發專案的規則與流程來源。
 - `AGENTS.md` 是 agent repository entrypoint，不是最高治理權威。
 - `.ai/` 是 Agentic Substrate 治理層，定義憲法、權威順序、工作流、角色邊界與 Gate。
+- `.ai/HARNESS_CONTRACT.md` 是共用 runtime contract；各工具只負責轉換成自身支援的 permission、prompt、hook、sandbox 與 tool configuration。
 - `LLM_OPERATING_RULES.md` 是跨 LLM 通用規則。
 - `skills/` 是可重用工作流說明。
 - `templates/` 是文件產出模板。
@@ -20,8 +21,9 @@
 2. `.ai/CONSTITUTION.md`
 3. `.ai/AUTHORITY.md`
 4. `.ai/WORKFLOW.md`
-5. `LLM_OPERATING_RULES.md`
-6. `skills/README.md`
+5. `.ai/HARNESS_CONTRACT.md`（Harness execution）
+6. `LLM_OPERATING_RULES.md`
+7. `skills/README.md`
 
 使用方式：
 
@@ -38,8 +40,9 @@
 3. `.ai/CONSTITUTION.md`
 4. `.ai/AUTHORITY.md`
 5. `.ai/WORKFLOW.md`
-6. `LLM_OPERATING_RULES.md`
-7. `skills/README.md`
+6. `.ai/HARNESS_CONTRACT.md`（Harness execution）
+7. `LLM_OPERATING_RULES.md`
+8. `skills/README.md`
 
 使用方式：
 
@@ -55,8 +58,9 @@
 2. `.ai/CONSTITUTION.md`
 3. `.ai/AUTHORITY.md`
 4. `.ai/WORKFLOW.md`
-5. `docs/llm_bootstrap_prompt.md`
-6. 依任務補充 `skills/` 與 `templates/`
+5. `.ai/HARNESS_CONTRACT.md`（Harness execution）
+6. `docs/llm_bootstrap_prompt.md`
+7. 依任務補充 `skills/` 與 `templates/`
 
 使用方式：
 
@@ -94,5 +98,6 @@
 - Codex 專用或 agent 工作目錄規則寫入 `AGENTS.md`。
 - Claude 專用入口或載入提醒寫入 `CLAUDE.md`。
 - Agentic Substrate 治理規則寫入 `.ai/`。
+- Vendor-specific adapter 不得複製或改寫 Harness Contract；只能實作工具支援的 enforcement mapping。
 - Canonical project paths 的權威定義來自 `.ai/AUTHORITY.md` 與 `docs/project_repo_structure.md`；其他文件若列出路徑，只能同步反映這兩份定義，不得建立第二套規則。
 - 工具使用方式改變時，更新本文件。

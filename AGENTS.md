@@ -10,11 +10,14 @@
 2. `.ai/AUTHORITY.md`
 3. `.ai/WORKFLOW.md`
 4. `.ai/roles/<active-role>.md`
-5. `.ai/gates/<active-gate>.md`
-6. `docs/02_product/PRODUCT_VISION.md`
-7. 與任務相關的 canonical specs、design contract 與 work item
+5. `.ai/HARNESS_CONTRACT.md`（若任務由 Harness 執行或需要 runtime boundary）
+6. `.ai/gates/<active-gate>.md`
+7. `docs/02_product/PRODUCT_VISION.md`
+8. 與任務相關的 canonical specs、design contract 與 work item
 
 `AGENTS.md` 是 repository entrypoint，不是最高治理權威。治理規則以 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md` 與 `.ai/WORKFLOW.md` 為準。
+
+`.ai/HARNESS_CONTRACT.md` 只將既有治理規則轉換成 runtime 限制，不是新的 Governance Authority，也不得擴張 active role、gate 或 work item 的權限。
 
 若專案規格在目標專案尚不存在，需依 `templates/` 建立或詢問使用者是否建立；Framework repo 本身不建立專案實例文件。
 

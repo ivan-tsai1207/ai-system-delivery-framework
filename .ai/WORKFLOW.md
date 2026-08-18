@@ -36,6 +36,26 @@ Living Spec Update
 - `work-items/<WORK-ITEM-ID>.md` 描述這一次要改什麼。
 - Work item 不應重複整份規格，只引用相關 State 文件與版本。
 
+## Harness Runtime Binding
+
+當任務由 Agent Harness 執行時：
+
+```text
+Active Role + Phase + Feature + Work Item
+  ↓
+.ai/HARNESS_CONTRACT.md
+  ↓
+Context Package + Filesystem Boundary + Tool Boundary
+  ↓
+Agent Execution
+  ↓
+Active Gate + Audit Evidence
+```
+
+- Harness Contract 只負責 runtime enforcement，不建立新的 Authority、Role 或 Gate 規則。
+- Runtime permissions 必須由 active role、assigned work item 與既有治理規則的交集產生。
+- Harness 無法組成 required context 或發現越權、spec gap、spec conflict 時，必須依 contract 停止受影響工作。
+
 ## 交接規則
 
 - ChatGPT / Product Architect 產出或更新規格，不直接產出未授權 UI 或 code。
