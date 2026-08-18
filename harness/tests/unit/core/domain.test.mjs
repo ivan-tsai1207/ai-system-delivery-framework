@@ -13,6 +13,7 @@ import {
   RISK_CLASSES,
   WORK_ITEM_PHASES,
   WORK_ITEM_ROLES,
+  WORK_ITEM_STATUSES,
 } from "../../../dist/index.js";
 
 test("canonical work item enums match the SDD and Work Item Contract", () => {
@@ -28,6 +29,14 @@ test("canonical work item enums match the SDD and Work Item Contract", () => {
     "IMPLEMENTATION",
     "REVIEW",
     "RELEASE",
+  ]);
+  assert.deepEqual(WORK_ITEM_STATUSES, [
+    "TODO",
+    "IN_PROGRESS",
+    "BLOCKED",
+    "REVIEW",
+    "DONE",
+    "CANCELLED",
   ]);
   assert.deepEqual(RISK_CLASSES, ["LOW", "MEDIUM", "HIGH", "CRITICAL"]);
   assert.deepEqual(REVIEW_PROFILES, [
@@ -117,6 +126,20 @@ test("defineCoreValue freezes representative nested domain values", () => {
   );
 });
 
+test("defineCoreValue accepts acyclic shared references without cloning", () => {
+  const shared = { value: "shared" };
+
+  const value = defineCoreValue({
+    first: shared,
+    second: shared,
+  });
+
+  assert.equal(value.first, value.second);
+  assert.equal(value.first, shared);
+  assert.equal(Object.isFrozen(shared), true);
+  assert.equal(Object.isFrozen(value), true);
+});
+
 test("defineCoreValue rejects circular mutable input", () => {
   const value = { refs: [] };
   value.refs.push(value);
@@ -124,5 +147,30 @@ test("defineCoreValue rejects circular mutable input", () => {
   assert.throws(
     () => defineCoreValue(value),
     /circular references/,
+  );
+});
+
+test("defineCoreValue rejects mutable or unsupported non-plain objects", () => {
+  class CustomDomainValue {
+    constructor() {
+      this.value = "mutable";
+    }
+  }
+
+  assert.throws(
+    () => defineCoreValue({ timestamp: new Date("2026-08-19T00:00:00.000Z") }),
+    /primitives, arrays, or plain objects/,
+  );
+  assert.throws(
+    () => defineCoreValue({ values: new Map([["key", "value"]]) }),
+    /primitives, arrays, or plain objects/,
+  );
+  assert.throws(
+    () => defineCoreValue({ values: new Set(["value"]) }),
+    /primitives, arrays, or plain objects/,
+  );
+  assert.throws(
+    () => defineCoreValue({ value: new CustomDomainValue() }),
+    /primitives, arrays, or plain objects/,
   );
 });

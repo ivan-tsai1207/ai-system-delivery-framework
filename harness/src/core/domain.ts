@@ -170,32 +170,49 @@ export type Immutable<T> =
       ? readonly Immutable<Item>[]
       : { readonly [Key in keyof T]: Immutable<T[Key]> };
 
-function freezeCoreValue<T>(value: T, seen: WeakSet<object>): Immutable<T> {
-  if (value === null || typeof value !== "object") {
+function isPlainCoreObject(value: object): boolean {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function freezeCoreValue<T>(value: T, activeTraversal: WeakSet<object>): Immutable<T> {
+  if (value === null || (typeof value !== "object" && typeof value !== "function")) {
     return value as Immutable<T>;
   }
 
-  if (seen.has(value)) {
+  if (typeof value === "function") {
+    throw new TypeError("Core domain values must be primitives, arrays, or plain objects.");
+  }
+
+  if (activeTraversal.has(value)) {
     throw new TypeError("Core domain values must not contain circular references.");
   }
 
-  seen.add(value);
+  if (!Array.isArray(value) && !isPlainCoreObject(value)) {
+    throw new TypeError("Core domain values must be primitives, arrays, or plain objects.");
+  }
 
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      freezeCoreValue(item, seen);
+  activeTraversal.add(value);
+
+  try {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        freezeCoreValue(item, activeTraversal);
+      }
+      return Object.freeze(value) as Immutable<T>;
     }
+
+    for (const key of Reflect.ownKeys(value) as (keyof T)[]) {
+      freezeCoreValue(value[key], activeTraversal);
+    }
+
     return Object.freeze(value) as Immutable<T>;
+  } finally {
+    activeTraversal.delete(value);
   }
-
-  for (const key of Object.keys(value) as (keyof T)[]) {
-    freezeCoreValue(value[key], seen);
-  }
-
-  return Object.freeze(value) as Immutable<T>;
 }
 
-export function defineCoreValue<T extends object>(value: T): Immutable<T> {
+export function defineCoreValue<T>(value: T): Immutable<T> {
   return freezeCoreValue(value, new WeakSet<object>());
 }
 
