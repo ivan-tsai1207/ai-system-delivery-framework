@@ -728,3 +728,93 @@ Candidate implementation file identities:
 Maker completion result：`READY_FOR_REVIEW`.
 
 Reviewer decision：`N/A`.
+
+---
+
+## REV-HNS-CORE-002-TECH-003 - HNS-CORE-002 Technical Review R3
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-002-TECH-003` |
+| Execution ID | `REV-HNS-CORE-002-TECH-R3-20260818T182246Z` |
+| Work Item | `work-items/HNS-CORE-002-TECH-REVIEW-003.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `RCE-HNS-CORE-002-REMEDIATION-R3-001` |
+| Reviewer Execution ID | `REV-HNS-CORE-002-TECH-R3-20260818T182246Z` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r3.md` |
+| Artifact Hash | `sha256:89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec` |
+| Commit Hash | `1599ca268c89f2ed2e130ecb159b16f89da2a8b5` |
+| Timestamp | `2026-08-18T18:22:46Z` |
+
+### Specification References
+
+- Requirement IDs：`AC-HNS-CORE-002-001` through `AC-HNS-CORE-002-004`; `AC-HNS-CORE-002-TEST-FIX-001` through `AC-HNS-CORE-002-TEST-FIX-004`; `AC-HNS-CORE-002-TECH-REVIEW-003-001` through `AC-HNS-CORE-002-TECH-REVIEW-003-004`.
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 4, 5, 42, 46 Phase 1.
+- Screen Specs：`N/A`.
+- Architecture / SDD：`docs/harness_v0.1_SDD.md`; `work-items/HNS-CORE-002.md`; `work-items/HNS-CORE-002-TEST-FIX.md`; `work-items/HNS-CORE-002-TECH-REVIEW-003.md`.
+- Prior Review Evidence：`REV-HNS-CORE-002-TECH-002`; `FIND-HNS-CORE-002-TECH-004`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-002-TECH-003-01` | Repository preflight | Fresh clone from `https://github.com/ivan-tsai1207/ai-system-delivery-framework`; checkout `fix/hns-core-002-immutability-r3`; remote, branch, HEAD, and required file checks | origin matched expected repository; HEAD `8d56323188fd46b4f7ee89093a29017fe63bf24d`; required files present | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-02` | Lineage verification | `git merge-base --is-ancestor 1599ca268c89f2ed2e130ecb159b16f89da2a8b5 HEAD`; `git show -s --format='%H %P' HEAD` | exit code `0`; HEAD parent is candidate `1599ca268c89f2ed2e130ecb159b16f89da2a8b5` | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-03` | Manifest integrity | `shasum -a 256 docs/08_agent_reviews/manifests/HNS-CORE-002-implementation-r3.md` | `89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec` | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-04` | Environment preflight | `PATH=/Users/ivan/.nvm/versions/node/v24.19.0/bin:$PATH`; `node -v`; `npm -v` | Node `v24.19.0`; npm `11.17.0` | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-05` | FIND-004 closure | Code inspection plus checked-in tests and independent runtime probes for ordinary accessors, nested accessors, symbol accessors, getter non-invocation, and proxy descriptor snapshot semantics | Accessors reject before invocation; proxy dynamic `get` is not used; descriptor values are materialized into frozen data properties | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-06` | Result graph immutability | Independent runtime probes using nested objects, aliases, arrays, sparse arrays, symbol-keyed data, and null-prototype values | Result graph is frozen; descriptors are non-writable and non-configurable; sparse array holes and null prototype are preserved | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-07` | Source/result isolation | Runtime probe mutating source objects after `defineCoreValue` | Result snapshot remains unchanged and rejects result mutation | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-08` | Cycle and unsupported value rejection | Runtime probes for shared aliases, true cycles, `Date`, `Map`, `Set`, `WeakMap`, `WeakSet`, custom class / non-plain object coverage by code inspection, and functions | Shared aliases are accepted inside the snapshot; true cycles and unsupported mutable or non-plain/function values throw `TypeError` | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-09` | Domain contract review | Compared `harness/src/core/domain.ts`, `harness/src/index.ts`, tests, and SDD Sections 4, 5, 42, 46 Phase 1 | Canonical role, phase, status, risk, reviewer profile, gate, finding, review decision, and gate result contracts remain unchanged and distinct | `PASS` |
+| `REV-HNS-CORE-002-TECH-003-10` | Scope review | `git diff --name-status 0df54ae9f1ff26889b8d47f33c05d091326c6aa7..1599ca268c89f2ed2e130ecb159b16f89da2a8b5`; scoped `rg` for `any`, parser, I/O, process, adapter, HNS-CORE-003, and external/network capabilities | Candidate changes only `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs`; no broad `any`, parser, I/O, process, adapter, vendor, or out-of-scope capability found | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Clean Install | `npm ci` in `harness/` using Node `v24.19.0` and npm `11.17.0` | `PASS` (`exit 0`) | `added 2 packages, and audited 3 packages`; `found 0 vulnerabilities` |
+| Build | `npm run build` | `PASS` (`exit 0`) | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` (`exit 0`) | `tsc --project tsconfig.json --noEmit` completed |
+| Unit / Smoke Test | `npm test` | `PASS` (`exit 0`) | Node test runner discovered root smoke tests and core unit tests: `tests 16`, `pass 16`, `fail 0`, `skipped 0`, `todo 0` |
+| Security Check | `npm audit --audit-level=high` | `PASS` (`exit 0`) | `found 0 vulnerabilities` |
+| Reviewer Runtime Probe | Inline `node --input-type=module` probe against built `dist/index.js` | `PASS` (`exit 0`) | 14 independent probe groups passed for accessors, symbols, proxy descriptors, result immutability, aliases, cycles, unsupported values, array semantics, descriptors, and source/result isolation |
+
+### Implementer Scope Evidence
+
+- Changed Files：R3 candidate commit `1599ca268c89f2ed2e130ecb159b16f89da2a8b5` changes only `harness/src/core/domain.ts` and `harness/tests/unit/core/domain.test.mjs` relative to R2 review evidence commit `0df54ae9f1ff26889b8d47f33c05d091326c6aa7`.
+- Diff Scope：The implementation delta is limited to immutable core value snapshot behavior and related regression tests.
+- Unauthorized Change Check：No parser, filesystem I/O, process execution, persistence, adapter, runtime orchestration, vendor dependency, broad `any`, HNS-CORE-003 work, governance, SDD, Architecture, or unrelated Work Item implementation scope found.
+- Backward Compatibility：Domain package API remains vendor-neutral and side-effect-free; canonical enums and exported types remain unchanged.
+
+### Findings
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Requirement Reference | Description | Severity | Evidence Reference | Required Action | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `FIND-HNS-CORE-002-TECH-004` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-002` | `harness/src/core/domain.ts` / `sha256:89565b900374509f58cfe8ebe51306944dca3d30183af1eae9f68c7740f641ec` | HNS-CORE-002 immutable value contracts; SDD Section 5 immutable domain values | R3 remediation rejects accessor-backed properties before invoking getters and materializes accepted descriptor data into immutable snapshot data properties. Proxy descriptor snapshots, nested accessors, symbol accessors, shared aliases, true cycles, unsupported mutable values, arrays, sparse arrays, null-prototype objects, symbol-keyed data, and source/result isolation were independently verified. | `MAJOR` | `REV-HNS-CORE-002-TECH-003-05` through `REV-HNS-CORE-002-TECH-003-08`; Reviewer Runtime Probe | None | `RESOLVED` |
+
+### Known Limitations and Unresolved Issues
+
+- This review records a `TECH_REVIEWER` decision only. It does not execute `QA_REVIEWER`, pass `IMPLEMENTATION_GATE`, merge branches, perform lifecycle closure, or start HNS-CORE-003.
+- `npm ci` created ignored `harness/node_modules/` and build created ignored `harness/dist/` in the temporary review checkout; these were not staged or committed.
+- No new findings were opened.
+
+### Result
+
+Reviewer decision：`PASS`.
+
+GateResult：`N/A`; `IMPLEMENTATION_GATE` remains pending.
+
+### Integrity and Independence Validation
+
+- [x] Artifact hash與實際 reviewed version一致。
+- [x] Maker與 final Checker execution ID不同。
+- [x] Reviewer Profile由 `work-items/HNS-CORE-002-TECH-REVIEW-003.md` 指派。
+- [x] Reviewer execution未修改受審 artifact、implementation、manifest、work items、SDD、Architecture或governance。
+- [x] Required independent review evidence and findings were appended only to `docs/08_agent_reviews/review_log.md`.
+- [x] Artifact變更後舊 PASS失效規則未被覆寫；本 evidence 綁定 R3 manifest hash與 candidate commit。
+
