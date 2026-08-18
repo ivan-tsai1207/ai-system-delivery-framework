@@ -159,3 +159,80 @@ Maker completion result：`READY_FOR_REVIEW`.
 - [x] `TECH_REVIEWER` profile is assigned through a separate Review Work Item.
 - [ ] Independent Reviewer decision pending.
 - [ ] `IMPLEMENTATION_GATE` pending.
+
+## REV-HNS-CORE-001-TECH-001 - HNS-CORE-001 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-001-TECH-001` |
+| Execution ID | `reviewer-hns-core-001-tech-20260819-001` |
+| Work Item | `work-items/HNS-CORE-001-TECH-REVIEW.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `maker-hns-core-001-b1d635a` |
+| Reviewer Execution ID | `reviewer-hns-core-001-tech-20260819-001` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` |
+| Artifact Hash | `sha256:4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8` |
+| Commit Hash | `b1d635a34271b4bafa39891a167e6d83412e4083` |
+| Timestamp | `2026-08-19T00:21:53+08:00` |
+
+### Specification References
+
+- Requirement IDs：`AC-HNS-CORE-001-001` through `AC-HNS-CORE-001-004`; `AC-HNS-CORE-001-TECH-REVIEW-001` through `AC-HNS-CORE-001-TECH-REVIEW-005`.
+- Feature / System Spec：`docs/harness_v0.1_SDD.md` Sections 2-4, 40, 45-46.
+- Architecture / SDD：`docs/harness_implementation_architecture.md` Sections 16-17.
+- Work Items：`work-items/HNS-CORE-001.md`; `work-items/HNS-CORE-001-TECH-REVIEW.md`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-001-TECH-001-01` | Reviewed manifest SHA-256 | `shasum -a 256 docs/08_agent_reviews/manifests/HNS-CORE-001-implementation.md` | `4de7f7fc6c0ff6154fa4765556b2cd6183847555132d95b01905e0d6ebb17fa8` | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-02` | Implementation commit identity | Fresh clone of `chore/hns-core-001-bootstrap`; `git cat-file -t` and ancestry check | Commit `b1d635a34271b4bafa39891a167e6d83412e4083` exists and is ancestor of branch HEAD `8db414f4e18cfd09f651aef3312e616cc7060f97` | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-03` | Reviewed file identities | `git ls-tree` plus `git show <commit>:<path> | shasum -a 256` for five files | Blob and SHA-256 values matched reviewed manifest for `package.json`, `package-lock.json`, `tsconfig.json`, `src/index.ts`, and smoke test | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-04` | Package metadata and dependency scope | Manual inspection of `harness/package.json` and `harness/package-lock.json` at reviewed commit | Private ESM package; Node `>=24.19.0 <25`; npm `>=11.17.0 <12`; 0 runtime deps; direct dev dep `typescript@7.0.2` only | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-05` | TypeScript configuration | Manual inspection of `harness/tsconfig.json` | `strict: true`; `module` and `moduleResolution` are `NodeNext`; declaration output enabled; `allowJs: false`; `noEmitOnError: true` | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-06` | Source and smoke tests | Manual inspection of `harness/src/index.ts` and `harness/tests/package-smoke.test.mjs` | Source exports package marker only; tests verify ESM load, Node/npm/package policy, direct dev dependency shape, and strict Node-compatible TS settings | `PASS` |
+| `REV-HNS-CORE-001-TECH-001-07` | Implementation scope | `git diff --name-status b629d917788d7ef5beb229aaa2254dfd0c9a1d76 b1d635a34271b4bafa39891a167e6d83412e4083` | Diff contains only five HNS-CORE-001 Write Scope files under `harness/`; no `.ai/**`, canonical docs, work item, adapter, enforcement, intake, repository, domain, or runtime behavior change | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Clean Install | `npm ci` in `harness/` using Node `v24.19.0` and npm `11.17.0` | `PASS` (`exit 0`) | `added 2 packages, and audited 3 packages`; `found 0 vulnerabilities` |
+| Build | `npm run build` | `PASS` (`exit 0`) | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` (`exit 0`) | `tsc --project tsconfig.json --noEmit` completed |
+| Unit / Smoke Test | `npm test` | `PASS` (`exit 0`) | Node test runner: `tests 3`, `pass 3`, `fail 0` |
+| Security Check | `npm audit --audit-level=high` | `PASS` (`exit 0`) | `found 0 vulnerabilities` |
+
+### Implementer Scope Evidence
+
+- Changed Files：`harness/package.json`, `harness/package-lock.json`, `harness/tsconfig.json`, `harness/src/index.ts`, `harness/tests/package-smoke.test.mjs`.
+- Diff Scope：Only files authorized by HNS-CORE-001 Write Scope were added in implementation commit `b1d635a34271b4bafa39891a167e6d83412e4083`.
+- Unauthorized Change Check：No modifications to `.ai/**`, canonical SDD / Architecture / Governance, reviewed manifest, HNS-CORE-001 acceptance criteria, adapters, enforcement, intake, repository, runtime behavior, vendor integration, API, DB schema, role, permission, or UX flow.
+- Backward Compatibility：New private package foundation; no pre-existing Harness runtime API was changed.
+
+### Findings
+
+No blocking, major, minor, or observation findings.
+
+### Known Limitations and Unresolved Issues
+
+- `npm ci` created ignored `harness/node_modules/` and build created ignored `harness/dist/` in the temporary review checkout; these were not staged or committed.
+- This review records a `TECH_REVIEWER` decision only. It does not pass `IMPLEMENTATION_GATE`, merge a branch, release, or start HNS-CORE-002.
+
+### Result
+
+Reviewer decision：`PASS`.
+
+### Integrity and Independence Validation
+
+- [x] Artifact hash matches the exact reviewed manifest.
+- [x] Implementation commit and five reviewed file identities match the reviewed manifest.
+- [x] Maker and Reviewer execution IDs are distinct.
+- [x] Reviewer Profile was assigned by `work-items/HNS-CORE-001-TECH-REVIEW.md`.
+- [x] Reviewer execution did not modify the reviewed manifest or reviewed implementation files.
+- [x] Required independent review evidence and findings were appended only to `docs/08_agent_reviews/review_log.md`.
