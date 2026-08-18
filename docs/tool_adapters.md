@@ -6,6 +6,7 @@
 
 - 本 repo 是 AI 系統開發專案的規則與流程來源。
 - `AGENTS.md` 是 agent 主要規則入口。
+- `.ai/` 是 Agentic Substrate 治理層，定義憲法、權威順序、工作流、角色邊界與 Gate。
 - `LLM_OPERATING_RULES.md` 是跨 LLM 通用規則。
 - `skills/` 是可重用工作流說明。
 - `templates/` 是文件產出模板。
@@ -16,8 +17,11 @@
 建議入口：
 
 1. `AGENTS.md`
-2. `LLM_OPERATING_RULES.md`
-3. `skills/README.md`
+2. `.ai/CONSTITUTION.md`
+3. `.ai/AUTHORITY.md`
+4. `.ai/WORKFLOW.md`
+5. `LLM_OPERATING_RULES.md`
+6. `skills/README.md`
 
 使用方式：
 
@@ -31,8 +35,11 @@
 
 1. `CLAUDE.md`
 2. `AGENTS.md`
-3. `LLM_OPERATING_RULES.md`
-4. `skills/README.md`
+3. `.ai/CONSTITUTION.md`
+4. `.ai/AUTHORITY.md`
+5. `.ai/WORKFLOW.md`
+6. `LLM_OPERATING_RULES.md`
+7. `skills/README.md`
 
 使用方式：
 
@@ -45,8 +52,11 @@
 建議入口：
 
 1. `LLM_OPERATING_RULES.md`
-2. `docs/llm_bootstrap_prompt.md`
-3. 依任務補充 `skills/` 與 `templates/`
+2. `.ai/CONSTITUTION.md`
+3. `.ai/AUTHORITY.md`
+4. `.ai/WORKFLOW.md`
+5. `docs/llm_bootstrap_prompt.md`
+6. 依任務補充 `skills/` 與 `templates/`
 
 使用方式：
 
@@ -83,4 +93,5 @@
 - 跨工具共用規則優先寫入 `LLM_OPERATING_RULES.md`。
 - Codex 專用或 agent 工作目錄規則寫入 `AGENTS.md`。
 - Claude 專用入口或載入提醒寫入 `CLAUDE.md`。
+- Agentic Substrate 治理規則寫入 `.ai/`。
 - 工具使用方式改變時，更新本文件。

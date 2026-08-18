@@ -10,6 +10,17 @@
 4. 沒有明確要求的事不要做；必要延伸需標記並詢問。
 5. 高風險操作必須先詢問。
 6. 所有系統專案需沉澱至 GitHub private repo 與 Obsidian-compatible Markdown 記憶。
+7. Git repository 內的規格文件是 Source of Truth；LLM 不得用對話推論覆蓋 repo 規格。
+
+## Agentic Substrate
+
+- `.ai/CONSTITUTION.md` 定義最高治理規則。
+- `.ai/AUTHORITY.md` 定義規格衝突時的權威順序。
+- `.ai/WORKFLOW.md` 定義 ChatGPT / Claude / Codex 的交接流程。
+- `specs/{feature}/spec.md` 是功能開發的 Living Feature Spec。
+- `design/**` 是 UX Contract，不得新增未授權 product capability。
+- `work-items/**` 定義單次任務的 delta、read / write / forbidden 範圍。
+- `traceability/**` 或 `templates/Traceability.yaml` 用於追蹤 requirement、screen、API 與 tests。
 
 ## 記憶策略
 
@@ -26,6 +37,13 @@
 - MVP：快速驗證，但仍需 Source Map、完整 SDD、架構文件、GitHub workflow 與記憶同步。
 - Standard：一般正式專案規劃與開發前文件。
 - Formal：正式 SI / Production 交付。
+
+## Gate
+
+- Spec Gate：PRD、Architecture / SDD、Feature Spec 不得互相矛盾。
+- Design Gate：Screen、Action、State 必須可追溯到 requirement；不得新增未授權能力。
+- Implementation Gate：Code 必須符合 Feature Spec、Design Contract 與 Work Item。
+- Release Gate：測試、資安、traceability、Living Spec 與 PR 說明完成後才可 merge 或 release。
 
 ## 框架 repo 分支策略
 

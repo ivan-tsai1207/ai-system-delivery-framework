@@ -18,11 +18,50 @@ ai-system-delivery-framework/
   AGENTS.md
   CLAUDE.md
   LLM_OPERATING_RULES.md
+  .ai/
   agent_roles/
   docs/
   skills/
   templates/
 ```
+
+## Agentic Substrate
+
+本 repo 不只是 AI 工具使用手冊，而是 AI 開發治理層。核心概念：
+
+```text
+Constitution
+  ↓
+Authority
+  ↓
+Workflow
+  ↓
+Product Vision
+  ↓
+Architecture
+  ↓
+Living Feature Specs
+  ↓
+UX Contract
+  ↓
+Work Item
+  ↓
+Automated Gates
+  ↓
+Code
+```
+
+重要文件：
+
+- `.ai/CONSTITUTION.md`：最高治理規則。
+- `.ai/AUTHORITY.md`：規格衝突時的權威順序。
+- `.ai/WORKFLOW.md`：ChatGPT / Claude / Codex 交接流程。
+- `.ai/roles/`：角色邊界。
+- `.ai/gates/`：Spec / Design / Implementation / Release Gate。
+- `templates/Feature_Spec.md`：Living Feature Spec 模板。
+- `templates/Screen_Spec.md`：UX Contract / Screen Spec 模板。
+- `templates/Work_Item.md`：單次 Agent 任務邊界模板。
+- `templates/Change_Request.md`：規格不足或需要擴張時使用。
 
 ## 跨 LLM 使用入口
 
@@ -39,7 +78,9 @@ ai-system-delivery-framework/
 
 ```text
 project-name/
+  .ai/
   docs/
+    PRODUCT_VISION.md
     00_index.md
     01_sources/
     02_product/
@@ -50,6 +91,11 @@ project-name/
     07_open_questions/
     08_agent_reviews/
     09_session_logs/
+  specs/
+  design/
+  work-items/
+  decisions/
+  traceability/
   README.md
   AGENTS.md
 ```

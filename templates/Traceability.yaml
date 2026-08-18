@@ -1,0 +1,12 @@
+# Requirement traceability template.
+
+REQ-EXAMPLE-001:
+  specs:
+    - specs/example/spec.md
+  screens:
+    - SCR-EXAMPLE-001
+  api:
+    - GET /api/v1/example
+  tests:
+    - AT-EXAMPLE-001
+    - E2E-EXAMPLE-001

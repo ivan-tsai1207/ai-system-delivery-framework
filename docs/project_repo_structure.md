@@ -2,6 +2,7 @@
 
 ```text
 docs/
+  PRODUCT_VISION.md
   00_index.md
   01_sources/
   02_product/
@@ -26,7 +27,23 @@ docs/
     review_log.md
   09_session_logs/
     YYYY-MM-DD-session.md
+specs/
+  TEMPLATE.md
+  feature-name/
+    spec.md
+design/
+  DESIGN_SYSTEM.md
+  design-tokens.json
+  COMPONENT_CATALOG.md
+  flows/
+  screens/
+  references/
+work-items/
+  PBI-001.md
+  DESIGN-001.md
+  BUG-001.md
+traceability/
+  traceability.yaml
 README.md
 AGENTS.md
 ```
-

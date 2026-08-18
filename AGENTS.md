@@ -2,6 +2,25 @@
 
 本文件是 AI 系統開發專案的總規則，給 Codex、Claude Code 與類似 agent 工具直接讀取。
 
+## 0. Agentic Substrate 讀取順序
+
+開始任何系統開發、需求整理、UI/UX 設計、程式實作或審查前，必須先讀取：
+
+1. `.ai/CONSTITUTION.md`
+2. `.ai/AUTHORITY.md`
+3. `.ai/WORKFLOW.md`
+4. `docs/PRODUCT_VISION.md`
+5. 與任務相關的 `specs/{feature}/spec.md`、`design/**`、`work-items/**`
+
+若上述文件在目標專案尚不存在，需依 `templates/` 建立或詢問使用者是否建立。
+
+核心原則：
+
+- Git repo 內的規格是 Source of Truth。
+- ChatGPT、Claude、Codex 與其他 Agent 都不是 Source of Truth。
+- 低層級文件、work item、user prompt 或 Agent 假設不得覆蓋高層級規格。
+- 規格不足時提出 Change Request，不得自行新增未授權需求。
+
 ## 1. 語言與溝通
 
 - 全程使用繁體中文與使用者溝通，除非使用者明確指定其他語言。
@@ -89,15 +108,18 @@
 3. 多角色初步理解。
 4. 產生問題清單。
 5. 向使用者確認關鍵問題。
-6. 建立 Obsidian 專案記憶。
-7. 建立 GitHub private repo。
-8. 建立 branch。
-9. 產出 PRD / SRS / SDD / 架構文件。
-10. 多 Agent 審查。
-11. 更新角色審查紀錄。
-12. commit 並 push。
-13. branch 部署到測試環境。
-14. 回報 repo、branch、preview URL、未解問題。
+6. 建立 `.ai/CONSTITUTION.md`、`.ai/AUTHORITY.md`、`.ai/WORKFLOW.md`。
+7. 建立 `docs/PRODUCT_VISION.md`、PRD、ARCHITECTURE / SDD。
+8. 建立 `specs/{feature}/spec.md` 作為 Living Feature Spec。
+9. 建立 `work-items/*.md` 限定本次任務的 read / write / forbidden 範圍。
+10. 建立 Obsidian 專案記憶。
+11. 建立 GitHub repo / branch。
+12. 依工作類型進入 Spec Gate、Design Gate、Implementation Gate 或 Release Gate。
+13. 多 Agent 審查。
+14. 更新角色審查紀錄、traceability 與 session log。
+15. commit 並 push。
+16. branch 部署到測試環境。
+17. 回報 repo、branch、preview URL、更新內容、未解問題。
 
 ## 5. Obsidian 與記憶
 
@@ -204,8 +226,34 @@ PR content 需包含：
 - 即使無問題，也寫「無重大問題」。
 - 若有重大問題或角色衝突，需展開說明並統整解決方案。
 
-## 8. 測試與資安
+## 8. Agent 角色邊界
+
+### Product Architect / PM / SA
+
+- 可建立與更新 Product Vision、PRD、Architecture、SDD、Feature Spec、ADR 與 Work Item。
+- 不直接實作未授權 code。
+- 不用對話推論覆蓋 repo 已確認規格。
+
+### UX Designer
+
+- 只能在既定規格內設計。
+- 可產出或更新 `design/**`、Screen Spec、Design Tokens、Component Catalog。
+- 不得修改 product scope、business rules、roles、permissions、API contract、DB schema 或 source code。
+- 若 UX 需要新增能力，必須提出 Change Request。
+
+### Implementer
+
+- 只能依 Feature Spec、Design Contract 與 Work Item 實作。
+- 可修改 work item 授權的 `src/**`、`tests/**` 與必要工程檔案。
+- 不得自行新增 feature、role、permission、API、DB field、UX flow 或 screen。
+- 若實作需要新增能力，必須停止並提出 Change Request。
+
+## 9. Gate
 
 - MVP：基本功能測試與基礎資安風險檢查，重大資安問題必須停止推進並詢問。
 - Standard：測試案例、驗收標準、可執行測試與基礎 Security Review。
 - Formal：完整測試計畫、測試報告、自動化測試、OWASP、dependency、secret、權限、資料流與雲端設定檢查。
+- Spec Gate：確認 PRD、Architecture / SDD 與 Feature Spec 不衝突。
+- Design Gate：確認 Screen / Action 可追溯到 requirement，且未新增未授權能力。
+- Implementation Gate：確認 code 符合 Feature Spec、Design Contract 與 Work Item。
+- Release Gate：確認測試、資安、traceability 與 Living Spec 已更新。
