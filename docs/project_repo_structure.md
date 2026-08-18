@@ -33,6 +33,7 @@ specs/
     spec.md
 design/
   DESIGN_SYSTEM.md
+  Design_Source_Map.md
   design-tokens.json
   COMPONENT_CATALOG.md
   flows/

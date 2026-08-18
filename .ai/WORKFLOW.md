@@ -42,3 +42,27 @@ Living Spec Update
 - Claude / UX Designer 只能在既定規格內設計，不得改需求、角色、權限、API 或資料模型。
 - Codex / Implementer 只能依 Feature Spec 與 Design Contract 實作，不得重設計或新增未授權能力。
 - 任何角色發現規格不足，應提出 Change Request，而不是自行補完。
+
+## Design Source Intake
+
+設計來源不限於 Figma，也可能來自 Claude design output、HTML prototype、v0 output、static mockup 或其他可視化原型。
+
+```text
+Figma / Claude Design / HTML Prototype
+  ↓
+Design Source Map
+  ↓
+Screen Spec / UX Contract
+  ↓
+Design Gate
+  ↓
+Codex Implementation
+```
+
+規則：
+
+- Raw design source 不能直接成為 Source of Truth。
+- Raw design source 不得覆蓋 Product Vision、PRD、Architecture / SDD 或 Feature Spec。
+- Claude design output 與 HTML prototype 只能作為 design input、visual reference 或 implementation reference。
+- 交給 Codex 實作前，必須先轉成 `design/screens/*.md`、`design/DESIGN_SYSTEM.md`、`design/design-tokens.json` 或其他明確 Design Contract。
+- 若 design source 包含未授權功能、API、欄位、角色、權限或流程，必須提出 Change Request。

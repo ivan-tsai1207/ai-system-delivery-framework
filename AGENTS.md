@@ -238,6 +238,7 @@ PR content 需包含：
 
 - 只能在既定規格內設計。
 - 可產出或更新 `design/**`、Screen Spec、Design Tokens、Component Catalog。
+- 可整理 Figma、Claude design output、HTML prototype、v0 output 或 static mockup，並轉成 Design Source Map 與 Screen Spec。
 - 不得修改 product scope、business rules、roles、permissions、API contract、DB schema 或 source code。
 - 若 UX 需要新增能力，必須提出 Change Request。
 
@@ -254,6 +255,6 @@ PR content 需包含：
 - Standard：測試案例、驗收標準、可執行測試與基礎 Security Review。
 - Formal：完整測試計畫、測試報告、自動化測試、OWASP、dependency、secret、權限、資料流與雲端設定檢查。
 - Spec Gate：確認 PRD、Architecture / SDD 與 Feature Spec 不衝突。
-- Design Gate：確認 Screen / Action 可追溯到 requirement，且未新增未授權能力。
+- Design Gate：確認設計來源已轉成 Screen Spec / UX Contract，Screen / Action 可追溯到 requirement，且未新增未授權能力。
 - Implementation Gate：確認 code 符合 Feature Spec、Design Contract 與 Work Item。
 - Release Gate：確認測試、資安、traceability 與 Living Spec 已更新。

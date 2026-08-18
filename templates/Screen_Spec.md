@@ -11,6 +11,7 @@
 | Version |  |
 | Status | Draft / Review / Approved |
 | Last Updated |  |
+| Design Source IDs |  |
 
 ## 1. Purpose
 
@@ -23,6 +24,12 @@
 |  |  |  |
 
 ## 4. Layout
+
+## 4.1 Design Sources
+
+| Design Source ID | Source Type | Path / URL | Usage |
+|---|---|---|---|
+|  | Figma / Claude Design / HTML Prototype / Other |  | Visual reference / UX input / Implementation reference |
 
 ## 5. Components
 

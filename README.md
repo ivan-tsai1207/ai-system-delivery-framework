@@ -60,6 +60,7 @@ Code
 - `.ai/gates/`：Spec / Design / Implementation / Release Gate。
 - `templates/Feature_Spec.md`：Living Feature Spec 模板。
 - `templates/Screen_Spec.md`：UX Contract / Screen Spec 模板。
+- `templates/Design_Source_Map.md`：Figma、Claude design、HTML prototype 等設計來源整理模板。
 - `templates/Work_Item.md`：單次 Agent 任務邊界模板。
 - `templates/Change_Request.md`：規格不足或需要擴張時使用。
 
