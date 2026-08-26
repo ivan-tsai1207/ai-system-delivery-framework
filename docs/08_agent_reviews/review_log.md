@@ -2019,3 +2019,124 @@ The implementation and candidate identities are valid and all official commands 
 `READY_FOR_REVIEW`
 
 This is Maker remediation evidence only. It does not resolve the Finding, approve TECH/QA/Security, pass a Gate, merge, or close lifecycle.
+
+---
+
+## REV-HNS-CORE-004-TECH-002 - HNS-CORE-004 R2 Independent Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-004-TECH-002` |
+| Reviewer Execution ID | `REV-HNS-CORE-004-TECH-002-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `LOW` |
+| Work Item | `HNS-CORE-004-TECH-REVIEW-002` |
+| Maker Evidence | `RCE-HNS-CORE-004-REMEDIATION-R2-001` |
+| Maker Execution ID | `IMP-HNS-CORE-004-REMEDIATION-R2-001` |
+| R1 TECH Evidence | `REV-HNS-CORE-004-TECH-001` (`REQUEST_CHANGES`) |
+| R1 Manifest / SHA-256 | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md` / `3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| R2 Manifest / SHA-256 | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` / `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| R1 Candidate | `091307f9778ba5005e99b174b0a44f1d3c1d5147` |
+| R2 Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| Review-start HEAD | `be601009ee9b5f910cacb904bacc5eb57035355b` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T13:28:05Z` |
+
+### Canonical Basis
+
+- Loaded `.ai/CONSTITUTION.md`, `.ai/AUTHORITY.md`, `.ai/WORKFLOW.md`, the canonical `REVIEWER` role, the assigned `TECH_REVIEWER` profile, `HNS-CORE-004-TECH-REVIEW-002`, and `IMPLEMENTATION_GATE`.
+- Reviewed SDD Sections 33, 34, 40.1, and 46 Phase 1; both immutable manifests; R2 Maker evidence; R1 TECH evidence and Finding; `HNS-CORE-004`; `HNS-CORE-004-TEST-DISCOVERY`; and all nine reviewed artifacts.
+- Validated `AC-HNS-CORE-004-001` through `AC-HNS-CORE-004-004`, all five Test Discovery companion ACs, and all four assigned R2 TECH review ACs.
+
+### Provenance and Identity Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | New clone under `/private/tmp/hns-core-004-tech-r2.rlC9Wt/repo`; fetch and push URLs both exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and refreshed HEAD | `PASS` | Local branch `feature/hns-core-004-error-registry`; local HEAD, fetched remote-tracking ref, and `git ls-remote` all resolved to `be601009ee9b5f910cacb904bacc5eb57035355b` before review evidence was written. |
+| Clean starting tree and pinned runtime | `PASS` | Starting `git status --porcelain=v1` was empty; assigned PATH resolved Node `v24.19.0` and npm `11.17.0`. |
+| Manifest integrity | `PASS` | Independent SHA-256 calculation matched R1 `3c7289da...` and R2 `d9bee8dc...` exactly. |
+| R2 inheritance and replacement set | `PASS` | Seven artifact blobs and content hashes are unchanged from R1; only `safe-details.ts` and `errors.test.mjs` have the two exact R2 replacement identities. |
+| Candidate lineage | `PASS` | Base through R1 is a direct-parent chain; R1 candidate is an ancestor of R2 candidate; remediation commit `8541d2b...` has sole parent `9a6428b...`; review-start HEAD `be60100...` has sole parent `8541d2b...`. |
+| R2 commit scope | `PASS` | `8541d2b...` changes only the two declared replacements. |
+| Post-candidate artifact immutability | `PASS` | All nine reviewed blobs are identical at R2 candidate, review-start HEAD, and worktree; candidate-to-HEAD changes are control-plane review artifacts only. |
+| Execution separation | `PASS` | `REV-HNS-CORE-004-TECH-002-EXEC` was absent before this append and is distinct from R1 Reviewer and every R1/R2 Maker execution ID. |
+
+### Artifact Identity Validation
+
+| Path | R2 Git Blob | Content SHA-256 | R2 Status |
+|---|---|---|---|
+| `work-items/HNS-CORE-004-TEST-DISCOVERY.md` | `85785481300f6be511c9c66625186aa7e45b6624` | `7ade47ad8cf45b84118473672fba3bcd04807f8efaad126f3a7a39a606a5e429` | `INHERITED PASS` |
+| `harness/package.json` | `f4dc6e4d7ecf35fa56493623e78a4d9d5a7f2562` | `8949f0350c37f0da1e5b4bd77c880ef9e53d75f09494e133c4ab1ceb330e9dd9` | `INHERITED PASS` |
+| `harness/src/errors/error-catalog.ts` | `8e21fb31747af4ec7af607b4101cab63f88c52cc` | `8025c4b45bffe920cb04868d18b934bde6e75e114fe28a4f41845844eb7dd982` | `INHERITED PASS` |
+| `harness/src/errors/exit-code-registry.ts` | `00b1962a1954def3c28d0101dd1ef643de1bf554` | `9e16fe96618c092ed48518db7189f32b2dc2039bfa878bd1c211ddb58fc31f32` | `INHERITED PASS` |
+| `harness/src/errors/harness-error.ts` | `a137dc20a534c9042f2baa9470ab8cda7b9579b8` | `71a31700b20b3b7b018648a0173f6ece1bb460605e3d9e7d2510b1d5cccfa81b` | `INHERITED PASS` |
+| `harness/src/errors/index.ts` | `af5a40b22966237747635ee85234c6a5390e5587` | `4ed4efb10f5af8550f7c4cca3a8890f13f972d56291b170cc1046f51ee520353` | `INHERITED PASS` |
+| `harness/src/errors/safe-details.ts` | `f0c00db864763cda0f72cb9192fb0116acdecd8a` | `66065b49582d380a9c985d6f487e5c6f9324ec4aea77cba94c085e772a550aca` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/errors.test.mjs` | `45792deca18f191735fa4643c29018895be2f953` | `d6b2902138d1a6ef42e39fc52eafd4fd71859391a2e0b1cd2f565d3a532a0d57` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/harness-error.types.ts` | `203a25a1a0d5086c70bf759bfd6cb1393ab27cc8` | `eae46354acc7ff6ab7945e30394cf826bbc98101148cb86a8651b1f93b365ea3` | `INHERITED PASS` |
+
+### Commands
+
+| Command | Result | Evidence |
+|---|---|---|
+| `npm ci` | `PASS` | 7 packages added; 8 audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed under the pinned runtime. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 96 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Static skip / todo / only scan | `PASS` | 0 suppression matches in `harness/tests`. |
+| Static production capability scan | `PASS` | 0 `process.exit`/exit override, process-control, filesystem, network, child-process, worker, or external transport matches in `harness/src/errors`. |
+| Static type/dependency/scope scans | `PASS` | 0 broad `any`; production imports are internal only; no dependency or lockfile change; the package delta only adds error-test discovery; no unauthorized candidate path. |
+
+Default discovery contains 1 root test file, 1 core test file, 5 schema test files, and 1 error test file. The official default command executed all four groups.
+
+### Independent Probes
+
+| Probe | Result | Evidence |
+|---|---|---|
+| Exact R1 six-variant reproduction | `PASS` | At `091307f...`, neutral sentinel `ULTRAVIOLET_9F8E7D6C` leaked for each of `tokenvalue`, `authorizationvalue`, `passwordhash`, `clientsecret`, `servicecredential`, and `sessioncookie` through details, accepted custom message, stack, typed-cause JSON, and outer JSON. This independently reproduced the R1 Finding without relying on a value containing a sensitive marker. |
+| R2 compact-marker closure | `PASS` | For all six variants, details equal `[REDACTED]`; source order and runtime behavior confirm unsafe custom messages reject in option parsing before `super(...)` / `Error` construction, with a generic `TypeError` that does not echo input. |
+| R2 sentinel containment and safe-message regression | `PASS` | The same neutral sentinel is absent from message, stack, typed cause, cause JSON, rejection JSON, and safe outer JSON; `Runtime operation failed safely.` is retained exactly. |
+| SDD-derived catalog and exit comparison | `PASS` | Parsed Sections 33 and 34 independently and compared exports field by field: exactly 30 ordered catalog rows with exact metadata/mappings and exactly nine exit definitions, 0 through 8. |
+| Fail-closed registry behavior | `PASS` | Duplicate, unknown, and missing catalog codes; duplicate, missing, unknown, non-integer, and out-of-range exit definitions; missing mappings; and unknown lookups all rejected. No catalog entry maps to Generic exit 1 and no fallback was observed. |
+| Central exit and independent compile contract | `PASS` | Runtime exit override rejected. A temporary independent TypeScript fixture produced exactly expected `TS2353`, `TS2540`, and `TS2740` diagnostics for option override, readonly assignment, and raw `Error` cause, then was removed. |
+| Typed cause authenticity | `PASS` | Authentic `HarnessError` cause accepted by identity; raw `Error` and forged-prototype causes rejected. |
+| Immutability, isolation, and graph behavior | `PASS` | Error, catalog, registry, recursive details, causes, and serialized snapshots are frozen; source/result and repeated serialization are isolated; shared identity is preserved; circular object/array, accessor with zero getter reads, and six non-plain classes fail closed; null-prototype plain input is accepted. |
+| Deterministic output | `PASS` | Repeated construction and serialization produced byte-equal JSON with independent frozen snapshots. |
+| Default test discovery | `PASS` | Package script contains root/core/schema/error globs and the independent filesystem count matched 1/1/5/1. |
+
+### Finding Closure
+
+#### FND-HNS-CORE-004-TECH-001-001 - Delimiter-free sensitive marker variants leak secret values
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-004-TECH-001-001` |
+| Severity | `MAJOR` |
+| Previous Status | `OPEN` |
+| Latest Status | `RESOLVED` |
+| Closure Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| Closure Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` / `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| Closure Evidence | Exact R1 reproduction plus independent neutral-sentinel R2 checks for all six variants; complete regression, SDD-derived, static, runtime, and compile probes passed. |
+
+The remediation applies one normalized canonical-marker detector to both detail-key redaction and custom-message rejection. The original bypass is closed on the exact R2 artifact identity without changing the catalog, exit behavior, cause contract, or authorized capability boundary.
+
+### Findings
+
+No new findings.
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, harness file, Work Item, governance file, prior evidence, or prior status was modified.
+- This execution did not repair implementation and is independent from R1 Reviewer and every Maker execution.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, merger, release authority, or lifecycle closer.
+- Checked-in tests were not trusted as sole evidence; exact R1 reproduction and independent SDD-derived runtime, compile, provenance, hash, scope, and boundary probes were also executed.
+
+### Decision
+
+`PASS`
+
+All assigned R2 technical acceptance criteria are satisfied for manifest SHA-256 `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` and candidate `8541d2b192392885c1d033cb5f05992c1b37a0d6`. `FND-HNS-CORE-004-TECH-001-001` is independently closed as `RESOLVED`.
