@@ -8,7 +8,7 @@
 | Role | `IMPLEMENTER` |
 | Feature | `harness-core` |
 | Phase | `IMPLEMENTATION` |
-| Status | `TODO` |
+| Status | `REVIEW` |
 | Spec Version | `harness-v0.1-review` |
 | Design Version | `N/A` |
 | Risk Class | `LOW` |

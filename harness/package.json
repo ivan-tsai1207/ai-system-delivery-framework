@@ -24,7 +24,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "npm run build --silent && node --test tests/*.test.mjs"
+    "test": "npm run build --silent && node --test tests/*.test.mjs tests/unit/core/*.test.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"
