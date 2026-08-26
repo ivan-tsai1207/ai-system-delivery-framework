@@ -1,0 +1,15 @@
+{
+  "schema_version": "harness.finding/v1",
+  "finding_id": "FIND-001",
+  "review_profile": "TECH_REVIEWER",
+  "owner_role": "IMPLEMENTER",
+  "work_item_id": "HNS-CORE-003",
+  "artifact_ref": { "kind": "source", "path": "harness/src/schemas/registry.ts" },
+  "artifact_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "requirement_references": [],
+  "description": "Representative schema finding.",
+  "severity": "CRITICAL",
+  "evidence_references": ["unit-test"],
+  "required_action": "Correct the registry behavior.",
+  "status": "OPEN"
+}

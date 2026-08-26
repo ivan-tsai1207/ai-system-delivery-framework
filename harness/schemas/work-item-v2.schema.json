@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.work-item/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "title", "role", "feature", "phase", "status", "spec_version",
+    "design_version", "risk_class", "review_profile", "reviewed_artifact",
+    "reviewed_artifact_hash", "maker_execution_id", "objective", "requirement_references",
+    "read_scope", "write_scope", "forbidden_scope", "scope", "out_of_scope",
+    "acceptance_criteria", "required_gates", "dependencies", "blockers", "notes",
+    "source_path", "document_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.work-item/v2" },
+    "id": { "$ref": "#/$defs/nonEmptyString" },
+    "title": { "$ref": "#/$defs/nonEmptyString" },
+    "role": { "$ref": "#/$defs/role" },
+    "feature": { "$ref": "#/$defs/nonEmptyString" },
+    "phase": { "enum": ["SPEC", "DESIGN", "IMPLEMENTATION", "REVIEW", "RELEASE"] },
+    "status": { "enum": ["TODO", "IN_PROGRESS", "BLOCKED", "REVIEW", "DONE", "CANCELLED"] },
+    "spec_version": { "$ref": "#/$defs/nonEmptyString" },
+    "design_version": { "$ref": "#/$defs/nonEmptyString" },
+    "risk_class": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "review_profile": { "anyOf": [{ "$ref": "#/$defs/reviewProfile" }, { "type": "null" }] },
+    "reviewed_artifact": { "anyOf": [{ "$ref": "#/$defs/artifactReference" }, { "type": "null" }] },
+    "reviewed_artifact_hash": { "anyOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+    "maker_execution_id": { "anyOf": [{ "$ref": "#/$defs/nonEmptyString" }, { "type": "null" }] },
+    "objective": { "$ref": "#/$defs/nonEmptyString" },
+    "requirement_references": { "type": "array", "items": { "$ref": "#/$defs/artifactReference" } },
+    "read_scope": { "$ref": "#/$defs/stringArray" },
+    "write_scope": { "$ref": "#/$defs/stringArray" },
+    "forbidden_scope": { "$ref": "#/$defs/stringArray" },
+    "scope": { "$ref": "#/$defs/stringArray" },
+    "out_of_scope": { "$ref": "#/$defs/stringArray" },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "completed"],
+        "properties": {
+          "id": { "$ref": "#/$defs/nonEmptyString" },
+          "description": { "$ref": "#/$defs/nonEmptyString" },
+          "completed": { "type": "boolean" }
+        }
+      }
+    },
+    "required_gates": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/gateId" } },
+    "dependencies": { "type": "array", "items": { "$ref": "#/$defs/artifactReference" } },
+    "blockers": { "$ref": "#/$defs/stringArray" },
+    "notes": { "$ref": "#/$defs/stringArray" },
+    "source_path": { "$ref": "#/$defs/nonEmptyString" },
+    "document_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "role": { "const": "REVIEWER" } }, "required": ["role"] },
+      "then": {
+        "properties": {
+          "review_profile": { "$ref": "#/$defs/reviewProfile" },
+          "reviewed_artifact": { "$ref": "#/$defs/artifactReference" },
+          "reviewed_artifact_hash": { "$ref": "#/$defs/sha256" }
+        }
+      },
+      "else": {
+        "properties": {
+          "review_profile": { "type": "null" },
+          "reviewed_artifact": { "type": "null" },
+          "reviewed_artifact_hash": { "type": "null" },
+          "maker_execution_id": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "role": { "const": "REVIEWER" },
+          "review_profile": { "not": { "const": "DELIVERY_ASSURANCE_REVIEWER" } }
+        },
+        "required": ["role", "review_profile"]
+      },
+      "then": { "properties": { "maker_execution_id": { "$ref": "#/$defs/nonEmptyString" } } }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "REVIEWER"] },
+    "reviewProfile": {
+      "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"]
+    },
+    "gateId": { "enum": ["SPEC_GATE", "DESIGN_GATE", "IMPLEMENTATION_GATE", "DELIVERY_ASSURANCE_GATE", "RELEASE_GATE"] },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/nonEmptyString" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "anchor": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.project-context/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "project_id", "project_name", "project_slug", "intent", "summary",
+    "business_goal", "target_users", "user_roles", "primary_workflows", "core_features",
+    "constraints", "platforms", "integrations", "data_sources", "security_requirements",
+    "non_functional_requirements", "known_unknowns", "assumptions", "out_of_scope",
+    "preferred_stack", "repository", "status", "revision", "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.project-context/v1" },
+    "project_id": { "$ref": "#/$defs/nonEmptyString" },
+    "project_name": { "$ref": "#/$defs/nonEmptyString" },
+    "project_slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "intent": { "const": "NEW_PROJECT" },
+    "summary": { "$ref": "#/$defs/nonEmptyString" },
+    "business_goal": { "$ref": "#/$defs/nonEmptyString" },
+    "target_users": { "$ref": "#/$defs/stringArray" },
+    "user_roles": { "$ref": "#/$defs/stringArray" },
+    "primary_workflows": { "$ref": "#/$defs/stringArray" },
+    "core_features": { "$ref": "#/$defs/stringArray" },
+    "constraints": { "$ref": "#/$defs/stringArray" },
+    "platforms": { "$ref": "#/$defs/stringArray" },
+    "integrations": { "$ref": "#/$defs/stringArray" },
+    "data_sources": { "$ref": "#/$defs/stringArray" },
+    "security_requirements": { "$ref": "#/$defs/stringArray" },
+    "non_functional_requirements": { "$ref": "#/$defs/stringArray" },
+    "known_unknowns": { "$ref": "#/$defs/stringArray" },
+    "assumptions": { "$ref": "#/$defs/stringArray" },
+    "out_of_scope": { "$ref": "#/$defs/stringArray" },
+    "preferred_stack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendation", "reason", "constraints", "alternatives_considered"],
+      "properties": {
+        "recommendation": { "$ref": "#/$defs/nonEmptyString" },
+        "reason": { "$ref": "#/$defs/nonEmptyString" },
+        "constraints": { "$ref": "#/$defs/stringArray" },
+        "alternatives_considered": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "owner", "name", "visibility", "default_branch", "development_branch"],
+      "properties": {
+        "provider": { "const": "github" },
+        "owner": { "$ref": "#/$defs/nonEmptyString" },
+        "name": { "$ref": "#/$defs/nonEmptyString" },
+        "visibility": { "enum": ["private", "public"] },
+        "default_branch": { "const": "main" },
+        "development_branch": { "const": "develop" }
+      }
+    },
+    "status": {
+      "enum": [
+        "RECEIVED", "CLASSIFIED", "DISCOVERY", "REQUIREMENTS_READY", "PROJECT_PROPOSED",
+        "AWAITING_REPO_APPROVAL", "REPO_PROVISIONING", "SPEC_GENERATION", "SPEC_REVIEW",
+        "READY_FOR_DESIGN", "BLOCKED_MISSING_INFO", "BLOCKED_CONFLICT", "REPO_CREATION_FAILED",
+        "SPEC_GATE_FAILED", "CANCELLED"
+      ]
+    },
+    "revision": { "type": "integer", "minimum": 0 },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$" }
+  }
+}

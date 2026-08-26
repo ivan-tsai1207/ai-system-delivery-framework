@@ -1,0 +1,16 @@
+{
+  "schema_version": "harness.delivery-assurance/v1",
+  "delivery_id": "DEL-001",
+  "project": "harness",
+  "commit": "0123456789abcdef",
+  "reviewed_work_items": ["HNS-CORE-003"],
+  "required_reviews": [],
+  "completed_review_evidence": [],
+  "gate_results": [],
+  "open_findings": [],
+  "accepted_risk_references": [],
+  "evidence_references": [],
+  "result": "PASS",
+  "reviewer": "assurer-001",
+  "timestamp": "2026-08-26T14:00:00+08:00"
+}

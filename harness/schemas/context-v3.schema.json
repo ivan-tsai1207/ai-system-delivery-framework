@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.context/v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "execution_id", "task_id", "role", "risk_class", "feature", "phase",
+    "bootstrap_context", "governance_context", "delivery_context", "source_context", "design_context",
+    "work_item", "excluded_context", "deferred_context", "initial_budget", "hard_safety_ceiling",
+    "context_usage", "spec_versions", "context_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.context/v3" },
+    "execution_id": { "$ref": "#/$defs/nonEmptyString" },
+    "task_id": { "$ref": "#/$defs/nonEmptyString" },
+    "role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "REVIEWER"] },
+    "risk_class": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "review_profile": { "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"] },
+    "feature": { "$ref": "#/$defs/nonEmptyString" },
+    "phase": { "enum": ["SPEC", "DESIGN", "IMPLEMENTATION", "REVIEW", "RELEASE"] },
+    "bootstrap_context": { "$ref": "#/$defs/contextEntries" },
+    "governance_context": { "$ref": "#/$defs/contextEntries" },
+    "delivery_context": { "$ref": "#/$defs/contextEntries" },
+    "source_context": { "$ref": "#/$defs/contextEntries" },
+    "design_context": { "$ref": "#/$defs/contextEntries" },
+    "work_item": { "$ref": "#/$defs/contextEntry" },
+    "excluded_context": { "$ref": "#/$defs/excludedRefs" },
+    "deferred_context": { "$ref": "#/$defs/excludedRefs" },
+    "initial_budget": { "$ref": "#/$defs/budget" },
+    "hard_safety_ceiling": { "$ref": "#/$defs/budget" },
+    "context_usage": {
+      "type": "object", "additionalProperties": false, "required": ["bytes", "files", "sections"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 0 },
+        "files": { "type": "integer", "minimum": 0 },
+        "sections": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "spec_versions": { "type": "object", "additionalProperties": { "type": "string" } },
+    "context_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "contextEntry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "content_sha256", "reason", "tier"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "section": { "$ref": "#/$defs/nonEmptyString" },
+        "anchor": { "$ref": "#/$defs/nonEmptyString" },
+        "content_sha256": { "$ref": "#/$defs/sha256" },
+        "reason": { "$ref": "#/$defs/nonEmptyString" },
+        "tier": { "enum": ["TIER_0_BOOTSTRAP", "TIER_1_MANDATORY", "TIER_2_ON_DEMAND"] },
+        "full_document_fallback_reason": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "contextEntries": { "type": "array", "items": { "$ref": "#/$defs/contextEntry" } },
+    "excludedRefs": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["path", "reason"],
+        "properties": { "path": { "$ref": "#/$defs/nonEmptyString" }, "reason": { "$ref": "#/$defs/nonEmptyString" } }
+      }
+    },
+    "budget": {
+      "type": "object", "additionalProperties": false, "required": ["max_bytes", "max_files", "max_sections"],
+      "properties": {
+        "max_bytes": { "type": "integer", "minimum": 0 },
+        "max_files": { "type": "integer", "minimum": 0 },
+        "max_sections": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

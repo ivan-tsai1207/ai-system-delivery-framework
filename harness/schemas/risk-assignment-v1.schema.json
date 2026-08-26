@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.risk-assignment/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "risk_class", "trigger_ids", "source_hashes", "classifier_version", "assignment_hash"],
+  "properties": {
+    "schema_version": { "const": "harness.risk-assignment/v1" },
+    "risk_class": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "trigger_ids": { "$ref": "#/$defs/stringArray" },
+    "source_hashes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } },
+    "classifier_version": { "$ref": "#/$defs/nonEmptyString" },
+    "assignment_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

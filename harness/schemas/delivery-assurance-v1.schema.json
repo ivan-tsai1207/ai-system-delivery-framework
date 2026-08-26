@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.delivery-assurance/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "delivery_id", "project", "commit", "reviewed_work_items",
+    "required_reviews", "completed_review_evidence", "gate_results", "open_findings",
+    "accepted_risk_references", "evidence_references", "result", "reviewer",
+    "reviewer_execution_id", "timestamp"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.delivery-assurance/v1" },
+    "delivery_id": { "$ref": "#/$defs/nonEmptyString" },
+    "project": { "$ref": "#/$defs/nonEmptyString" },
+    "commit": { "$ref": "#/$defs/nonEmptyString" },
+    "reviewed_work_items": { "$ref": "#/$defs/stringArray" },
+    "required_reviews": { "type": "array", "items": { "$ref": "#/$defs/reviewAssignment" } },
+    "completed_review_evidence": { "$ref": "#/$defs/stringArray" },
+    "gate_results": { "type": "array", "items": { "$ref": "#/$defs/gateResult" } },
+    "open_findings": { "$ref": "#/$defs/stringArray" },
+    "accepted_risk_references": { "$ref": "#/$defs/stringArray" },
+    "evidence_references": { "$ref": "#/$defs/stringArray" },
+    "result": { "enum": ["PASS", "REQUEST_CHANGES", "BLOCKED"] },
+    "reviewer": { "$ref": "#/$defs/nonEmptyString" },
+    "reviewer_execution_id": { "$ref": "#/$defs/nonEmptyString" },
+    "timestamp": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+    "reviewProfile": { "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"] },
+    "artifactReference": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "path"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/nonEmptyString" }, "id": { "$ref": "#/$defs/nonEmptyString" },
+        "path": { "$ref": "#/$defs/nonEmptyString" }, "anchor": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "reviewAssignment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "assignment_id", "work_item_id", "risk_class", "review_profile", "maker_role", "maker_execution_ids", "reviewed_artifact", "reviewed_artifact_hash", "required_checks", "required_evidence", "assignment_hash"],
+      "properties": {
+        "schema_version": { "const": "harness.review-assignment/v1" },
+        "assignment_id": { "$ref": "#/$defs/nonEmptyString" }, "work_item_id": { "$ref": "#/$defs/nonEmptyString" },
+        "risk_class": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] }, "review_profile": { "$ref": "#/$defs/reviewProfile" },
+        "maker_role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "MULTIPLE"] },
+        "maker_execution_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmptyString" } },
+        "reviewed_artifact": { "$ref": "#/$defs/artifactReference" }, "reviewed_artifact_hash": { "$ref": "#/$defs/sha256" },
+        "required_checks": { "$ref": "#/$defs/stringArray" }, "required_evidence": { "$ref": "#/$defs/stringArray" },
+        "assignment_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "gateResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gate_id", "status", "evidence", "timestamp", "artifact_hashes", "reviewer"],
+      "properties": {
+        "gate_id": { "enum": ["SPEC_GATE", "DESIGN_GATE", "IMPLEMENTATION_GATE", "DELIVERY_ASSURANCE_GATE", "RELEASE_GATE"] },
+        "status": { "enum": ["PASS", "FAILED", "NEEDS_CLARIFICATION"] },
+        "evidence": { "$ref": "#/$defs/stringArray" }, "timestamp": { "$ref": "#/$defs/timestamp" },
+        "artifact_hashes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } },
+        "reviewer": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

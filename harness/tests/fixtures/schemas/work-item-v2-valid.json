@@ -1,0 +1,36 @@
+{
+  "schema_version": "harness.work-item/v2",
+  "id": "HNS-CORE-003",
+  "title": "Implement Versioned Schema Registry",
+  "role": "IMPLEMENTER",
+  "feature": "harness-core",
+  "phase": "IMPLEMENTATION",
+  "status": "TODO",
+  "spec_version": "harness-v0.1-review",
+  "design_version": "N/A",
+  "risk_class": "MEDIUM",
+  "review_profile": null,
+  "reviewed_artifact": null,
+  "reviewed_artifact_hash": null,
+  "maker_execution_id": null,
+  "objective": "Implement deterministic schema validation.",
+  "requirement_references": [
+    { "kind": "sdd", "path": "docs/harness_v0.1_SDD.md", "anchor": "section-6" }
+  ],
+  "read_scope": ["harness/src/core/**"],
+  "write_scope": ["harness/src/schemas/**"],
+  "forbidden_scope": ["harness/src/adapters/**"],
+  "scope": ["Implement schema registry."],
+  "out_of_scope": ["Implement parser."],
+  "acceptance_criteria": [
+    { "id": "AC-HNS-CORE-003-001", "description": "Register all schema IDs.", "completed": false }
+  ],
+  "required_gates": ["IMPLEMENTATION_GATE"],
+  "dependencies": [
+    { "kind": "work-item", "id": "HNS-CORE-002", "path": "work-items/HNS-CORE-002.md" }
+  ],
+  "blockers": [],
+  "notes": ["Phase 1 only."],
+  "source_path": "work-items/HNS-CORE-003.md",
+  "document_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

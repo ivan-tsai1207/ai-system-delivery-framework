@@ -1,0 +1,15 @@
+{
+  "schema_version": "harness.role-evidence/v1",
+  "evidence_id": "EVID-001",
+  "execution_id": "IMP-HNS-CORE-003-SCHEMAS-001",
+  "work_item_id": "HNS-CORE-003",
+  "role": "IMPLEMENTER",
+  "artifact_refs": [{ "kind": "source", "path": "harness/src/schemas" }],
+  "artifact_hashes": ["sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"],
+  "spec_references": [],
+  "checks_performed": [],
+  "tests_performed": [],
+  "findings": [],
+  "known_limitations": [],
+  "timestamp": "2026-08-26T12:00:00+08:00"
+}
