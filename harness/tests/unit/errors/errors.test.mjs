@@ -526,3 +526,85 @@ test("40 rejected message sentinel cannot reach message, stack, cause chain, or 
   assert.equal(JSON.stringify(safeCause).includes(sentinel), false);
   assert.equal(JSON.stringify(rejection).includes(sentinel), false);
 });
+
+test("41 canonical and compact sensitive markers cannot bypass shared detection", () => {
+  const sensitiveMarkers = [
+    "token",
+    "accessToken",
+    "refreshToken",
+    "apiKey",
+    "authorization",
+    "password",
+    "secret",
+    "credential",
+    "cookie",
+    "tokenvalue",
+    "authorizationvalue",
+    "passwordhash",
+    "clientsecret",
+    "servicecredential",
+    "sessioncookie",
+  ];
+  const rawValue = "RAW_VALUE_12345";
+  const error = new HarnessError("HNS-RUN-001", {
+    ...baseOptions(),
+    details: Object.fromEntries(sensitiveMarkers.map((marker) => [marker, rawValue])),
+  });
+
+  for (const marker of sensitiveMarkers) {
+    assert.equal(error.details[marker], REDACTED_VALUE, marker);
+    assert.throws(
+      () =>
+        new HarnessError("HNS-RUN-001", {
+          ...baseOptions(),
+          message: `${marker}=${rawValue}`,
+        }),
+      (rejection) =>
+        rejection instanceof TypeError &&
+        !(rejection instanceof HarnessError) &&
+        rejection.message === "HarnessError custom message contains sensitive text.",
+      marker,
+    );
+  }
+});
+
+test("42 compact marker sentinel cannot enter error surfaces or typed cause serialization", () => {
+  const compactMarkers = [
+    "tokenvalue",
+    "authorizationvalue",
+    "passwordhash",
+    "clientsecret",
+    "servicecredential",
+    "sessioncookie",
+  ];
+  const sentinel = "SECRET_SHOULD_NOT_APPEAR";
+
+  for (const marker of compactMarkers) {
+    const safeCause = new HarnessError("HNS-ADP-001", {
+      ...baseOptions(),
+      details: { [marker]: sentinel },
+    });
+    let rejection;
+
+    try {
+      createHarnessError("HNS-RUN-001", {
+        ...baseOptions(),
+        message: `${marker}=${sentinel}`,
+        cause: safeCause,
+      });
+      assert.fail(`Compact sensitive marker must be rejected: ${marker}`);
+    } catch (error) {
+      rejection = error;
+    }
+
+    assert.equal(safeCause.details[marker], REDACTED_VALUE, marker);
+    assert.equal(safeCause.message.includes(sentinel), false, marker);
+    assert.equal(safeCause.stack.includes(sentinel), false, marker);
+    assert.equal(JSON.stringify(safeCause).includes(sentinel), false, marker);
+    assert.equal(rejection instanceof TypeError, true, marker);
+    assert.equal(rejection instanceof HarnessError, false, marker);
+    assert.equal(rejection.message.includes(sentinel), false, marker);
+    assert.equal(rejection.stack.includes(sentinel), false, marker);
+    assert.equal(JSON.stringify(rejection).includes(sentinel), false, marker);
+  }
+});

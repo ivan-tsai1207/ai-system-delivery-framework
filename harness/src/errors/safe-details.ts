@@ -11,24 +11,16 @@ export type SafeDetailValue =
 export type HarnessErrorDetails = Readonly<Record<string, SafeDetailValue>>;
 export type HarnessErrorDetailsInput = Readonly<Record<string, SafeDetailValue>>;
 
-const SENSITIVE_MARKER_PARTS = new Set([
+const SENSITIVE_MARKERS = [
+  "apikey",
   "authorization",
-  "authorizations",
   "bearer",
-  "bearers",
   "cookie",
-  "cookies",
   "credential",
-  "credentials",
   "password",
-  "passwords",
   "secret",
-  "secrets",
   "token",
-  "tokens",
-]);
-
-const SENSITIVE_COMPOUND_MARKERS = ["apikey", "accesstoken", "refreshtoken"] as const;
+] as const;
 
 function isPlainObject(value: object): boolean {
   const prototype = Object.getPrototypeOf(value);
@@ -36,18 +28,9 @@ function isPlainObject(value: object): boolean {
 }
 
 export function containsSensitiveMarker(value: string): boolean {
-  const words = value
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .split(/[^A-Za-z0-9]+/)
-    .filter((word) => word.length > 0)
-    .map((word) => word.toLowerCase());
-  const compact = words.join("");
+  const normalized = value.replace(/[^A-Za-z0-9]+/g, "").toLowerCase();
 
-  if (SENSITIVE_COMPOUND_MARKERS.some((marker) => compact.includes(marker))) {
-    return true;
-  }
-
-  return words.some((word) => SENSITIVE_MARKER_PARTS.has(word));
+  return SENSITIVE_MARKERS.some((marker) => normalized.includes(marker));
 }
 
 function snapshotSafeValue(
