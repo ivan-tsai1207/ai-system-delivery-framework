@@ -1503,3 +1503,121 @@ GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
 - [x] This Reviewer did not modify implementation, tests, schemas, manifests, Work Items, packages, prior evidence, or finding closure.
 - [x] This execution appended only `docs/08_agent_reviews/review_log.md` and did not run Security review, any Gate, merge, or release action.
 - [x] This PASS remains bound to candidate `3b3040fed8aeec28b9afdb716c99cca24c89058e` and manifest hash `e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c`; any candidate artifact change invalidates it.
+
+---
+
+## REV-HNS-CORE-003-SECURITY-002 - HNS-CORE-003 R2 Independent Security Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-003-SECURITY-002` |
+| Execution ID | `REV-HNS-CORE-003-SECURITY-002-EXEC` |
+| Work Item | `work-items/HNS-CORE-003-SECURITY-REVIEW-002.md` |
+| Role | `REVIEWER` |
+| Review Profile | `SECURITY_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `IMP-HNS-CORE-003-REMEDIATION-R2-001` |
+| Maker Evidence | `RCE-HNS-CORE-003-REMEDIATION-R2-001` |
+| Required TECH Evidence | `REV-HNS-CORE-003-TECH-002` (`PASS`) |
+| Required QA Evidence | `REV-HNS-CORE-003-QA-002` (`PASS`) |
+| Reviewer Execution ID | `REV-HNS-CORE-003-SECURITY-002-EXEC` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation-r2.md` |
+| Artifact Hash | `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` |
+| Parent Artifact Hash | `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| Candidate Commit | `3b3040fed8aeec28b9afdb716c99cca24c89058e` |
+| Review Start HEAD | `b258ca3c69d6b4d1c09d052abdbc817bfc830770` |
+| Timestamp | `2026-08-26T07:42:57Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-003-004`; `AC-HNS-CORE-003-DEPENDENCY-AJV-001` through `AC-HNS-CORE-003-DEPENDENCY-AJV-010`; `AC-HNS-CORE-003-SECURITY-REVIEW-002-001` through `AC-HNS-CORE-003-SECURITY-REVIEW-002-004`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 5, 6, 40.1, and 46 Phase 1.
+- Screen Specs: `N/A`.
+- Work Items: `work-items/HNS-CORE-003.md`; `work-items/HNS-CORE-003-DEPENDENCY-AJV.md`; `work-items/HNS-CORE-003-TEST-DISCOVERY.md`; `work-items/HNS-CORE-003-SECURITY-REVIEW-002.md`.
+- Review Evidence: R1 and R2 manifests; `RCE-HNS-CORE-003-REMEDIATION-R2-001`; `REV-HNS-CORE-003-TECH-002`; `REV-HNS-CORE-003-QA-002`; `FIND-HNS-CORE-003-TECH-001` (`RESOLVED`).
+
+### Threat and Control Mapping
+
+| Threat / Boundary | Control and Independent Evidence | Result |
+|---|---|---|
+| Dependency substitution, alias, or confusion | Exact direct pin, root lock agreement, official registry URLs, no `npm:` alias, no alternate registry source, `npm explain ajv` root binding | `PASS` |
+| Tarball or lock tampering | Live registry tarball/integrity comparison for Ajv and all four runtime dependencies; independent Ajv tarball SHA-512 recomputation; registry signature audit | `PASS` |
+| Malicious install behavior | Package metadata and published runtime-tree lifecycle inspection; no `preinstall`, `install`, or `postinstall`; foreground clean install executed no package hook | `PASS` |
+| Vulnerable dependency | Full and production-only npm audits at high threshold; current registry metadata inspected | `PASS` |
+| Wrong JSON Schema dialect | Named `Ajv2020` entrypoint inspection and independent Draft 2020-12 behavior probe; default Ajv class rejected the same 2020 schema | `PASS` |
+| New I/O, execution, network, persistence, or vendor boundary | Production import graph and scoped source/runtime-package scans; no project production capability added | `PASS` |
+| Validation weakening during rollback | R1/R2 diff inspection, full regression suite, and independent invalid-keyword/unresolved-reference retry probes | `PASS` |
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-003-SECURITY-002-01` | Independent repository preflight | Fresh temporary HTTPS clone; verified assigned origin, branch, clean checkout, exact expected start HEAD, and refreshed remote tip before evidence append | origin `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; local and remote HEAD `b258ca3c69d6b4d1c09d052abdbc817bfc830770` | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-02` | Exact lineage and post-candidate isolation | Parent-chain inspection and `git merge-base --is-ancestor`; inspected dependency, discovery, R2, and post-candidate path sets | Linear lineage through R1 `b12b416`, R2 `3b3040f`, TECH `7b96417`, and QA/start HEAD `b258ca3`; post-candidate changes are review documentation/Work Items only | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-03` | Manifest hashes and artifact identities | Recomputed both manifest SHA-256 values; parsed all R1/R2 rows; recomputed Git blobs and content SHA-256 at R1, R2, and review-start HEAD | R1 `2e4277a...dc58`; R2 `e7dcf9d...60c`; 45 total, 43 inherited, 2 replacements, 0 mismatches | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-04` | Maker/Reviewer independence and evidence binding | Cross-checked Work Item, manifests, Maker evidence, candidate, risk, profile, gate, and execution identities | Maker `IMP-HNS-CORE-003-REMEDIATION-R2-001` differs from Reviewer `REV-HNS-CORE-003-SECURITY-002-EXEC`; all artifact bindings agree | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-05` | Current TECH and QA prerequisite evidence | Located latest canonical R2 TECH/QA entries and checked decision, candidate, hash, execution separation, and finding state | `REV-HNS-CORE-003-TECH-002` and `REV-HNS-CORE-003-QA-002` are `PASS` on R2 hash; prior finding is `RESOLVED`; no later TECH/QA evidence exists | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-06` | Exact direct dependency and confusion resistance | Inspected package/root-lock declarations, dependency commit diff, `npm explain ajv`, registry configuration, and alias/source markers | Sole direct runtime dependency is exact `ajv: 8.20.0`; no caret, tilde, tag, alias, `ajv-formats`, or unauthorized direct dependency | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-07` | Complete runtime graph and lock synchronization | `npm ci`; `npm ls --all`; parsed lock graph; compared exact registry metadata, tarball URLs, integrity, and transitive dependencies | Ajv has exactly `fast-deep-equal@3.1.3`, `fast-uri@3.1.6`, `json-schema-traverse@1.0.0`, and `require-from-string@2.0.2`; no deeper runtime dependencies or graph mismatch | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-08` | Identity, provenance, license, signatures, and compatibility | `npm view` metadata; independent `npm pack`; SHA-512 recomputation; `npm audit signatures`; upstream tag lookup; Node 24 runtime/build/test probes | Ajv MIT; official `ajv-validator/ajv`; npm `gitHead` and upstream `v8.20.0` both `0fba0b8...4987`; tarball integrity `sha512-Thbli...UrBGA==`; 7/7 registry signatures verified; Node `v24.19.0` passed | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-09` | Lifecycle scripts and suspicious package behavior | Inspected published/installed package scripts and lock `hasInstallScript`; ran `npm ci --foreground-scripts`; scanned runtime package code | No consumer install hooks and none executed; no filesystem/process/network/environment/persistence behavior; expected Ajv validator code generation and unused standalone `require-from-string` compilation path only | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-10` | Vulnerability and current metadata status | `npm audit --audit-level=high`; production-only JSON audit; current `npm view ajv@8.20.0`; dist-tag check | 0 info/low/moderate/high/critical vulnerabilities; `8.20.0` is current `latest`; registry metadata modified `2026-04-24T15:22:16.643Z` | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-11` | Ajv2020 semantic entrypoint | Source/test inspection and independent ESM class/dialect probe with `unevaluatedProperties` | Named import equals the 2020 entrypoint default and class name is `Ajv2020`; Draft 2020-12 compiled/enforced; default class `Ajv` rejected it | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-12` | Production security boundary | Enumerated all `harness/src/schemas` imports and scanned production schema modules for capability markers | Only local schema documents plus Ajv type/2020 imports; no filesystem, process execution, network, persistence, parser/migrator, vendor adapter, or `ajv-formats` capability | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-13` | R2 rollback security behavior | Exact R1/R2 diff, full tests, and independent failed-compilation/same-ID retry probe | R2 adds only `removeSchema(schemaId)` on compile failure plus two regressions; both failures leave no public state, valid retry succeeds, invalid values remain `INVALID`, and canonical count remains 12 | `PASS` |
+| `REV-HNS-CORE-003-SECURITY-002-14` | Test integrity and authorized scope | Default runner summary, focused-marker scan, commit path review, `git diff --check`, and final tracked status | 54/54 passed; 0 failed/cancelled/skipped/todo; no `.skip`/`.todo`/`.only`; R2 changes only registry/test and tracked tree remained clean before evidence append | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Environment | Pinned local toolchain; `node --version`; `npm --version` | `PASS` | Node `v24.19.0`; npm `11.17.0` |
+| Clean Install | `npm ci`; repeated with `--foreground-scripts` | `PASS` | Added 7 packages; audited 8; 0 vulnerabilities; no lifecycle hook executed |
+| Build | `npm run build` | `PASS` | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` | `tsc --project tsconfig.json --noEmit` completed |
+| Default Unit / Smoke Test | `npm test` | `PASS` | 54 tests; 54 passed; 0 failed, cancelled, skipped, or todo |
+| Dependency Audit | `npm audit --audit-level=high`; `npm audit --omit=dev --audit-level=high --json` | `PASS` | Full and production-only audits found 0 vulnerabilities at every severity |
+| Dependency Resolution | `npm ls --all`; `npm explain ajv`; lock/metadata parser | `PASS` | Exact complete Ajv runtime tree; no missing/extraneous runtime package, alias, or unauthorized dependency |
+| Registry Signature Check | `npm audit signatures` | `PASS` | 7 packages have verified registry signatures |
+| Package Metadata / Provenance | `npm view`; `npm pack --ignore-scripts`; SHA-512; `git ls-remote` | `PASS` | Registry/lock/tarball identities match; npm `gitHead` equals upstream tag commit |
+| Security Boundary Probe | Independent ESM Ajv class/dialect and rollback retry probe; production import/capability scans | `PASS` | Correct Ajv2020 semantics; 2/2 rollback cases recovered without validation weakening or new capability |
+| Scope / Test Integrity | Manifest identity probe; commit path review; focused-marker scan; `git diff --check` | `PASS` | 45 identities matched; authorized scope only; no focused/skipped tests or whitespace errors |
+
+### Implementer Scope Evidence
+
+- Changed Files: `N/A` for Reviewer; independently verified R2 replaces only `harness/src/schemas/registry.ts` and `harness/tests/unit/schemas/registry.test.mjs` within the inherited 45-artifact set.
+- Diff Scope: `N/A` for Reviewer; dependency commit changes only package/lock, discovery commit only the package test command, and R2 only rollback/test behavior.
+- Unauthorized Change Check: `N/A` for Reviewer; no unauthorized dependency or production security-boundary capability was observed.
+- Backward Compatibility: `N/A` for Reviewer; default suite, strict build/typecheck, canonical schema count, failed registration, successful retry, and invalid-value behavior all passed.
+
+### Findings
+
+- New findings: `None`.
+- Prior finding: `FIND-HNS-CORE-003-TECH-001` remains `RESOLVED` and was independently reconfirmed by both rollback retry probes.
+- Accepted Risk References: `None`.
+
+### Known Limitations and Scope Boundary
+
+- npm registry metadata had no published `dist.attestations` field for Ajv 8.20.0; package provenance was corroborated through verified registry signatures, exact tarball integrity, matching npm `gitHead`, and matching upstream `v8.20.0` tag. No risk was accepted.
+- Ajv performs expected in-process validator code generation with `Function`; the reviewed project uses strict Ajv2020 compilation without remote `loadSchema`, custom keywords, filesystem, process, network, or persistence capability.
+- Vulnerability and registry metadata checks are point-in-time evidence at `2026-08-26T07:42:57Z`.
+- `npm ci` and build created ignored `harness/node_modules/` and `harness/dist/` in the fresh temporary clone; neither is tracked or staged.
+- This evidence is only a `SECURITY_REVIEWER` decision. It does not run `IMPLEMENTATION_GATE`, merge, release, or Delivery Assurance.
+
+### Result
+
+Reviewer decision: `PASS`.
+
+GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
+
+### Integrity and Independence Validation
+
+- [x] The review began in a fresh temporary clone at the exact assigned origin, branch, and review-start HEAD.
+- [x] Both manifest hashes, exact lineage, all 45 inherited/replaced artifact identities, and post-candidate isolation were independently validated.
+- [x] Maker and Reviewer execution IDs are distinct and agree with the assigned Work Item, R2 manifest, and Maker evidence.
+- [x] Current TECH and QA evidence are `PASS` decisions bound to the same R2 artifact hash; the prior finding is `RESOLVED`.
+- [x] This Reviewer did not modify implementation, tests, schemas, manifests, Work Items, packages, prior evidence, or finding state.
+- [x] This execution appended only `docs/08_agent_reviews/review_log.md` and did not run any Gate, merge, release, or Delivery Assurance action.
+- [x] This PASS remains bound to candidate `3b3040fed8aeec28b9afdb716c99cca24c89058e` and manifest hash `e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c`; any candidate artifact change invalidates it.
