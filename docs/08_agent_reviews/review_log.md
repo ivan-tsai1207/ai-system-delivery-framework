@@ -1814,3 +1814,53 @@ GateResult: `PASS`.
 | `HNS-CORE-003-SECURITY-REVIEW-002` | `DONE` | Executed with `PASS`. |
 
 This evidence records lifecycle and merge completion only. It is not a Reviewer decision, GateResult, release approval, merge to `main`, or authorization to start HNS-CORE-004.
+
+---
+
+## RCE-HNS-CORE-004-IMPLEMENTATION-001 - HNS-CORE-004 Maker Role Completion Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-004-IMPLEMENTATION-001` |
+| Work Items | `HNS-CORE-004`; `HNS-CORE-004-TEST-DISCOVERY` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `LOW` |
+| Maker Execution IDs | `IMP-HNS-CORE-004-ERRORS-001`; `IMP-HNS-CORE-004-TEST-DISCOVERY-001` |
+| Base Commit | `977a90fa373d3500285a628c4cf07fe31b1470cd` |
+| Control Plane Preparation Commit | `a78ab0baf33c286f8441d1fa4ca2695fdccdbcaa` |
+| Initial Error Registry Commit | `449a24c55b093b7aca29a536c99b659bbca49e9b` |
+| Final Error Registry Commit | `b56bf1092ed107aa71e6fc2e833569023a6645bf` |
+| Candidate / Test Discovery Commit | `091307f9778ba5005e99b174b0a44f1d3c1d5147` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md` |
+| Artifact Hash | `sha256:3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T12:47:05Z` |
+
+### Checks and Tests
+
+| Check | Result | Evidence |
+|---|---|---|
+| Error implementation scope | `PASS` | Five `src/errors` modules and two `tests/unit/errors` files only across the Maker implementation/self-review commits. |
+| Test discovery scope | `PASS` | `harness/package.json` only; no lockfile, dependency, framework, source, or test change. |
+| Catalog and exit contracts | `PASS` | Exactly 30 Section 33 rows and central 0-8 Section 34 registry; duplicate, unknown, missing, and ad-hoc override cases fail closed. |
+| HarnessError boundary | `PASS` | Typed immutable error/cause/details, source/result isolation, nested redaction, unsafe-message rejection before Error construction, and sentinel-safe serialization. |
+| Build / typecheck | `PASS` | Strict TypeScript build and no-emit typecheck under the required runtime. |
+| Default tests | `PASS` | 94 discovered tests passed; 0 failed, cancelled, skipped, or todo; count is evidence only. |
+| Security check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities; no dependency change. |
+| Capability / scope scan | `PASS` | No process exit, CLI, runtime, adapter, filesystem/network capability, vendor import, broad `any`, or HNS-CORE-005 implementation. |
+
+### Acceptance Criteria Self Review
+
+- `AC-HNS-CORE-004-001`: `PASS` in Maker self-review; every Section 33 code has exactly one Section 34 mapping.
+- `AC-HNS-CORE-004-002`: `PASS` in Maker self-review; duplicate, unknown, missing-catalog, missing-registry, and out-of-range cases fail closed.
+- `AC-HNS-CORE-004-003`: `PASS` in Maker self-review; details and typed causes are immutable/redacted, raw causes are rejected, and synthetic secrets are absent from final outputs.
+- `AC-HNS-CORE-004-004`: `PASS` in Maker self-review; caller exit-code override is compile-time impossible and runtime rejected.
+- Test discovery companion ACs: `PASS` in Maker self-review; root, core, schema, and error suites are discovered by default.
+
+### Result
+
+`READY_FOR_REVIEW`
+
+This is Maker Role Completion Evidence only. It is not TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
