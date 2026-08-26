@@ -1,0 +1,41 @@
+{
+  "schema_version": "harness.delivery-assurance/v1",
+  "delivery_id": "DEL-001",
+  "project": "harness",
+  "commit": "0123456789abcdef",
+  "reviewed_work_items": ["HNS-CORE-003"],
+  "required_reviews": [
+    {
+      "schema_version": "harness.review-assignment/v1",
+      "assignment_id": "RA-001",
+      "work_item_id": "HNS-CORE-003",
+      "risk_class": "MEDIUM",
+      "review_profile": "TECH_REVIEWER",
+      "maker_role": "IMPLEMENTER",
+      "maker_execution_ids": ["IMP-HNS-CORE-003-SCHEMAS-001"],
+      "reviewed_artifact": { "kind": "commit", "path": "harness/src/schemas" },
+      "reviewed_artifact_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "required_checks": ["schema-contract"],
+      "required_evidence": ["unit-tests"],
+      "assignment_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "completed_review_evidence": ["EVID-REVIEW-001"],
+  "gate_results": [
+    {
+      "gate_id": "IMPLEMENTATION_GATE",
+      "status": "PASS",
+      "evidence": ["EVID-REVIEW-001"],
+      "timestamp": "2026-08-26T13:00:00+08:00",
+      "artifact_hashes": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+      "reviewer": "reviewer-001"
+    }
+  ],
+  "open_findings": [],
+  "accepted_risk_references": [],
+  "evidence_references": ["EVID-REVIEW-001"],
+  "result": "PASS",
+  "reviewer": "assurer-001",
+  "reviewer_execution_id": "ASSURE-001",
+  "timestamp": "2026-08-26T14:00:00+08:00"
+}

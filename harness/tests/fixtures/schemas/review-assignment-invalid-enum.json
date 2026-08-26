@@ -1,0 +1,14 @@
+{
+  "schema_version": "harness.review-assignment/v1",
+  "assignment_id": "RA-001",
+  "work_item_id": "HNS-CORE-003",
+  "risk_class": "MEDIUM",
+  "review_profile": "GENERAL_REVIEWER",
+  "maker_role": "IMPLEMENTER",
+  "maker_execution_ids": ["IMP-HNS-CORE-003-SCHEMAS-001"],
+  "reviewed_artifact": { "kind": "commit", "path": "harness/src/schemas" },
+  "reviewed_artifact_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "required_checks": ["schema-contract"],
+  "required_evidence": ["unit-tests"],
+  "assignment_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

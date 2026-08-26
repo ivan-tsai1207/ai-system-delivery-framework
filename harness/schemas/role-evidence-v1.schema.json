@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.role-evidence/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "evidence_id", "execution_id", "work_item_id", "role", "artifact_refs",
+    "artifact_hashes", "spec_references", "checks_performed", "tests_performed", "findings",
+    "known_limitations", "result", "timestamp"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.role-evidence/v1" },
+    "evidence_id": { "$ref": "#/$defs/nonEmptyString" },
+    "execution_id": { "$ref": "#/$defs/nonEmptyString" },
+    "work_item_id": { "$ref": "#/$defs/nonEmptyString" },
+    "role": { "$ref": "#/$defs/role" },
+    "review_profile": { "$ref": "#/$defs/reviewProfile" },
+    "artifact_refs": { "$ref": "#/$defs/artifactReferences" },
+    "artifact_hashes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } },
+    "spec_references": { "$ref": "#/$defs/artifactReferences" },
+    "checks_performed": { "$ref": "#/$defs/evidenceChecks" },
+    "tests_performed": { "$ref": "#/$defs/evidenceChecks" },
+    "findings": { "$ref": "#/$defs/stringArray" },
+    "known_limitations": { "$ref": "#/$defs/stringArray" },
+    "result": { "enum": ["READY_FOR_REVIEW", "BLOCKED", "PASS", "REQUEST_CHANGES", "BLOCK"] },
+    "timestamp": { "$ref": "#/$defs/timestamp" },
+    "commit_hash": { "$ref": "#/$defs/nonEmptyString" },
+    "changed_files": { "$ref": "#/$defs/stringArray" },
+    "diff_scope": { "$ref": "#/$defs/stringArray" },
+    "typecheck": { "$ref": "#/$defs/evidenceCheck" },
+    "lint": { "$ref": "#/$defs/evidenceCheck" },
+    "unit_test": { "$ref": "#/$defs/evidenceCheck" },
+    "integration_test": { "$ref": "#/$defs/evidenceCheck" },
+    "build": { "$ref": "#/$defs/evidenceCheck" },
+    "security_check": { "$ref": "#/$defs/evidenceCheck" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "role": { "const": "REVIEWER" } }, "required": ["role"] },
+      "then": { "properties": { "review_profile": { "$ref": "#/$defs/reviewProfile" } }, "required": ["review_profile"] },
+      "else": { "not": { "required": ["review_profile"] } }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+    "role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "REVIEWER"] },
+    "reviewProfile": { "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"] },
+    "artifactReference": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "path"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/nonEmptyString" }, "id": { "$ref": "#/$defs/nonEmptyString" },
+        "path": { "$ref": "#/$defs/nonEmptyString" }, "anchor": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "artifactReferences": { "type": "array", "items": { "$ref": "#/$defs/artifactReference" } },
+    "evidenceCheck": {
+      "type": "object", "additionalProperties": false, "required": ["id", "method", "result"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" }, "method": { "$ref": "#/$defs/nonEmptyString" },
+        "result": { "$ref": "#/$defs/nonEmptyString" }, "evidence_reference": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "evidenceChecks": { "type": "array", "items": { "$ref": "#/$defs/evidenceCheck" } }
+  }
+}

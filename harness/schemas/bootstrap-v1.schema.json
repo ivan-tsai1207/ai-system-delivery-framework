@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.bootstrap/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "framework", "operations", "manifest_hash"],
+  "properties": {
+    "schema_version": { "const": "harness.bootstrap/v1" },
+    "framework": {
+      "type": "object", "additionalProperties": false, "required": ["repository", "commit_sha"],
+      "properties": {
+        "repository": { "$ref": "#/$defs/nonEmptyString" },
+        "commit_sha": { "$ref": "#/$defs/nonEmptyString" },
+        "release": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "kind", "target", "required"],
+        "properties": {
+          "id": { "$ref": "#/$defs/nonEmptyString" },
+          "kind": { "enum": ["COPY", "GENERATE", "CREATE_DIRECTORY", "OPTIONAL", "EXCLUDE"] },
+          "source": { "$ref": "#/$defs/nonEmptyString" },
+          "target": { "$ref": "#/$defs/nonEmptyString" },
+          "condition": { "$ref": "#/$defs/nonEmptyString" },
+          "required": { "type": "boolean" },
+          "hash": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "manifest_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

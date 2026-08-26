@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.audit/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "execution_id", "task_id", "profile_hash", "events_hash", "gate_results",
+    "approvals", "role_evidence_refs", "review_assignment_refs", "finding_refs", "commit_before",
+    "final_status", "finalized_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.audit/v2" },
+    "execution_id": { "$ref": "#/$defs/nonEmptyString" },
+    "task_id": { "$ref": "#/$defs/nonEmptyString" },
+    "profile_hash": { "$ref": "#/$defs/sha256" },
+    "events_hash": { "$ref": "#/$defs/sha256" },
+    "gate_results": { "type": "array", "items": { "$ref": "#/$defs/gateResult" } },
+    "approvals": { "type": "array", "items": { "$ref": "#/$defs/approvalDecision" } },
+    "role_evidence_refs": { "$ref": "#/$defs/stringArray" },
+    "review_assignment_refs": { "$ref": "#/$defs/stringArray" },
+    "finding_refs": { "$ref": "#/$defs/stringArray" },
+    "delivery_assurance_ref": { "$ref": "#/$defs/nonEmptyString" },
+    "commit_before": { "$ref": "#/$defs/nonEmptyString" },
+    "commit_after": { "$ref": "#/$defs/nonEmptyString" },
+    "final_status": { "enum": ["CREATED", "CONTEXT_READY", "RUNNING", "VALIDATING", "COMPLETED", "BLOCKED_SPEC_GAP", "BLOCKED_SPEC_CONFLICT", "BLOCKED_PERMISSION", "FAILED_GATE", "FAILED_RUNTIME", "CANCELLED"] },
+    "finalized_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+    "gateResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gate_id", "status", "evidence", "timestamp", "artifact_hashes", "reviewer"],
+      "properties": {
+        "gate_id": { "enum": ["SPEC_GATE", "DESIGN_GATE", "IMPLEMENTATION_GATE", "DELIVERY_ASSURANCE_GATE", "RELEASE_GATE"] },
+        "status": { "enum": ["PASS", "FAILED", "NEEDS_CLARIFICATION"] },
+        "evidence": { "$ref": "#/$defs/stringArray" }, "timestamp": { "$ref": "#/$defs/timestamp" },
+        "artifact_hashes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } },
+        "reviewer": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "approvalDecision": {
+      "type": "object", "additionalProperties": false, "required": ["request", "decision", "decided_at", "decided_by"],
+      "properties": {
+        "request": {
+          "type": "object", "additionalProperties": false,
+          "required": ["approval_id", "execution_id", "operation", "operation_hash", "risk_class", "reason", "requested_at", "expires_at", "policy_hash"],
+          "properties": {
+            "approval_id": { "$ref": "#/$defs/nonEmptyString" }, "execution_id": { "$ref": "#/$defs/nonEmptyString" },
+            "operation": { "$ref": "#/$defs/nonEmptyString" }, "operation_hash": { "$ref": "#/$defs/sha256" },
+            "risk_class": { "$ref": "#/$defs/nonEmptyString" }, "reason": { "$ref": "#/$defs/nonEmptyString" },
+            "requested_at": { "$ref": "#/$defs/timestamp" }, "expires_at": { "$ref": "#/$defs/timestamp" },
+            "policy_hash": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "decision": { "enum": ["APPROVED", "REJECTED", "EXPIRED"] },
+        "decided_at": { "$ref": "#/$defs/timestamp" },
+        "decided_by": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

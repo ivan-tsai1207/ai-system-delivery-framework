@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.execution-profile/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "profile_hash", "execution", "repository", "work_item", "context",
+    "filesystem", "tools", "commands", "environment", "gates", "adapter_requirements", "audit"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.execution-profile/v2" },
+    "profile_hash": { "$ref": "#/$defs/sha256" },
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["execution_id", "task_id", "role", "risk_class", "feature", "phase", "adapter"],
+      "properties": {
+        "execution_id": { "$ref": "#/$defs/nonEmptyString" },
+        "task_id": { "$ref": "#/$defs/nonEmptyString" },
+        "role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "REVIEWER"] },
+        "risk_class": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "review_profile": { "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"] },
+        "feature": { "$ref": "#/$defs/nonEmptyString" },
+        "phase": { "enum": ["SPEC", "DESIGN", "IMPLEMENTATION", "REVIEW", "RELEASE"] },
+        "adapter": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "repository": {
+      "type": "object", "additionalProperties": false, "required": ["identity", "root", "branch", "commit_before"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/nonEmptyString" }, "root": { "$ref": "#/$defs/nonEmptyString" },
+        "branch": { "$ref": "#/$defs/nonEmptyString" }, "commit_before": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "work_item": { "$ref": "#/$defs/hashRef" },
+    "context": {
+      "type": "object", "additionalProperties": false, "required": ["manifest_ref", "context_hash"],
+      "properties": { "manifest_ref": { "$ref": "#/$defs/nonEmptyString" }, "context_hash": { "$ref": "#/$defs/sha256" } }
+    },
+    "filesystem": { "$ref": "#/$defs/filesystem" },
+    "tools": { "$ref": "#/$defs/allowDeny" },
+    "commands": { "$ref": "#/$defs/commands" },
+    "environment": { "$ref": "#/$defs/environment" },
+    "gates": {
+      "type": "object", "additionalProperties": false, "required": ["required"],
+      "properties": { "required": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/gateId" } } }
+    },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["assignment_ref", "assignment_hash", "maker_execution_ids", "reviewed_artifact_hash"],
+      "properties": {
+        "assignment_ref": { "$ref": "#/$defs/nonEmptyString" }, "assignment_hash": { "$ref": "#/$defs/sha256" },
+        "maker_execution_ids": { "$ref": "#/$defs/stringArray" }, "reviewed_artifact_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "adapter_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["capability", "minimum"],
+        "properties": {
+          "capability": { "enum": ["filesystem_read_control", "filesystem_write_control", "tool_allowlist", "tool_denylist", "command_interception", "network_control", "approval_flow", "event_stream", "working_directory_control", "termination"] },
+          "minimum": { "enum": ["hard", "soft"] }
+        }
+      }
+    },
+    "audit": {
+      "type": "object", "additionalProperties": false, "required": ["sink", "redaction_policy", "required_fields"],
+      "properties": {
+        "sink": { "$ref": "#/$defs/nonEmptyString" }, "redaction_policy": { "$ref": "#/$defs/nonEmptyString" },
+        "required_fields": { "$ref": "#/$defs/stringArray" }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "hashRef": {
+      "type": "object", "additionalProperties": false, "required": ["path", "hash"],
+      "properties": { "path": { "$ref": "#/$defs/nonEmptyString" }, "hash": { "$ref": "#/$defs/sha256" } }
+    },
+    "filesystem": {
+      "type": "object", "additionalProperties": false, "required": ["read", "write", "deny_write"],
+      "properties": { "read": { "$ref": "#/$defs/stringArray" }, "write": { "$ref": "#/$defs/stringArray" }, "deny_write": { "$ref": "#/$defs/stringArray" } }
+    },
+    "allowDeny": {
+      "type": "object", "additionalProperties": false, "required": ["allow", "deny"],
+      "properties": { "allow": { "$ref": "#/$defs/stringArray" }, "deny": { "$ref": "#/$defs/stringArray" } }
+    },
+    "commands": {
+      "type": "object", "additionalProperties": false, "required": ["safe_read", "development_write", "restricted"],
+      "properties": { "safe_read": { "$ref": "#/$defs/stringArray" }, "development_write": { "$ref": "#/$defs/stringArray" }, "restricted": { "$ref": "#/$defs/stringArray" } }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false, "required": ["allowed", "denied"],
+      "properties": { "allowed": { "$ref": "#/$defs/stringArray" }, "denied": { "$ref": "#/$defs/stringArray" } }
+    },
+    "gateId": { "enum": ["SPEC_GATE", "DESIGN_GATE", "IMPLEMENTATION_GATE", "DELIVERY_ASSURANCE_GATE", "RELEASE_GATE"] }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "harness.role-evidence/v1",
+  "evidence_id": "EVID-001",
+  "execution_id": "IMP-HNS-CORE-003-SCHEMAS-001",
+  "work_item_id": "HNS-CORE-003",
+  "role": "IMPLEMENTER",
+  "artifact_refs": [{ "kind": "source", "path": "harness/src/schemas" }],
+  "artifact_hashes": ["sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"],
+  "spec_references": [{ "kind": "sdd", "path": "docs/harness_v0.1_SDD.md", "anchor": "section-6" }],
+  "checks_performed": [{ "id": "scope", "method": "git diff", "result": "PASS" }],
+  "tests_performed": [{ "id": "unit", "method": "node --test", "result": "PASS" }],
+  "findings": [],
+  "known_limitations": [],
+  "result": "READY_FOR_REVIEW",
+  "timestamp": "2026-08-26T12:00:00+08:00",
+  "commit_hash": "0123456789abcdef",
+  "changed_files": ["harness/src/schemas/registry.ts"],
+  "diff_scope": ["harness/src/schemas/**"],
+  "typecheck": { "id": "typecheck", "method": "npm run typecheck", "result": "PASS" },
+  "unit_test": { "id": "unit", "method": "node --test", "result": "PASS" },
+  "build": { "id": "build", "method": "npm run build", "result": "PASS" },
+  "security_check": { "id": "audit", "method": "npm audit --audit-level=high", "result": "PASS" }
+}

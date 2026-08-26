@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.policy/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_hash", "sources", "filesystem", "tools", "commands", "environment", "approval_required"],
+  "properties": {
+    "schema_version": { "const": "harness.policy/v1" },
+    "policy_hash": { "$ref": "#/$defs/sha256" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["path", "sha256"],
+        "properties": { "path": { "$ref": "#/$defs/nonEmptyString" }, "sha256": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "filesystem": { "$ref": "#/$defs/filesystem" },
+    "tools": { "$ref": "#/$defs/allowDeny" },
+    "commands": { "$ref": "#/$defs/commands" },
+    "environment": { "$ref": "#/$defs/environment" },
+    "approval_required": {
+      "type": "object", "additionalProperties": false, "required": ["operations"],
+      "properties": { "operations": { "$ref": "#/$defs/stringArray" } }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "filesystem": {
+      "type": "object", "additionalProperties": false, "required": ["read", "write", "deny_write"],
+      "properties": { "read": { "$ref": "#/$defs/stringArray" }, "write": { "$ref": "#/$defs/stringArray" }, "deny_write": { "$ref": "#/$defs/stringArray" } }
+    },
+    "allowDeny": {
+      "type": "object", "additionalProperties": false, "required": ["allow", "deny"],
+      "properties": { "allow": { "$ref": "#/$defs/stringArray" }, "deny": { "$ref": "#/$defs/stringArray" } }
+    },
+    "commands": {
+      "type": "object", "additionalProperties": false, "required": ["safe_read", "development_write", "restricted"],
+      "properties": {
+        "safe_read": { "$ref": "#/$defs/stringArray" },
+        "development_write": { "$ref": "#/$defs/stringArray" },
+        "restricted": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false, "required": ["allowed", "denied"],
+      "properties": { "allowed": { "$ref": "#/$defs/stringArray" }, "denied": { "$ref": "#/$defs/stringArray" } }
+    }
+  }
+}

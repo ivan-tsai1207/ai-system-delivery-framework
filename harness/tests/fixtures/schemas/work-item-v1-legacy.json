@@ -1,0 +1,8 @@
+{
+  "schema_version": "harness.work-item/v1",
+  "id": "LEGACY-001",
+  "title": "Legacy work item",
+  "role": "IMPLEMENTER",
+  "phase": "IMPLEMENTATION",
+  "status": "TODO"
+}

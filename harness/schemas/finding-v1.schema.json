@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness.finding/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "finding_id", "review_profile", "owner_role", "work_item_id",
+    "artifact_ref", "artifact_hash", "requirement_references", "description", "severity",
+    "evidence_references", "required_action", "status"
+  ],
+  "properties": {
+    "schema_version": { "const": "harness.finding/v1" },
+    "finding_id": { "$ref": "#/$defs/nonEmptyString" },
+    "review_profile": { "$ref": "#/$defs/reviewProfile" },
+    "owner_role": { "$ref": "#/$defs/role" },
+    "work_item_id": { "$ref": "#/$defs/nonEmptyString" },
+    "artifact_ref": { "$ref": "#/$defs/artifactReference" },
+    "artifact_hash": { "$ref": "#/$defs/sha256" },
+    "requirement_references": { "type": "array", "items": { "$ref": "#/$defs/artifactReference" } },
+    "description": { "$ref": "#/$defs/nonEmptyString" },
+    "severity": { "enum": ["BLOCKING", "MAJOR", "MINOR", "OBSERVATION"] },
+    "evidence_references": { "$ref": "#/$defs/stringArray" },
+    "required_action": { "$ref": "#/$defs/nonEmptyString" },
+    "status": { "enum": ["OPEN", "RESOLVED", "ACCEPTED_RISK", "SUPERSEDED"] }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "role": { "enum": ["PRODUCT_ARCHITECT", "UX_DESIGNER", "IMPLEMENTER", "REVIEWER"] },
+    "reviewProfile": { "enum": ["SPEC_REVIEWER", "UX_REVIEWER", "TECH_REVIEWER", "QA_REVIEWER", "SECURITY_REVIEWER", "DELIVERY_ASSURANCE_REVIEWER"] },
+    "artifactReference": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "path"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/nonEmptyString" }, "id": { "$ref": "#/$defs/nonEmptyString" },
+        "path": { "$ref": "#/$defs/nonEmptyString" }, "anchor": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}
