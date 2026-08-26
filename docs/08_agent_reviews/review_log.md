@@ -1397,3 +1397,109 @@ GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
 - [x] No implementation, test, schema, manifest, Work Item, package, governance, or other documentation file was modified by this Reviewer.
 - [x] This execution appended only `docs/08_agent_reviews/review_log.md` and did not run QA, Security, any Gate, merge, or release action.
 - [x] This PASS and Finding resolution remain bound to candidate `3b3040fed8aeec28b9afdb716c99cca24c89058e` and manifest hash `e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c`; any candidate artifact change invalidates them.
+
+---
+
+## REV-HNS-CORE-003-QA-002 - HNS-CORE-003 R2 Independent QA Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-003-QA-002` |
+| Execution ID | `REV-HNS-CORE-003-QA-002-EXEC` |
+| Work Item | `work-items/HNS-CORE-003-QA-REVIEW-002.md` |
+| Role | `REVIEWER` |
+| Review Profile | `QA_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `IMP-HNS-CORE-003-REMEDIATION-R2-001` |
+| Maker Evidence | `RCE-HNS-CORE-003-REMEDIATION-R2-001` |
+| Required TECH Evidence | `REV-HNS-CORE-003-TECH-002` (`PASS`) |
+| Prior Finding | `FIND-HNS-CORE-003-TECH-001` (`RESOLVED`) |
+| Reviewer Execution ID | `REV-HNS-CORE-003-QA-002-EXEC` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation-r2.md` |
+| Artifact Hash | `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` |
+| Parent Artifact Hash | `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| Candidate Commit | `3b3040fed8aeec28b9afdb716c99cca24c89058e` |
+| Review Start HEAD | `7b96417d32a1f984b8cbbbb5ec66dec37b55f421` |
+| Timestamp | `2026-08-26T07:31:42Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-003-001` through `AC-HNS-CORE-003-004`; `AC-HNS-CORE-003-DEPENDENCY-AJV-001` through `AC-HNS-CORE-003-DEPENDENCY-AJV-010`; `AC-HNS-CORE-003-TEST-DISCOVERY-001` through `AC-HNS-CORE-003-TEST-DISCOVERY-004`; `AC-HNS-CORE-003-QA-REVIEW-002-001` through `AC-HNS-CORE-003-QA-REVIEW-002-004`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 5, 6, 40.1, and 46 Phase 1; `templates/Work_Item.md`.
+- Screen Specs: `N/A`.
+- Work Items: `work-items/HNS-CORE-003.md`; `work-items/HNS-CORE-003-DEPENDENCY-AJV.md`; `work-items/HNS-CORE-003-TEST-DISCOVERY.md`; `work-items/HNS-CORE-003-QA-REVIEW-002.md`.
+- Review Evidence: R1 and R2 manifests; R1 Maker evidence; `RCE-HNS-CORE-003-REMEDIATION-R2-001`; `REV-HNS-CORE-003-TECH-001`; `REV-HNS-CORE-003-TECH-002`; `FIND-HNS-CORE-003-TECH-001`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-003-QA-002-01` | Independent repository preflight | Fresh temporary HTTPS clone; verified assigned origin, branch, clean checkout, exact expected start HEAD, and refreshed remote tip before evidence append | origin `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; local and remote HEAD `7b96417d32a1f984b8cbbbb5ec66dec37b55f421` | `PASS` |
+| `REV-HNS-CORE-003-QA-002-02` | Exact candidate lineage and preparation isolation | `git merge-base --is-ancestor`; exact parent-chain inspection from base through R2 and review-start HEAD; post-candidate path intersection against the reviewed artifact set | Linear lineage through R1 `b12b416`, prior review `f72b8ab`, R2 `3b3040f`, preparation `97e6b4f`, and TECH evidence `7b96417`; 5 post-candidate documentation paths, 0 reviewed artifact changes | `PASS` |
+| `REV-HNS-CORE-003-QA-002-03` | Both manifest hashes, inheritance, and artifact identity | Recomputed both manifest SHA-256 values; parsed all R1 and R2 artifact rows; recomputed candidate Git blobs and content SHA-256 values; compared review-start HEAD blobs | R1 `2e4277a...dc58`; R2 `e7dcf9d...60c`; 45 total artifacts, 43 inherited, 2 replacements, 0 mismatches | `PASS` |
+| `REV-HNS-CORE-003-QA-002-04` | Maker / Reviewer separation and assignment binding | Cross-checked assigned Work Item, manifests, Maker evidence, candidate, risk, profile, gate, and execution identities | `QA_REVIEWER`, `MEDIUM`, candidate and hash bindings agree; Maker `IMP-HNS-CORE-003-REMEDIATION-R2-001` differs from Reviewer `REV-HNS-CORE-003-QA-002-EXEC` | `PASS` |
+| `REV-HNS-CORE-003-QA-002-05` | Latest TECH prerequisite and finding closure | Located the latest R2 TECH evidence in the canonical review log and verified artifact/hash/candidate binding, decision, execution separation, and final finding state | `REV-HNS-CORE-003-TECH-002` is `PASS` on R2 hash `e7dcf9d...60c`; `FIND-HNS-CORE-003-TECH-001` is `RESOLVED`; no later TECH evidence exists | `PASS` |
+| `REV-HNS-CORE-003-QA-002-06` | Canonical registry and JSON artifact discovery | Independently enumerated the built registry and discovered/compiled every `harness/schemas/*.schema.json` artifact with Ajv Draft 2020-12 | Exactly 12 runtime IDs in SDD order and 12 JSON artifacts with the same ID set; all exact IDs resolve and all artifacts compile | `PASS` |
+| `REV-HNS-CORE-003-QA-002-07` | Duplicate, unknown schema, unknown version, and boundary behavior | Independent runtime probe covered successful duplicate rejection, malformed and absent names, unsupported version, null/array/missing-version documents, and accessor-backed dispatch | Duplicate is `DUPLICATE_SCHEMA`; unknown schema/version remain distinct and fail closed; 7 boundary checks passed without invoking the accessor | `PASS` |
+| `REV-HNS-CORE-003-QA-002-08` | Work Item v1 migration-only and v2 behavior | Independently executed legacy v1 plus v2 valid, missing-required, invalid-enum, and wrong-version fixtures through exact and document-directed validation | v1 is frozen `MIGRATION_REQUIRED`, target v2, `executable: false`; 4 v2 fixture cases passed; wrong version is never downgraded | `PASS` |
+| `REV-HNS-CORE-003-QA-002-09` | Four accountability fixture matrices | Independently ran valid, missing-required, invalid-enum/value, and wrong-version fixtures for Review Assignment, Role Evidence, Finding, and Delivery Assurance | 16/16 checks passed; valid inputs accepted; required/enum/pattern/const violations rejected; wrong versions fail closed | `PASS` |
+| `REV-HNS-CORE-003-QA-002-10` | Determinism and input integrity | Repeated each Work Item and accountability validation; compared complete results and serialized inputs; checked frozen results/issues and deterministic issue order | Repeated results identical; inputs unchanged; result and issue collections frozen; issue order stable | `PASS` |
+| `REV-HNS-CORE-003-QA-002-11` | Transactional retry regressions | For invalid-keyword and unresolved-reference compilation failures, checked public absence and unknown validation, retried a valid schema with the same ID, validated valid/invalid values, then checked duplicate rejection | Both 2/2 formerly poisoned sequences recovered; same-ID retry succeeded and subsequent duplicate registration failed closed | `PASS` |
+| `REV-HNS-CORE-003-QA-002-12` | Dependency companion ACs | Inspected package/lock state and dependency commit scope; ran clean install, exact dependency tree, build, typecheck, default tests, and audit | Exact direct `ajv@8.20.0`, synchronized SHA-512 integrity, no `ajv-formats` or additional direct dependency; dependency commit changes only package/lock; all commands passed | `PASS` |
+| `REV-HNS-CORE-003-QA-002-13` | Default discovery and CORE-001/002 regression | Ran default suite and focused root, core, and schema test commands; scanned all tests for skipped/todo/focused markers | Default 54/54; root 3/3; core 13/13; schema 38/38; 0 failed/cancelled/skipped/todo and no `.skip`/`.todo`/`.only` markers | `PASS` |
+| `REV-HNS-CORE-003-QA-002-14` | Pure schema boundary and authorized change scope | Inspected schema imports and scanned for adapter, parser, filesystem, process, network, and persistence capability; checked commit path scopes and diff whitespace | No forbidden dependency/capability; dependency commit changes 2 package files, discovery commit only package script, R2 only registry and its test; `git diff --check` passed | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Environment | Pinned local toolchain; `node --version`; `npm --version` | `PASS` | Node `v24.19.0`; npm `11.17.0` |
+| Clean Install | `npm ci` in `harness/` | `PASS` | Added 7 packages; audited 8 packages; 0 vulnerabilities |
+| Build | `npm run build` | `PASS` | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` | `tsc --project tsconfig.json --noEmit` completed |
+| Default Unit / Smoke Test | `npm test` | `PASS` | 54 tests; 54 passed; 0 failed, cancelled, skipped, or todo |
+| Root Discovery Probe | `node --test tests/*.test.mjs` | `PASS` | 3 passed; 0 failed/skipped/todo |
+| CORE-001/002 Regression Probe | `node --test tests/unit/core/*.test.mjs` | `PASS` | 13 passed; 0 failed/skipped/todo |
+| Schema Discovery Probe | `node --test tests/unit/schemas/*.test.mjs` | `PASS` | 38 passed; 0 failed/skipped/todo |
+| Independent QA Runtime Probe | Disposable external Node probe against built exports, JSON artifacts, and fixtures | `PASS` | 12 IDs; 12 artifacts; 4 Work Item cases; 16 accountability cases; 7 boundary cases; 2 rollback retry cases |
+| Skip / Todo / Only Scan | `rg` focused-test marker scan over `harness/tests` | `PASS` | No matches |
+| Dependency Resolution | `npm ls ajv --all` | `PASS` | Exact `ajv@8.20.0` |
+| Dependency Audit | `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities |
+| Scope / Whitespace Check | Commit path inspection; forbidden-capability `rg`; `git diff --check` | `PASS` | No unauthorized capability or whitespace error |
+
+### Implementer Scope Evidence
+
+- Changed Files: `N/A` for Reviewer; independently verified the R2 candidate replaces only `harness/src/schemas/registry.ts` and `harness/tests/unit/schemas/registry.test.mjs` within the inherited 45-artifact set.
+- Diff Scope: `N/A` for Reviewer; all primary and companion implementation commits remain within their Work Item boundaries.
+- Unauthorized Change Check: `N/A` for Reviewer; no unauthorized implementation or capability was observed.
+- Backward Compatibility: `N/A` for Reviewer; default and focused CORE-001/002 regression suites passed.
+
+### Findings
+
+- New findings: `None`.
+- Prior finding: `FIND-HNS-CORE-003-TECH-001` independently reconfirmed as `RESOLVED` by both rollback retry regressions.
+- Accepted Risk References: `None`.
+
+### Known Limitations and Scope Boundary
+
+- No lint script is defined; strict build/typecheck, `git diff --check`, test-marker scan, and scoped source scans passed.
+- `npm ci` and build created ignored `harness/node_modules/` and `harness/dist/` in the fresh temporary clone; neither is tracked or staged.
+- This evidence is only a `QA_REVIEWER` decision. It does not perform Security review, any Gate, merge, release, or Delivery Assurance.
+
+### Result
+
+Reviewer decision: `PASS`.
+
+GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
+
+### Integrity and Independence Validation
+
+- [x] The review began in a fresh temporary clone at the exact assigned origin, branch, and review-start HEAD.
+- [x] Both manifest hashes, exact lineage, all 45 inherited/replaced artifact identities, and post-candidate isolation were independently validated.
+- [x] Maker and Reviewer execution IDs are distinct and agree with the assigned Work Item, manifest, and Maker evidence.
+- [x] The required latest TECH evidence is a `PASS` bound to the same R2 artifact hash, and the prior finding is `RESOLVED`.
+- [x] This Reviewer did not modify implementation, tests, schemas, manifests, Work Items, packages, prior evidence, or finding closure.
+- [x] This execution appended only `docs/08_agent_reviews/review_log.md` and did not run Security review, any Gate, merge, or release action.
+- [x] This PASS remains bound to candidate `3b3040fed8aeec28b9afdb716c99cca24c89058e` and manifest hash `e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c`; any candidate artifact change invalidates it.
