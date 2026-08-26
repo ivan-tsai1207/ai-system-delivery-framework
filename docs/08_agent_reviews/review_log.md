@@ -1104,3 +1104,50 @@ No unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains for HNS-CORE-002.
 | `HNS-CORE-002-QA-REVIEW-001` | `CANCELLED` (preserved) |
 
 This evidence records lifecycle and merge completion only. It is not a Reviewer decision, GateResult, release approval, merge to `main`, or authorization to start HNS-CORE-003.
+
+## RCE-HNS-CORE-003-IMPLEMENTATION-001 - HNS-CORE-003 Maker Role Completion Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-003-IMPLEMENTATION-001` |
+| Work Items | `HNS-CORE-003`; `HNS-CORE-003-DEPENDENCY-AJV`; `HNS-CORE-003-TEST-DISCOVERY` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution IDs | `IMP-HNS-CORE-003-DEPENDENCY-001`; `IMP-HNS-CORE-003-SCHEMAS-001`; `IMP-HNS-CORE-003-TEST-DISCOVERY-001` |
+| Base Commit | `5ef3e18432440f52230130512ec097ec1ac6bd3f` |
+| Dependency Commit | `d9f65defb55cdc51a8786e3735807ba752d77d34` |
+| Schema Implementation Commit | `b1474326e1672ce7e8201e9c209f199fff11c322` |
+| Candidate / Test Discovery Commit | `b12b416c51bbd4dc268c5e3d2cdbe811eba7565c` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation.md` |
+| Artifact Hash | `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T06:48:13Z` |
+
+### Checks and Tests
+
+| Check | Result | Evidence |
+|---|---|---|
+| Dependency scope | `PASS` | Exact `ajv@8.20.0`; no `ajv-formats` or other direct dependency; package and lockfile only in dependency commit. |
+| Schema scope | `PASS` | 12 Draft 2020-12 artifacts, registry/source, 21 fixtures, and 5 schema test files only in authorized schema paths. |
+| Test discovery scope | `PASS` | Package script only; root, core, and schema suites run from default `npm test`. |
+| Build / typecheck | `PASS` | Strict TypeScript build and no-emit typecheck completed under the required runtime. |
+| Default tests | `PASS` | 52 passed; 0 failed, cancelled, skipped, or todo. |
+| Security check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities; `npm ls ajv --all` resolved exact `8.20.0`. |
+| Scope / side-effect scan | `PASS` | No parser, migration engine, compiler, persistence, filesystem/process/network side effect, vendor adapter, HNS-CORE-004, or HNS-CORE-005 implementation. |
+
+### Acceptance Criteria Self Review
+
+- `AC-HNS-CORE-003-001`: `PASS` in Maker self-review; all 12 IDs, exact resolution, duplicate and unknown behavior covered.
+- `AC-HNS-CORE-003-002`: `PASS` in Maker self-review; Work Item v1 is migration-only/non-executable and v2 valid/invalid behavior is covered.
+- `AC-HNS-CORE-003-003`: `PASS` in Maker self-review; accountability schemas have deterministic valid, missing, invalid-value, and wrong-version fixtures.
+- `AC-HNS-CORE-003-004`: `PASS` in Maker self-review; registry boundary is pure and no forbidden dependency direction or side effect was added.
+- Dependency companion ACs: `PASS` in Maker self-review.
+- Test discovery companion ACs: `PASS` in Maker self-review.
+
+### Result
+
+`READY_FOR_REVIEW`
+
+This is Maker Role Completion Evidence only. It does not constitute TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
