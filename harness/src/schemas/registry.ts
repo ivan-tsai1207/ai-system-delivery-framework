@@ -214,6 +214,7 @@ export class SchemaRegistry {
     try {
       validator = this.#ajv.compile(snapshot);
     } catch (error: unknown) {
+      this.#ajv.removeSchema(schemaId);
       const message = error instanceof Error ? error.message : "Unknown schema compilation failure.";
       throw new InvalidSchemaRegistrationError(`Unable to register ${schemaId}: ${message}`);
     }

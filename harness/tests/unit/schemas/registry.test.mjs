@@ -7,6 +7,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import {
   CANONICAL_SCHEMA_IDS,
   DuplicateSchemaError,
+  InvalidSchemaRegistrationError,
   projectContextSchema,
   SchemaRegistry,
   createSchemaRegistry,
@@ -50,6 +51,72 @@ test("registry rejects duplicate IDs before validator fallback can occur", () =>
       && error.code === "DUPLICATE_SCHEMA"
       && /harness\.project-context\/v1/.test(error.message),
   );
+});
+
+test("invalid-keyword registration rolls back before a valid same-ID retry", () => {
+  const schemaId = "example.invalid-keyword/v1";
+  const registry = new SchemaRegistry();
+
+  assert.throws(
+    () => registry.register({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: schemaId,
+      type: "object",
+      invalidKeyword: true,
+    }),
+    (error) => error instanceof InvalidSchemaRegistrationError
+      && error.code === "INVALID_SCHEMA_REGISTRATION",
+  );
+  assert.equal(registry.resolve(schemaId), undefined);
+  assert.deepEqual(registry.listSchemaIds(), []);
+  assert.deepEqual(registry.validate(schemaId, {}), {
+    status: "UNKNOWN_SCHEMA",
+    schemaId,
+  });
+
+  registry.register({
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: schemaId,
+    type: "object",
+    properties: { value: { type: "string" } },
+  });
+
+  assert.deepEqual(registry.listSchemaIds(), [schemaId]);
+  assert.equal(registry.validate(schemaId, { value: "valid" }).status, "VALID");
+  assert.equal(registry.validate(schemaId, { value: 1 }).status, "INVALID");
+});
+
+test("unresolved-reference registration rolls back before a valid same-ID retry", () => {
+  const schemaId = "example.unresolved-reference/v1";
+  const registry = new SchemaRegistry();
+
+  assert.throws(
+    () => registry.register({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: schemaId,
+      type: "object",
+      properties: { value: { $ref: "example.missing/v1" } },
+    }),
+    (error) => error instanceof InvalidSchemaRegistrationError
+      && error.code === "INVALID_SCHEMA_REGISTRATION",
+  );
+  assert.equal(registry.resolve(schemaId), undefined);
+  assert.deepEqual(registry.listSchemaIds(), []);
+  assert.deepEqual(registry.validate(schemaId, {}), {
+    status: "UNKNOWN_SCHEMA",
+    schemaId,
+  });
+
+  registry.register({
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: schemaId,
+    type: "object",
+    properties: { value: { type: "string" } },
+  });
+
+  assert.deepEqual(registry.listSchemaIds(), [schemaId]);
+  assert.equal(registry.validate(schemaId, { value: "valid" }).status, "VALID");
+  assert.equal(registry.validate(schemaId, { value: 1 }).status, "INVALID");
 });
 
 test("registration snapshots caller schemas without mutating or retaining mutable input", () => {
