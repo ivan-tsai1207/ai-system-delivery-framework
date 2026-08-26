@@ -1978,3 +1978,44 @@ The detector recognizes exact marker words and only three compact compounds (`ap
 `REQUEST_CHANGES`
 
 The implementation and candidate identities are valid and all official commands pass, but `FND-HNS-CORE-004-TECH-001-001` remains `OPEN`. The redaction/message-safety acceptance criterion is therefore not satisfied for the reviewed manifest hash.
+
+---
+
+## RCE-HNS-CORE-004-REMEDIATION-R2-001 - HNS-CORE-004 Compact Marker Remediation
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-004-REMEDIATION-R2-001` |
+| Work Item | `HNS-CORE-004` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `LOW` |
+| Maker Execution ID | `IMP-HNS-CORE-004-REMEDIATION-R2-001` |
+| Source TECH Evidence | `REV-HNS-CORE-004-TECH-001` (`REQUEST_CHANGES`) |
+| Finding | `FND-HNS-CORE-004-TECH-001-001` (`OPEN MAJOR`) |
+| R1 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md` / `sha256:3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| Remediation Commit / R2 Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| R2 Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` |
+| R2 Manifest Hash | `sha256:d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T13:15:54Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Authorized remediation scope | `PASS` | Only `safe-details.ts` and `errors.test.mjs` changed relative to R1. |
+| Finding reproduction before R2 | `PASS` | Six compact variants bypassed details/message checks under R1 as independently recorded by TECH-001. |
+| Compact-marker closure in Maker self-review | `PASS` | Shared normalization detects canonical fragments inside delimiter-free compounds for details and custom messages. |
+| Sentinel containment | `PASS` | All six variants redact details, reject unsafe messages without echoing input, and exclude sentinel from message, stack, typed cause, and JSON. |
+| Safe behavior regression | `PASS` | Safe custom message, canonical 30-row catalog, 0-8 registry, immutable typed causes/details, and prior tests remain unchanged. |
+| Build / typecheck | `PASS` | Strict build and no-emit typecheck completed. |
+| Default tests | `PASS` | 96 discovered tests passed; 0 failed, cancelled, skipped, or todo; count is evidence only. |
+| Security check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities; no dependency change. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+This is Maker remediation evidence only. It does not resolve the Finding, approve TECH/QA/Security, pass a Gate, merge, or close lifecycle.
