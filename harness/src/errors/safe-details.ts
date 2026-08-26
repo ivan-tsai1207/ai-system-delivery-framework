@@ -11,9 +11,11 @@ export type SafeDetailValue =
 export type HarnessErrorDetails = Readonly<Record<string, SafeDetailValue>>;
 export type HarnessErrorDetailsInput = Readonly<Record<string, SafeDetailValue>>;
 
-const SENSITIVE_KEY_PARTS = new Set([
+const SENSITIVE_MARKER_PARTS = new Set([
   "authorization",
   "authorizations",
+  "bearer",
+  "bearers",
   "cookie",
   "cookies",
   "credential",
@@ -26,24 +28,26 @@ const SENSITIVE_KEY_PARTS = new Set([
   "tokens",
 ]);
 
+const SENSITIVE_COMPOUND_MARKERS = ["apikey", "accesstoken", "refreshtoken"] as const;
+
 function isPlainObject(value: object): boolean {
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
 }
 
-function isSensitiveKey(key: string): boolean {
-  const words = key
+export function containsSensitiveMarker(value: string): boolean {
+  const words = value
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .split(/[^A-Za-z0-9]+/)
     .filter((word) => word.length > 0)
     .map((word) => word.toLowerCase());
   const compact = words.join("");
 
-  if (compact === "apikey" || compact === "accesstoken" || compact === "refreshtoken") {
+  if (SENSITIVE_COMPOUND_MARKERS.some((marker) => compact.includes(marker))) {
     return true;
   }
 
-  return words.some((word) => SENSITIVE_KEY_PARTS.has(word));
+  return words.some((word) => SENSITIVE_MARKER_PARTS.has(word));
 }
 
 function snapshotSafeValue(
@@ -123,7 +127,7 @@ function snapshotSafeValue(
         throw new TypeError("HarnessError details must use enumerable data properties.");
       }
 
-      const safeValue = isSensitiveKey(key)
+      const safeValue = containsSensitiveMarker(key)
         ? REDACTED_VALUE
         : snapshotSafeValue(descriptor.value, activeTraversal, snapshots);
       Object.defineProperty(snapshot, key, {

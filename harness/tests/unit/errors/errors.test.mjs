@@ -471,3 +471,58 @@ test("38 serialization is deterministic across repeated construction and calls",
   assert.equal(JSON.stringify(first), JSON.stringify(first));
   assert.equal(JSON.stringify(first), JSON.stringify(second));
 });
+
+test("39 sensitive custom-message markers and spelling variants fail closed", () => {
+  const rawValue = "RAW_VALUE_12345";
+  const unsafeMessages = [
+    `Authorization: ${rawValue}`,
+    `BEARER ${rawValue}`,
+    `token=${rawValue}`,
+    `AccessToken: ${rawValue}`,
+    `refresh_token=${rawValue}`,
+    `api-key: ${rawValue}`,
+    `Password=${rawValue}`,
+    `secret: ${rawValue}`,
+    `Credentials=${rawValue}`,
+    `Cookie: ${rawValue}`,
+  ];
+
+  for (const message of unsafeMessages) {
+    assert.throws(
+      () => new HarnessError("HNS-RUN-001", { ...baseOptions(), message }),
+      (error) =>
+        error instanceof TypeError &&
+        !(error instanceof HarnessError) &&
+        error.message === "HarnessError custom message contains sensitive text.",
+    );
+  }
+});
+
+test("40 rejected message sentinel cannot reach message, stack, cause chain, or JSON", () => {
+  const sentinel = "SECRET_SHOULD_NOT_APPEAR";
+  const safeCause = new HarnessError("HNS-ADP-001", {
+    ...baseOptions(),
+    details: { authorization: sentinel },
+  });
+  let rejection;
+
+  try {
+    createHarnessError("HNS-RUN-001", {
+      ...baseOptions(),
+      message: `Authorization: ${sentinel}`,
+      cause: safeCause,
+    });
+    assert.fail("Sensitive custom message must be rejected.");
+  } catch (error) {
+    rejection = error;
+  }
+
+  assert.equal(rejection instanceof TypeError, true);
+  assert.equal(rejection instanceof HarnessError, false);
+  assert.equal(rejection.message.includes(sentinel), false);
+  assert.equal(rejection.stack.includes(sentinel), false);
+  assert.equal(safeCause.message.includes(sentinel), false);
+  assert.equal(safeCause.stack.includes(sentinel), false);
+  assert.equal(JSON.stringify(safeCause).includes(sentinel), false);
+  assert.equal(JSON.stringify(rejection).includes(sentinel), false);
+});

@@ -8,6 +8,7 @@ import {
 } from "./error-catalog.js";
 import type { ExitCode } from "./exit-code-registry.js";
 import {
+  containsSensitiveMarker,
   snapshotHarnessErrorDetails,
   type HarnessErrorDetails,
   type HarnessErrorDetailsInput,
@@ -101,6 +102,12 @@ function parseOptions(options: HarnessErrorOptions): ParsedHarnessErrorOptions {
   const messageDescriptor = getDataProperty(descriptors, "message");
   if (messageDescriptor !== undefined && typeof messageDescriptor.value !== "string") {
     throw new TypeError("HarnessError message must be a string when supplied.");
+  }
+  if (
+    messageDescriptor !== undefined &&
+    containsSensitiveMarker(messageDescriptor.value as string)
+  ) {
+    throw new TypeError("HarnessError custom message contains sensitive text.");
   }
 
   const detailsDescriptor = getDataProperty(descriptors, "details");
