@@ -2140,3 +2140,129 @@ No new findings.
 `PASS`
 
 All assigned R2 technical acceptance criteria are satisfied for manifest SHA-256 `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` and candidate `8541d2b192392885c1d033cb5f05992c1b37a0d6`. `FND-HNS-CORE-004-TECH-001-001` is independently closed as `RESOLVED`.
+
+---
+
+## REV-HNS-CORE-004-QA-002 - HNS-CORE-004 R2 Independent QA Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-004-QA-002` |
+| Reviewer Execution ID | `REV-HNS-CORE-004-QA-002-EXEC` |
+| Role / Profile | `REVIEWER` / `QA_REVIEWER` |
+| Risk Class | `LOW` |
+| Work Item | `HNS-CORE-004-QA-REVIEW-002` |
+| Maker Evidence | `RCE-HNS-CORE-004-REMEDIATION-R2-001` |
+| Maker Execution ID | `IMP-HNS-CORE-004-REMEDIATION-R2-001` |
+| Required TECH Evidence | `REV-HNS-CORE-004-TECH-002` (`PASS`) |
+| R1 Manifest / SHA-256 | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md` / `3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| R2 Manifest / SHA-256 | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` / `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| R1 Candidate | `091307f9778ba5005e99b174b0a44f1d3c1d5147` |
+| R2 Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| Review-start HEAD | `6cac78d49e8dabc8430f90786e4fb592e3b23aea` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T13:41:36Z` |
+
+### Canonical Basis
+
+- Loaded `.ai/CONSTITUTION.md`, `.ai/AUTHORITY.md`, `.ai/WORKFLOW.md`, the canonical `REVIEWER` role, assigned `QA_REVIEWER` profile, `HNS-CORE-004-QA-REVIEW-002`, and `IMPLEMENTATION_GATE`.
+- Reviewed SDD Sections 33, 34, 40.1, and 46 Phase 1; `HNS-CORE-004`; `HNS-CORE-004-TEST-DISCOVERY`; R1/R2 manifests; R2 Maker evidence; R1 and latest R2 TECH evidence; the prior Finding; and all nine reviewed artifacts.
+- Validated `AC-HNS-CORE-004-001` through `AC-HNS-CORE-004-004`, all five Test Discovery companion ACs, and all four assigned R2 QA review ACs.
+
+### Provenance and Prerequisite Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | New clone under `/private/tmp/rev-hns-core-004-qa-002.I52frY/repo`; fetch and push URLs both exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and refreshed HEAD | `PASS` | Local branch `feature/hns-core-004-error-registry`; local HEAD, fetched remote-tracking ref, and live `git ls-remote` all resolved to `6cac78d49e8dabc8430f90786e4fb592e3b23aea` at review start. |
+| Clean start and pinned runtime | `PASS` | Starting `git status --porcelain=v1` was empty; assigned PATH resolved Node `v24.19.0` and npm `11.17.0`. |
+| Manifest integrity | `PASS` | Independent SHA-256 calculation matched R1 `3c7289da...` and R2 `d9bee8dc...` exactly. |
+| R2 inheritance and replacement set | `PASS` | Seven artifact blob/content identities are inherited unchanged from R1; only `safe-details.ts` and `errors.test.mjs` have the exact declared R2 replacement identities. |
+| Candidate lineage and scope | `PASS` | R1 candidate is an ancestor of R2 candidate; remediation commit `8541d2b...` has parent `9a6428b...` and modifies only the two declared replacements. |
+| Post-candidate immutability | `PASS` | All nine reviewed artifact blobs at R2 candidate, review-start HEAD, and worktree are identical; candidate-to-HEAD changes contain only review control-plane evidence and assignments. |
+| Execution separation | `PASS` | `REV-HNS-CORE-004-QA-002-EXEC` was absent before this append and is distinct from the R2 Maker, R1 Makers, R1 TECH Reviewer, and R2 TECH Reviewer execution IDs. |
+| Required TECH prerequisite | `PASS` | Latest HNS-CORE-004 TECH evidence is `REV-HNS-CORE-004-TECH-002`, decision `PASS`, bound to candidate `8541d2b...` and R2 hash `d9bee8dc...`. |
+| Finding state | `PASS` | `FND-HNS-CORE-004-TECH-001-001` latest status is `RESOLVED` by TECH-002 on the same candidate and R2 hash. |
+
+### Artifact Identity Validation
+
+| Path | R2 Git Blob | Content SHA-256 | R2 Status |
+|---|---|---|---|
+| `work-items/HNS-CORE-004-TEST-DISCOVERY.md` | `85785481300f6be511c9c66625186aa7e45b6624` | `7ade47ad8cf45b84118473672fba3bcd04807f8efaad126f3a7a39a606a5e429` | `INHERITED PASS` |
+| `harness/package.json` | `f4dc6e4d7ecf35fa56493623e78a4d9d5a7f2562` | `8949f0350c37f0da1e5b4bd77c880ef9e53d75f09494e133c4ab1ceb330e9dd9` | `INHERITED PASS` |
+| `harness/src/errors/error-catalog.ts` | `8e21fb31747af4ec7af607b4101cab63f88c52cc` | `8025c4b45bffe920cb04868d18b934bde6e75e114fe28a4f41845844eb7dd982` | `INHERITED PASS` |
+| `harness/src/errors/exit-code-registry.ts` | `00b1962a1954def3c28d0101dd1ef643de1bf554` | `9e16fe96618c092ed48518db7189f32b2dc2039bfa878bd1c211ddb58fc31f32` | `INHERITED PASS` |
+| `harness/src/errors/harness-error.ts` | `a137dc20a534c9042f2baa9470ab8cda7b9579b8` | `71a31700b20b3b7b018648a0173f6ece1bb460605e3d9e7d2510b1d5cccfa81b` | `INHERITED PASS` |
+| `harness/src/errors/index.ts` | `af5a40b22966237747635ee85234c6a5390e5587` | `4ed4efb10f5af8550f7c4cca3a8890f13f972d56291b170cc1046f51ee520353` | `INHERITED PASS` |
+| `harness/src/errors/safe-details.ts` | `f0c00db864763cda0f72cb9192fb0116acdecd8a` | `66065b49582d380a9c985d6f487e5c6f9324ec4aea77cba94c085e772a550aca` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/errors.test.mjs` | `45792deca18f191735fa4643c29018895be2f953` | `d6b2902138d1a6ef42e39fc52eafd4fd71859391a2e0b1cd2f565d3a532a0d57` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/harness-error.types.ts` | `203a25a1a0d5086c70bf759bfd6cb1393ab27cc8` | `eae46354acc7ff6ab7945e30394cf826bbc98101148cb86a8651b1f93b365ea3` | `INHERITED PASS` |
+
+### Acceptance Criteria Results
+
+| Acceptance Criterion | Result | Independent Evidence |
+|---|---|---|
+| `AC-HNS-CORE-004-001` | `PASS` | SDD-derived parser found exactly 30 Section 33 rows and matched every code, name/default message, retryable value, human action, lifecycle mapping, and Section 34 exit mapping. |
+| `AC-HNS-CORE-004-002` | `PASS` | Independent negative probes rejected duplicate, unknown, and missing catalog codes plus duplicate, missing, unknown, non-integer, out-of-range, and unmapped exit cases. |
+| `AC-HNS-CORE-004-003` | `PASS` | Canonical and compact markers redact recursively; authentic typed causes, details, and serialized results are immutable, isolated, deterministic, and sentinel-free; unsafe values and causes fail closed. |
+| `AC-HNS-CORE-004-004` | `PASS` | Exit codes derive only from the central registry; runtime override rejected and independent compile probe emitted expected `TS2353`, `TS2540`, and `TS2740`. No Generic fallback exists. |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-001` | `PASS` | Focused root command discovered and passed 3 tests. |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-002` | `PASS` | Focused core command discovered and passed 13 tests. |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-003` | `PASS` | Focused schema command discovered and passed 38 tests across all five schema test files. |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-004` | `PASS` | Focused error command discovered and passed all 42 error registry tests. |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-005` | `PASS` | Default run passed 96 discovered tests with 0 failed, cancelled, skipped, or todo; discovery commit changed only `harness/package.json`, with no dependency or lockfile drift. |
+| `AC-HNS-CORE-004-QA-REVIEW-002-001` | `PASS` | Current TECH-002 PASS, exact R2 manifest/hash/candidate binding, artifact immutability, and finding closure all verified. |
+| `AC-HNS-CORE-004-QA-REVIEW-002-002` | `PASS` | All four primary and all five companion ACs passed independent acceptance checks. |
+| `AC-HNS-CORE-004-QA-REVIEW-002-003` | `PASS` | Canonical/compact redaction, six prior bypasses, neutral sentinel containment, safe custom message, isolation, immutability, deterministic repeats, and negative cases passed. |
+| `AC-HNS-CORE-004-QA-REVIEW-002-004` | `PASS` | Root/core/schema/error default discovery and focused regression passed with zero failed/skipped/todo/focused tests. |
+
+### Commands and Regression
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| `npm ci` | `PASS` | 7 packages added; 8 audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed under the pinned runtime. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 96 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| `node --test tests/*.test.mjs` | `PASS` | Root: 3 passed; 0 failed/skipped/todo. |
+| `node --test tests/unit/core/*.test.mjs` | `PASS` | CORE-001 regression: 13 passed; 0 failed/skipped/todo. |
+| `node --test tests/unit/schemas/*.test.mjs` | `PASS` | CORE-002/003 schema regression: 38 passed; 0 failed/skipped/todo. |
+| `node --test tests/unit/errors/*.test.mjs` | `PASS` | HNS-CORE-004 focused suite: 42 passed; 0 failed/skipped/todo. |
+| Static skip/todo/only scan | `PASS` | 0 `test`/`it`/`describe` skip, todo, or only declarations/options in `harness/tests`. |
+| Static capability/type/import scan | `PASS` | 0 `process.exit`/`process.exitCode`, forbidden runtime imports/transports, external imports, or broad `any` in `harness/src/errors`. |
+| Dependency and scope scan | `PASS` | No lockfile/dependency change; package delta only adds error test discovery; R2 remediation commit changes only its two declared paths. |
+
+### Independent Acceptance Probes
+
+| Probe | Result | Evidence |
+|---|---|---|
+| SDD-derived catalog/exit matrix | `PASS` | Parsed canonical Sections 33 and 34 at runtime, independently of checked-in expected arrays: exactly 30 ordered catalog rows and 9 ordered exit definitions matched every exported field. |
+| Registry integrity and fail-closed behavior | `PASS` | Ten negative integrity/lookup cases covered duplicate, unknown, missing, unmapped, non-integer, and out-of-range inputs; no exit-1 fallback was observed. |
+| Central exit compile/runtime contract | `PASS` | Runtime caller override rejected. An ephemeral external TypeScript fixture produced `TS2353`, `TS2540`, and `TS2740` for override, readonly assignment, and raw cause, then was removed. |
+| Authentic typed causes | `PASS` | Authentic `HarnessError` cause accepted by identity; raw `Error` and forged-prototype causes rejected. Nested typed causes retained canonical exit mappings. |
+| Immutability, isolation, and determinism | `PASS` | Instances, recursive details, shared references, causes, and repeated serialized snapshots are frozen; source/result mutations are isolated; repeated construction and serialization are byte-equal. |
+| Unsafe detail shapes | `PASS` | Sixteen independent cases covered circular object/array, zero-read accessor, sparse array, six non-plain classes, non-finite numbers, and non-JSON primitive values; all failed closed. |
+| Canonical and compact marker safety | `PASS` | Sixteen marker forms, including exact prior bypasses `tokenvalue`, `authorizationvalue`, `passwordhash`, `clientsecret`, `servicecredential`, and `sessioncookie`, redacted details and rejected unsafe custom messages. |
+| Neutral sentinel containment | `PASS` | `ULTRAVIOLET_9F8E7D6C` was absent from details, message, stack, typed cause chain, rejection JSON, cause JSON, and outer JSON for every marker case. |
+| Safe custom message | `PASS` | `Runtime operation failed safely.` was preserved exactly with canonical metadata and central exit mapping unchanged. |
+| Default discovery and regression | `PASS` | Root, CORE-001, CORE-002/003 schema, and error groups all executed in default and focused runs with no suppressions. |
+
+### Findings
+
+No new findings. Prior `FND-HNS-CORE-004-TECH-001-001` remains `RESOLVED` on the reviewed R2 candidate/hash.
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item/status, governance file, prior evidence, or prior finding state was modified.
+- This execution did not repair implementation and is independent from all Maker and TECH executions.
+- This is `QA_REVIEWER` evidence only. It does not act as TECH, Security, Gate Checker, merger, release authority, or lifecycle closer.
+- Checked-in tests were not trusted as sole evidence; independent SDD-derived, runtime, compile, provenance, identity, scope, marker, sentinel, immutability, isolation, and deterministic probes were also executed.
+
+### Decision
+
+`PASS`
+
+All assigned R2 QA acceptance criteria are satisfied for manifest SHA-256 `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` and candidate `8541d2b192392885c1d033cb5f05992c1b37a0d6`. No new finding was opened.
