@@ -1,0 +1,7 @@
+{
+  "schema_version": "harness.config/v1",
+  "context": {
+    "initial_max_files": 12,
+    "unexpected_limit": 5
+  }
+}

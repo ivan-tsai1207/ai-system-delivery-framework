@@ -1,0 +1,23 @@
+{
+  "schema_version": "harness.config/v1",
+  "github": {
+    "default_visibility": "private"
+  },
+  "adapters": {
+    "preference": ["codex"]
+  },
+  "context": {
+    "initial_max_files": 12,
+    "initial_max_sections": 32,
+    "initial_max_bytes": 524288,
+    "hard_max_files": 100,
+    "hard_max_sections": 500,
+    "hard_max_bytes": 10485760
+  },
+  "timeouts": {
+    "process_seconds": 600
+  },
+  "environment": {
+    "allowlist": ["LANG", "TOOL_MODE"]
+  }
+}
