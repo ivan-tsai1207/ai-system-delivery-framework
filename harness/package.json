@@ -29,5 +29,8 @@
   "devDependencies": {
     "typescript": "7.0.2"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "ajv": "8.20.0"
+  }
 }
