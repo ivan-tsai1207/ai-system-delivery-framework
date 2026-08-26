@@ -1244,6 +1244,42 @@ This is Maker Role Completion Evidence only. It does not constitute TECH, QA, Se
 
 Reviewer decision: `REQUEST_CHANGES`.
 
+## RCE-HNS-CORE-003-REMEDIATION-R2-001 - HNS-CORE-003 Transactional Registration Remediation
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-003-REMEDIATION-R2-001` |
+| Execution ID | `IMP-HNS-CORE-003-REMEDIATION-R2-001` |
+| Work Item | `HNS-CORE-003` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `MEDIUM` |
+| Source Review Evidence | `REV-HNS-CORE-003-TECH-001` |
+| Finding | `FIND-HNS-CORE-003-TECH-001` (`OPEN MAJOR`) |
+| R1 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation.md`; `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| R2 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation-r2.md`; `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` |
+| Remediation Commit | `3b3040fed8aeec28b9afdb716c99cca24c89058e` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Scope | `PASS` | Only `harness/src/schemas/registry.ts` and `harness/tests/unit/schemas/registry.test.mjs` changed. |
+| Transaction rollback | `PASS` in Maker self-review | Failed Ajv compilation removes the attempted schema ID before returning the registration error; public maps commit only after success. |
+| Invalid-keyword retry regression | `PASS` in Maker self-review | Failed registration leaves no public state; valid same-ID retry validates successfully. |
+| Unresolved-reference retry regression | `PASS` in Maker self-review | Failed registration leaves no public state; valid same-ID retry validates successfully. |
+| Build / typecheck | `PASS` | Strict build and no-emit typecheck completed. |
+| Default tests | `PASS` | 54 passed; 0 failed, cancelled, skipped, or todo. |
+| Security check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+`FIND-HNS-CORE-003-TECH-001` remains `OPEN`. This Maker evidence does not close the Finding, produce a Reviewer PASS, or pass `IMPLEMENTATION_GATE`.
+
 GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
 
 ### Integrity and Independence Validation
