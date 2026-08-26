@@ -1151,3 +1151,106 @@ This evidence records lifecycle and merge completion only. It is not a Reviewer 
 `READY_FOR_REVIEW`
 
 This is Maker Role Completion Evidence only. It does not constitute TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
+
+---
+
+## REV-HNS-CORE-003-TECH-001 - HNS-CORE-003 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-003-TECH-001` |
+| Execution ID | `REV-HNS-CORE-003-TECH-001-EXEC` |
+| Work Item | `work-items/HNS-CORE-003-TECH-REVIEW-001.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution IDs | `IMP-HNS-CORE-003-DEPENDENCY-001`; `IMP-HNS-CORE-003-SCHEMAS-001`; `IMP-HNS-CORE-003-TEST-DISCOVERY-001` |
+| Maker Evidence | `RCE-HNS-CORE-003-IMPLEMENTATION-001` |
+| Reviewer Execution ID | `REV-HNS-CORE-003-TECH-001-EXEC` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation.md` |
+| Artifact Hash | `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| Candidate Commit | `b12b416c51bbd4dc268c5e3d2cdbe811eba7565c` |
+| Review Start HEAD | `4ebc01a080c78d37e8bc9cb3334bf693eccc54b3` |
+| Timestamp | `2026-08-26T07:00:50Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-003-001` through `AC-HNS-CORE-003-004`; all dependency and test-discovery companion ACs; `AC-HNS-CORE-003-TECH-REVIEW-001-001` through `AC-HNS-CORE-003-TECH-REVIEW-001-004`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 5, 6, 40.1, and 46 Phase 1; `templates/Work_Item.md`.
+- Screen Specs: `N/A`.
+- Work Items: `work-items/HNS-CORE-003.md`; `work-items/HNS-CORE-003-DEPENDENCY-AJV.md`; `work-items/HNS-CORE-003-TEST-DISCOVERY.md`; `work-items/HNS-CORE-003-TECH-REVIEW-001.md`.
+- Maker Evidence: `RCE-HNS-CORE-003-IMPLEMENTATION-001` and the immutable implementation manifest.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-003-TECH-001-01` | Independent repository preflight | Fresh temporary clone from the assigned HTTPS origin; verified origin URL, clean checkout, remote branch, and expected review-start HEAD | origin `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; remote and local HEAD `4ebc01a080c78d37e8bc9cb3334bf693eccc54b3` | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-02` | Candidate lineage and identity | `git merge-base --is-ancestor`; exact parent-chain inspection; commit author/committer inspection; cross-check manifest, Work Items, and Maker evidence | Linear chain `5ef3e18 -> 49edddf -> d9f65de -> b147432 -> b12b416 -> 4ebc01a`; all commits authored and committed by `Ivan <ivan@alion.jp>`; all three Maker execution IDs agree; Reviewer execution ID is distinct | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-03` | Manifest integrity | SHA-256 recomputation | `2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-04` | Artifact identity | Parsed all manifest artifact rows; recomputed candidate Git blob IDs and content SHA-256 values; compared review-start HEAD blobs | All `45` artifact paths matched; `0` blob/content/HEAD mismatches | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-05` | Work Item and evidence binding | Compared assigned review Work Item, three Maker Work Items, manifest metadata, Maker evidence, risk, profile, candidate, and gate | Artifact/hash, Maker identities, `MEDIUM` risk, `TECH_REVIEWER`, and `IMPLEMENTATION_GATE` bindings agree | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-06` | Canonical schema and domain alignment | Compared all 12 registered IDs and schema fields/enums/requiredness with SDD Sections 5 and 6 and `templates/Work_Item.md`; independently enumerated and resolved the runtime registry | Exactly 12 canonical IDs in SDD order; accountability, Work Item, execution, policy, audit, bootstrap, context, and project schemas align | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-07` | Exact resolution, duplicate, and unknown handling | Source inspection plus independent runtime probes for exact IDs, duplicate registration, malformed IDs, unknown names, and newer versions | Exact IDs resolve; duplicates throw `DUPLICATE_SCHEMA`; unknown names return `UNKNOWN_SCHEMA`; unsupported versions return `UNKNOWN_VERSION`; no fallback | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-08` | Registration transaction semantics | Independent probes first registered an invalid-keyword schema or unresolved-reference schema, confirmed public absence, then retried a valid schema with the same `$id` | Both retries failed because Ajv retained the rejected `$id` while `resolve()` and `listSchemaIds()` reported it absent; see `FIND-HNS-CORE-003-TECH-001` | `FAILED` |
+| `REV-HNS-CORE-003-TECH-001-09` | Work Item version behavior | Independent runtime probes using v1 legacy and v2 fixtures | v1 returns frozen `MIGRATION_REQUIRED`, target v2, `executable: false`; v2 valid passes; missing/invalid/wrong-version inputs fail closed | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-10` | Accountability schemas | Independent valid, missing-required, invalid-value, and wrong-version fixture matrix for Review Assignment, Role Evidence, Finding, and Delivery Assurance | Valid fixtures pass; all malformed fixtures are `INVALID`; document-directed wrong versions are not downgraded | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-11` | Determinism and input integrity | Repeated invalid validation, sorted issue tuple comparison, before/after serialization, frozen result inspection, and accessor-backed dispatch probe | Stable sorted errors; inputs unchanged; results/issues frozen; `schema_version` getter not invoked | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-12` | Runtime/dependency/type boundary | Package/lock/source/declaration inspection and scoped scans | Exact `ajv@8.20.0`; `Ajv2020` entrypoint; strict TypeScript; no broad `any`; no Ajv public contract, vendor adapter, parser/migrator, filesystem/process/network/persistence capability | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-13` | JSON/TypeScript schema duplication | Independently dereferenced all local `$defs`/`$ref` entries in all JSON schemas and compared the normalized documents with the 12 runtime TypeScript schema values | `12` compared; `0` semantic mismatches; duplication does not create a current contract defect | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-14` | Exact authorized scope | Compared base-to-candidate changed paths with manifest paths and validated each preparation/dependency/schema/test-discovery commit against its Work Item boundary | Candidate diff and manifest are the same `45` paths; each commit is confined to its authorized paths; no unrelated capability found | `PASS` |
+| `REV-HNS-CORE-003-TECH-001-15` | Test discovery integrity | Default runner output plus static `.skip`/`.todo`/`.only` scan | Root, core, and schema tests discovered; no failed, cancelled, skipped, todo, or focused test markers | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Environment | Pinned temporary Node distribution; `node --version`; `npm --version`; Node distribution checksum | `PASS` | Node `v24.19.0`; npm `11.17.0`; official archive checksum `OK` |
+| Clean Install | `npm ci` in `harness/` | `PASS` | `added 7 packages`; `found 0 vulnerabilities` |
+| Build | `npm run build` | `PASS` | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` | `tsc --project tsconfig.json --noEmit` completed with strict options |
+| Lint | `N/A` | `NOT_APPLICABLE` | No lint script is defined; `git diff --check` and scoped source scans passed |
+| Unit / Smoke Test | `npm test` | `PASS` | `tests 52`; `pass 52`; `fail 0`; `cancelled 0`; `skipped 0`; `todo 0` |
+| Security Check | `npm audit --audit-level=high` | `PASS` | `found 0 vulnerabilities` |
+| Dependency Resolution | `npm ls ajv --all`; `npm ls --depth=0` | `PASS` | Exact runtime dependency `ajv@8.20.0`; only expected direct runtime/dev dependencies |
+| Canonical Runtime Probe | Inline Node probe against built `dist/schemas/index.js` | `PASS` | Canonical IDs, exact/unknown/duplicate handling, v1/v2, accountability matrix, deterministic errors, non-mutation, accessor safety |
+| JSON/TypeScript Parity Probe | Inline Node semantic normalization and deep comparison | `PASS` | All 12 JSON artifacts exactly matched runtime TypeScript schemas after local reference expansion |
+| Registration Rollback Probe | Inline Node probe against built `SchemaRegistry.register()` | `FAILED` | `2/2` failed-compilation cases poisoned the `$id`; valid retry returned `INVALID_SCHEMA_REGISTRATION` with Ajv `already exists` |
+
+### Implementer Scope Evidence
+
+- Changed Files: The candidate changes exactly the 45 paths bound by the manifest: two control-plane companion Work Items, package/lock dependency state, 12 JSON schemas, three schema source modules, 21 fixtures, and five schema test files.
+- Diff Scope: Control-plane preparation commit changes only companion Work Items; dependency commit changes only package and lock files; schema commit changes only authorized schema/source/fixture/test paths; test-discovery commit changes only `harness/package.json`.
+- Unauthorized Change Check: No implementation, test, schema, manifest, governance, parser, migration engine, compiler, adapter, filesystem/process/network/persistence capability, HNS-CORE-004, HNS-CORE-005, or unrelated artifact was added outside the authorized candidate scope.
+- Backward Compatibility: Canonical validation remains fail closed and existing tests pass, but failed dynamic registration leaves hidden Ajv state and prevents a subsequent valid same-ID registration in the same registry instance.
+
+### Findings
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Requirement Reference | Description | Severity | Evidence Reference | Required Action | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `FIND-HNS-CORE-003-TECH-001` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-003` | `harness/src/schemas/registry.ts` / manifest `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` | `AC-HNS-CORE-003-001`; SDD Section 6 fail-closed/version registry rules; `TECH_REVIEWER` correctness and error-handling checks | `SchemaRegistry.register()` calls `Ajv2020.compile()` before committing its public maps, but does not roll back Ajv when compilation throws. For both an invalid keyword schema and an unresolved `$ref`, the rejected ID is absent from `resolve()`/`listSchemaIds()` yet remains reserved inside Ajv; retrying a valid schema with the same ID fails as already registered. Registry state is therefore non-atomic, internally inconsistent, and order-dependent after rejected input. | `MAJOR` | `REV-HNS-CORE-003-TECH-001-08`; `harness/src/schemas/registry.ts:206`; independent probe reported `POISONED_REGISTRATION_CASES=2` | Make registration transactional so Ajv, schema snapshots, and validators either commit together or fully roll back; add regression tests for valid same-ID retry after invalid-keyword and unresolved-reference compilation failures. A different independent `TECH_REVIEWER` execution must verify the remediated artifact hash; this execution does not close its own finding. | `OPEN` |
+
+### Known Limitations and Unresolved Issues
+
+- `FIND-HNS-CORE-003-TECH-001` remains `OPEN`; no implementation artifact was modified by this Reviewer.
+- The 12 JSON schema artifacts and TypeScript runtime schemas are duplicated representations. Independent semantic comparison found no current mismatch, but the checked-in suite does not directly enforce full 12-schema semantic parity.
+- This evidence is only a `TECH_REVIEWER` decision. It does not perform QA, Security, any Gate, merge, lifecycle closure, parser/migration implementation, or delivery assurance.
+- `npm ci` and build created ignored `harness/node_modules/` and `harness/dist/` in the fresh temporary clone; neither is tracked, staged, or committed.
+- Accepted Risk References: `None`.
+
+### Result
+
+Reviewer decision: `REQUEST_CHANGES`.
+
+GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
+
+### Integrity and Independence Validation
+
+- [x] Manifest SHA-256 and every bound artifact Git blob/content SHA-256 match the reviewed candidate.
+- [x] Maker and Reviewer execution IDs are different; all Maker identities match the Work Items, manifest, and Maker evidence.
+- [x] Reviewer Profile is assigned by `work-items/HNS-CORE-003-TECH-REVIEW-001.md`.
+- [x] Reviewer execution did not modify implementation, tests, schemas, manifest, Work Items, package files, governance, or other documentation.
+- [x] Required evidence and the open finding were appended only to `docs/08_agent_reviews/review_log.md`.
+- [x] This evidence remains bound to candidate `b12b416c51bbd4dc268c5e3d2cdbe811eba7565c` and manifest hash `2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58`; any artifact change invalidates it.
