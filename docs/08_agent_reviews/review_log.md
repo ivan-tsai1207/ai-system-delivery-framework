@@ -2515,3 +2515,53 @@ GateResult: `PASS`.
 No Security Work Item was created because the independently validated requirement decision was `NOT_REQUIRED`.
 
 This evidence records lifecycle and merge completion only. It is not a Reviewer decision, GateResult, release approval, merge to `main`, or authorization to start HNS-CORE-005.
+
+---
+
+## RCE-HNS-CORE-005-IMPLEMENTATION-001 - HNS-CORE-005 Maker Role Completion Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-IMPLEMENTATION-001` |
+| Work Items | `HNS-CORE-005`; `HNS-CORE-005-TEST-DISCOVERY` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| Control Plane Preparation Commit | `efbe79dc1ae03324b2c96938bebde134855dc8a7` |
+| Final Implementation Commit | `69cc15276f254544d4d06ceaae0125d815e2ac9d` |
+| Candidate / Test Discovery Commit | `86aa33f9fefdacbdd9577802861d49bb07477d2c` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation.md` |
+| Artifact Hash | `sha256:432afa16c262c514d36eb74e212d322f5579f641dc7e0883ac9266fee8a99b0d` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T18:33:34Z` |
+
+### Checks and Tests
+
+| Check | Result | Evidence |
+|---|---|---|
+| Primary implementation scope | `PASS` | Thirteen hash/config source, test, and fixture files only; all are inside the primary Work Item Write Scope. |
+| Test discovery scope | `PASS` | `harness/package.json` only; no lockfile, dependency, source, or test change. |
+| Canonical hash contract | `PASS` | Unicode-normalized deterministic key ordering, path-independent canonical UTF-8 bytes, SHA-256 vectors, mismatch verification, unsupported-value rejection, and redacted diagnostics. |
+| Config contract | `PASS` | Exact v1 validation, unknown/secret fail-closed checks, trusted-host merge followed by project/invocation narrowing, immutable snapshots, and explicit allowlist environment policy. |
+| Build / typecheck | `PASS` | Strict TypeScript build and no-emit typecheck under the required runtime. |
+| Focused tests | `PASS` | 30 hash/config tests passed; 0 failed. |
+| Default tests | `PASS` | 126 discovered tests passed; 0 failed, cancelled, skipped, or todo; count is evidence only. |
+| Security / dependency check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities; no dependency or lockfile change. |
+| Capability / scope scan | `PASS` | No Context/Policy compiler, audit store, runtime process, filesystem/network I/O, adapter, environment injection, or later-phase implementation. |
+
+### Acceptance Criteria Self Review
+
+- `AC-HNS-CORE-005-001`: `PASS` in Maker self-review; equivalent normalized values produce identical canonical bytes and SHA-256 independent of key ordering and fixture path.
+- `AC-HNS-CORE-005-002`: `PASS` in Maker self-review; config precedence only narrows and unknown keys, secret-bearing keys/values, invalid versions, and denied environment names fail closed.
+- `AC-HNS-CORE-005-003`: `PASS` in Maker self-review; Unicode/path independence, mismatch behavior, and redacted diagnostics are covered.
+- `AC-HNS-CORE-005-004`: `PASS` in Maker self-review; no forbidden compiler, audit, runtime, adapter, I/O, or dependency behavior was introduced.
+- Test discovery companion ACs: `PASS` in Maker self-review; root, core, schema, error, hash, and config suites are discovered by default.
+
+### Result
+
+`READY_FOR_REVIEW`
+
+This is Maker Role Completion Evidence only. It is not TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
