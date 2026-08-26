@@ -1755,3 +1755,62 @@ No unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains for the R2 candida
 ### Result
 
 GateResult: `PASS`.
+
+## LC-HNS-CORE-003-001 - HNS-CORE-003 Lifecycle and Merge Completion
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `LC-HNS-CORE-003-001` |
+| Evidence Type | `LIFECYCLE_MERGE_COMPLETION` |
+| Result | `COMPLETE` |
+| Target Branch | `develop` |
+| Base Develop Commit | `5ef3e18432440f52230130512ec097ec1ac6bd3f` |
+| Final Implementation Commit | `3b3040fed8aeec28b9afdb716c99cca24c89058e` |
+| Final Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation-r2.md` |
+| Final Manifest Hash | `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` |
+| Maker Evidence | `RCE-HNS-CORE-003-IMPLEMENTATION-001`; `RCE-HNS-CORE-003-REMEDIATION-R2-001` |
+| TECH Evidence | `REV-HNS-CORE-003-TECH-002` (`PASS`); commit `7b96417d32a1f984b8cbbbb5ec66dec37b55f421` |
+| QA Evidence | `REV-HNS-CORE-003-QA-002` (`PASS`); commit `b258ca3c69d6b4d1c09d052abdbc817bfc830770` |
+| Security Evidence | `REV-HNS-CORE-003-SECURITY-002` (`PASS`); commit `492cb3579644c1dc8773028fa24fe6a0cb928417` |
+| Implementation Gate | `IG-HNS-CORE-003-001` (`PASS`); commit `dbe17fbf6e1eba9c73e106c4e83a285cac2d6530` |
+| Merge Commit | `512bf728fac21407aff4d4081bbf206ad8f25f4f` |
+| Timestamp | `2026-08-26T08:05:41Z` |
+
+### Post-Merge Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Runtime | `PASS` | Node `v24.19.0`; npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages installed; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit typecheck completed. |
+| `npm test` | `PASS` | 54 passed; 0 failed, cancelled, skipped, or todo; root, core, and schema suites discovered. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| `npm ls ajv --all` | `PASS` | Exact `ajv@8.20.0`. |
+| Skip / todo / only scan | `PASS` | No disabling or focused markers found. |
+
+### Review, Security, and Finding Closure
+
+- `REV-HNS-CORE-003-TECH-001` remains historical `REQUEST_CHANGES`; its execution Work Item is complete.
+- `FIND-HNS-CORE-003-TECH-001` is `RESOLVED` by `REV-HNS-CORE-003-TECH-002` against the R2 manifest.
+- `REV-HNS-CORE-003-QA-002` and `REV-HNS-CORE-003-SECURITY-002` independently passed against the same R2 manifest hash.
+- Security review was required and satisfied because exact `ajv@8.20.0` introduced a dependency-trust change. No accepted risk was used.
+- No unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains.
+
+### Lifecycle Closure
+
+| Work Item | Final Status | Reason |
+|---|---|---|
+| `HNS-CORE-003` | `DONE` | Implementation Gate and post-merge validation passed. |
+| `HNS-CORE-003-DEPENDENCY-AJV` | `DONE` | Exact dependency and supply-chain review passed. |
+| `HNS-CORE-003-TEST-DISCOVERY` | `DONE` | Default test discovery verified. |
+| `HNS-CORE-003-TECH-REVIEW-001` | `DONE` | Executed with `REQUEST_CHANGES`; evidence retained. |
+| `HNS-CORE-003-TECH-REVIEW-002` | `DONE` | Executed with `PASS`; Finding resolved. |
+| `HNS-CORE-003-QA-REVIEW-001` | `CANCELLED` | Never executed; R1 assignment became stale after remediation. |
+| `HNS-CORE-003-QA-REVIEW-002` | `DONE` | Executed with `PASS`. |
+| `HNS-CORE-003-SECURITY-REVIEW-001` | `CANCELLED` | Never executed; R1 assignment became stale after remediation. |
+| `HNS-CORE-003-SECURITY-REVIEW-002` | `DONE` | Executed with `PASS`. |
+
+This evidence records lifecycle and merge completion only. It is not a Reviewer decision, GateResult, release approval, merge to `main`, or authorization to start HNS-CORE-004.
