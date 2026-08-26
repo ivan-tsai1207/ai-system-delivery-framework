@@ -2456,3 +2456,62 @@ All assigned R2 QA acceptance criteria are satisfied for manifest SHA-256 `d9bee
 ### Result
 
 GateResult: `PASS`.
+
+---
+
+## LC-HNS-CORE-004-001 - HNS-CORE-004 Lifecycle and Merge Completion
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `LC-HNS-CORE-004-001` |
+| Evidence Type | `LIFECYCLE_MERGE_COMPLETION` |
+| Result | `COMPLETE` |
+| Target Branch | `develop` |
+| Base Develop Commit | `977a90fa373d3500285a628c4cf07fe31b1470cd` |
+| Final Implementation Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| Final Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` |
+| Final Manifest Hash | `sha256:d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| Maker Evidence | `RCE-HNS-CORE-004-IMPLEMENTATION-001`; `RCE-HNS-CORE-004-REMEDIATION-R2-001` |
+| TECH Evidence | `REV-HNS-CORE-004-TECH-002` (`PASS`); commit `6cac78d49e8dabc8430f90786e4fb592e3b23aea` |
+| QA Evidence | `REV-HNS-CORE-004-QA-002` (`PASS`); commit `535f7e4ff057fb9a8408fd5a3900abfb27314e07` |
+| Security Requirement | `SECURITY_REVIEWER = NOT_REQUIRED`; `SEC-CALC-HNS-CORE-004-001`; commit `d0f3f7337424802d1ab872fbfec67782a9cd6471` |
+| Implementation Gate | `IG-HNS-CORE-004-001` (`PASS`); commit `568c90388a223480523a4f42877afeb5ea1991b5` |
+| Merge Commit | `e48b68b614c76aac4d18e72fa5762415ef798a33` |
+| Timestamp | `2026-08-26T14:02:00Z` |
+
+### Post-Merge Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Runtime | `PASS` | Node `v24.19.0`; npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages installed; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit typecheck completed. |
+| `npm test` | `PASS` | 96 passed; 0 failed, cancelled, skipped, or todo; root, core, schema, and error suites discovered. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Skip / todo / only scan | `PASS` | No disabling or focused markers found. |
+
+### Review, Security, and Finding Closure
+
+- R1 `REV-HNS-CORE-004-TECH-001` remains historical `REQUEST_CHANGES`; its execution Work Item is complete.
+- `FND-HNS-CORE-004-TECH-001-001` is latest `RESOLVED` by `REV-HNS-CORE-004-TECH-002` against the R2 candidate/hash.
+- `REV-HNS-CORE-004-QA-002` independently passed against the same R2 candidate/hash and reconfirmed finding closure.
+- Security review was independently calculated as `NOT_REQUIRED`: the candidate is pure in-memory redaction/error metadata with no auth, permission enforcement, credential source/storage, external I/O, dependency trust change, production boundary, or Accepted Risk.
+- No unresolved `OPEN BLOCKING` or `OPEN MAJOR` finding remains.
+
+### Lifecycle Closure
+
+| Work Item | Final Status | Reason |
+|---|---|---|
+| `HNS-CORE-004` | `DONE` | Implementation Gate and post-merge validation passed. |
+| `HNS-CORE-004-TEST-DISCOVERY` | `DONE` | Default root/core/schema/error discovery verified. |
+| `HNS-CORE-004-TECH-REVIEW-001` | `DONE` | Executed with `REQUEST_CHANGES`; historical evidence retained. |
+| `HNS-CORE-004-TECH-REVIEW-002` | `DONE` | Executed with `PASS`; Finding resolved. |
+| `HNS-CORE-004-QA-REVIEW-001` | `CANCELLED` | Never executed; R1 assignment became stale after remediation. |
+| `HNS-CORE-004-QA-REVIEW-002` | `DONE` | Executed with `PASS`. |
+
+No Security Work Item was created because the independently validated requirement decision was `NOT_REQUIRED`.
+
+This evidence records lifecycle and merge completion only. It is not a Reviewer decision, GateResult, release approval, merge to `main`, or authorization to start HNS-CORE-005.
