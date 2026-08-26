@@ -1864,3 +1864,117 @@ This evidence records lifecycle and merge completion only. It is not a Reviewer 
 `READY_FOR_REVIEW`
 
 This is Maker Role Completion Evidence only. It is not TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
+
+## REV-HNS-CORE-004-TECH-001 - HNS-CORE-004 Independent Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-004-TECH-001` |
+| Reviewer Execution ID | `REV-HNS-CORE-004-TECH-001-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `LOW` |
+| Work Item | `HNS-CORE-004-TECH-REVIEW-001` |
+| Maker Evidence | `RCE-HNS-CORE-004-IMPLEMENTATION-001` |
+| Maker Execution IDs | `IMP-HNS-CORE-004-ERRORS-001`; `IMP-HNS-CORE-004-TEST-DISCOVERY-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md` |
+| Manifest SHA-256 | `3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| Candidate Commit | `091307f9778ba5005e99b174b0a44f1d3c1d5147` |
+| Final Error Implementation Commit | `b56bf1092ed107aa71e6fc2e833569023a6645bf` |
+| Review-start HEAD | `0ab11af6a3a7c6d1f6963c320fbc97d12db2989c` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T13:02:11Z` |
+
+### Provenance and Identity Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | New clone under `/private/tmp/rev-hns-core-004-tech-001.q2dfTj/repo`; fetch and push origin both exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework`. |
+| Branch and refreshed remote HEAD | `PASS` | Local branch `feature/hns-core-004-error-registry`; local HEAD, fetched remote-tracking ref, and `git ls-remote` all resolved to `0ab11af6a3a7c6d1f6963c320fbc97d12db2989c` at review start. |
+| Clean starting tree | `PASS` | `git status --porcelain=v1` was empty before dependency installation and review execution. |
+| Independent execution identity | `PASS` | Reviewer execution/evidence IDs were absent from prior evidence and are distinct from both Maker execution IDs. |
+| Candidate ancestry | `PASS` | `b56bf109...` is an ancestor of `091307f...`; `091307f...` is an ancestor of review-start HEAD. The manifest lineage is a direct-parent chain. |
+| Manifest integrity | `PASS` | Worktree SHA-256 equals the assigned immutable hash; worktree blob and `HEAD` blob both equal `1f505589bf7520773dcada649ee985b39860b3c9`. |
+| Post-candidate immutability | `PASS` | Every reviewed artifact has the same Git blob at candidate, review-start HEAD, and worktree; `git diff 091307f...0ab11af -- <artifact>` is empty for all nine artifacts. |
+
+### Artifact Identity Validation
+
+| Path | Git Blob SHA | Content SHA-256 | Result |
+|---|---|---|---|
+| `work-items/HNS-CORE-004-TEST-DISCOVERY.md` | `85785481300f6be511c9c66625186aa7e45b6624` | `7ade47ad8cf45b84118473672fba3bcd04807f8efaad126f3a7a39a606a5e429` | `PASS` |
+| `harness/package.json` | `f4dc6e4d7ecf35fa56493623e78a4d9d5a7f2562` | `8949f0350c37f0da1e5b4bd77c880ef9e53d75f09494e133c4ab1ceb330e9dd9` | `PASS` |
+| `harness/src/errors/error-catalog.ts` | `8e21fb31747af4ec7af607b4101cab63f88c52cc` | `8025c4b45bffe920cb04868d18b934bde6e75e114fe28a4f41845844eb7dd982` | `PASS` |
+| `harness/src/errors/exit-code-registry.ts` | `00b1962a1954def3c28d0101dd1ef643de1bf554` | `9e16fe96618c092ed48518db7189f32b2dc2039bfa878bd1c211ddb58fc31f32` | `PASS` |
+| `harness/src/errors/harness-error.ts` | `a137dc20a534c9042f2baa9470ab8cda7b9579b8` | `71a31700b20b3b7b018648a0173f6ece1bb460605e3d9e7d2510b1d5cccfa81b` | `PASS` |
+| `harness/src/errors/index.ts` | `af5a40b22966237747635ee85234c6a5390e5587` | `4ed4efb10f5af8550f7c4cca3a8890f13f972d56291b170cc1046f51ee520353` | `PASS` |
+| `harness/src/errors/safe-details.ts` | `b161b15dadd4d5d0d8972ebffe56f9503de0ea67` | `4e3bf7abcef35c427f1362341687f8114a28d523b5a27275a2df1b20db5d6e5f` | `PASS` |
+| `harness/tests/unit/errors/errors.test.mjs` | `2caacb4a739eb6ca31682b11e94241054e3ad13c` | `698ac4ae8534e3b7772853b401d5568b1bcf078f2a576d7097b88b68c4736eda` | `PASS` |
+| `harness/tests/unit/errors/harness-error.types.ts` | `203a25a1a0d5086c70bf759bfd6cb1393ab27cc8` | `eae46354acc7ff6ab7945e30394cf826bbc98101148cb86a8651b1f93b365ea3` | `PASS` |
+
+### Commit Scope Validation
+
+| Commit | Scope | Result |
+|---|---|---|
+| `a78ab0b...` | Added only `work-items/HNS-CORE-004-TEST-DISCOVERY.md`. | `PASS` |
+| `449a24c...` | Added only five `harness/src/errors/**` modules and two `harness/tests/unit/errors/**` files. | `PASS` |
+| `b56bf10...` | Modified only `harness-error.ts`, `safe-details.ts`, and `errors.test.mjs`. | `PASS` |
+| `091307f...` | Modified only `harness/package.json` test discovery. | `PASS` |
+| `0ab11af...` | Added the immutable manifest and independent-review control artifacts; modified prior Maker evidence only. No reviewed artifact changed. | `PASS` |
+
+No dependency or lockfile drift, CLI/runtime/adapter/vendor/HNS-CORE-005 scope, filesystem/network capability, `process.exit`, or broad `any` was found in the candidate scope.
+
+### Commands
+
+| Command | Result | Evidence |
+|---|---|---|
+| `npm ci` | `PASS` | 7 packages added; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 94 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Static skip / todo / only scan | `PASS` | No `test/it/describe.skip`, `.todo`, `.only`, or option-form skip/todo/only found. |
+| Static production-boundary scans | `PASS` | No forbidden capability/import, broad `any`, dependency/lockfile drift, or unauthorized candidate path found. |
+
+Default discovery includes root, core, schema, and error globs. The current tree contains 1 root test file, 1 core test file, 5 schema test files, and 1 error test file; the official default run executed all four groups.
+
+### Independent Probes
+
+| Probe | Result | Evidence |
+|---|---|---|
+| SDD-derived catalog and exit comparison | `PASS` | Parsed Sections 33 and 34 independently: exactly 30 catalog rows and 9 exit definitions matched every exported field and mapping. |
+| Registry fail-closed behavior | `PASS` | Duplicate, unknown, missing, non-integer, and out-of-range catalog/exit inputs rejected; no Generic fallback was observed. |
+| Central-only exit contract | `PASS` | Every constructed error derived its exit from the catalog; runtime caller override rejected. An independent TypeScript compile probe rejected the option override, readonly assignment, and raw `Error` cause. |
+| Typed immutable error contract | `PASS` | Authentic typed causes accepted; raw/forged causes rejected; instances, recursive details, cause chain, and serialized snapshots frozen. |
+| Details behavior | `PASS` | Source/result isolation, preserved shared identity, circular object/array rejection, accessor rejection with zero getter reads, dense-array enforcement, and six non-plain value classes verified. |
+| Representative redaction/message safety | `PASS` | 29 canonical case, camel, snake, hyphen, and compact variants redacted; unsafe `Authorization` message rejected before `HarnessError` construction; safe custom message preserved; sentinel absent from the accepted typed cause chain and serialized output. |
+| Determinism | `PASS` | Repeated construction and serialization produced equal JSON with isolated frozen result objects. |
+| Delimiter-free lowercase marker boundary | `FAIL` | `tokenvalue`, `authorizationvalue`, `passwordhash`, `clientsecret`, `servicecredential`, and `sessioncookie` bypassed details redaction and custom-message rejection. The sentinel reached details JSON and accepted error message, stack, and JSON. |
+
+### Findings
+
+#### FND-HNS-CORE-004-TECH-001-001 - Delimiter-free sensitive marker variants leak secret values
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-004-TECH-001-001` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-004-003`; `AC-HNS-CORE-004-TECH-REVIEW-001-003` |
+| Evidence | `harness/src/errors/safe-details.ts:38-50`, `harness/src/errors/safe-details.ts:130-132`, `harness/src/errors/harness-error.ts:106-110`; independent sentinel bypass probe. |
+| Action | Expand sensitive-marker normalization/detection so delimiter-free lowercase compounds containing the canonical token, authorization, password, secret, credential, and cookie markers cannot bypass details redaction or custom-message rejection. Add focused regression coverage, issue a new candidate/manifest hash, and obtain a new independent review. |
+
+The detector recognizes exact marker words and only three compact compounds (`apikey`, `accesstoken`, `refreshtoken`). Other plausible delimiter-free lowercase variants are treated as safe. This permits raw values to enter immutable details and permits accepted custom messages to place the same value in message, stack, and JSON, violating the redaction and unsafe-message boundary.
+
+### Scope and Limitations
+
+- Reviewer write scope was limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, governance file, prior evidence, status, harness source/test, or candidate commit was modified.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, merger, or lifecycle closer.
+- Checked-in tests were run but were not trusted as the sole evidence; independent SDD-derived runtime, compile-time, boundary, provenance, hash, and static probes were used.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+The implementation and candidate identities are valid and all official commands pass, but `FND-HNS-CORE-004-TECH-001-001` remains `OPEN`. The redaction/message-safety acceptance criterion is therefore not satisfied for the reviewed manifest hash.
