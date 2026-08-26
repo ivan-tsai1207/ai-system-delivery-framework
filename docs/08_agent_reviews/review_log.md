@@ -2309,3 +2309,150 @@ All assigned R2 QA acceptance criteria are satisfied for manifest SHA-256 `d9bee
 ### Decision
 
 `SECURITY_REVIEWER = NOT_REQUIRED`
+
+---
+
+## IG-HNS-CORE-004-001 - HNS-CORE-004 Implementation Gate
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `IG-HNS-CORE-004-001` |
+| Execution ID | `IG-HNS-CORE-004-001-EXEC` |
+| Execution Type | `GATE_CHECKER` |
+| Work Items | `work-items/HNS-CORE-004.md`; `work-items/HNS-CORE-004-TEST-DISCOVERY.md` |
+| Gate | `IMPLEMENTATION_GATE` |
+| GateResult | `PASS` |
+| Risk Class | `LOW` |
+| Repository | `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git` |
+| Branch | `feature/hns-core-004-error-registry` |
+| Branch HEAD at Gate Start | `d0f3f7337424802d1ab872fbfec67782a9cd6471` |
+| R1 Candidate Commit | `091307f9778ba5005e99b174b0a44f1d3c1d5147` |
+| R2 Reviewed Candidate Commit | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| R1 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation.md`; `sha256:3c7289da5b299798e853593fa3b904d77136d579a34891459f550cc520638d5a` |
+| R2 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md`; `sha256:d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| Maker Evidence | `RCE-HNS-CORE-004-IMPLEMENTATION-001`; `RCE-HNS-CORE-004-REMEDIATION-R2-001` |
+| TECH_REVIEWER Evidence / Commit | `REV-HNS-CORE-004-TECH-002` (`PASS`); `6cac78d49e8dabc8430f90786e4fb592e3b23aea` |
+| QA_REVIEWER Evidence / Commit | `REV-HNS-CORE-004-QA-002` (`PASS`); `535f7e4ff057fb9a8408fd5a3900abfb27314e07` |
+| Security Calculation / Commit | `SEC-CALC-HNS-CORE-004-001` (`SECURITY_REVIEWER = NOT_REQUIRED`); `d0f3f7337424802d1ab872fbfec67782a9cd6471` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-26T13:58:10Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-004-001` through `AC-HNS-CORE-004-004`; `AC-HNS-CORE-004-TEST-DISCOVERY-001` through `AC-HNS-CORE-004-TEST-DISCOVERY-005`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 33, 34, 40.1, and 46 Phase 1.
+- Gate and governance: `.ai/CONSTITUTION.md`; `.ai/AUTHORITY.md`; `.ai/WORKFLOW.md`; `.ai/HARNESS_CONTRACT.md`; `.ai/gates/implementation-gate.md`; canonical role, reviewer-profile, and risk-policy sources.
+- Review chain: R1 and R2 manifests; both Maker evidence records; R1 TECH evidence and Finding; current R2 TECH and QA evidence; Security requirement calculation.
+
+### Gate Checks
+
+| Check ID | Check | Evidence Reference | Result |
+|---|---|---|---|
+| `IG-HNS-CORE-004-001-01` | Independent repository preflight | Fresh temporary HTTPS clone; origin exactly matches the assigned repository; local branch, refreshed remote-tracking ref, `FETCH_HEAD`, and live remote tip equal expected gate-start `d0f3f733...`; tracked tree was clean | `PASS` |
+| `IG-HNS-CORE-004-001-02` | Runtime preflight | Assigned PATH resolves the supplied Node and npm binaries; versions are exactly Node `v24.19.0` and npm `11.17.0` | `PASS` |
+| `IG-HNS-CORE-004-001-03` | Complete direct-parent lineage | Linear sole-parent chain verified from base `977a90f` through preparation `a78ab0b`, implementation `449a24c`, self-review fix `b56bf10`, R1 candidate `091307f`, R1 review preparation `0ab11af`, R1 TECH `9a6428b`, R2 candidate `8541d2b`, R2 preparation `be60100`, TECH `6cac78d`, QA `535f7e4`, and gate-start/security calculation `d0f3f73` | `PASS` |
+| `IG-HNS-CORE-004-001-04` | Manifest integrity and inheritance | Recomputed R1 SHA-256 `3c7289da...38d5a` and R2 SHA-256 `d9bee8dc...e2ec`; all nine R2 artifact identities match; seven are inherited exactly and only two are authoritative R2 replacements | `PASS` |
+| `IG-HNS-CORE-004-001-05` | Candidate identity and post-candidate immutability | R2 changes only `safe-details.ts` and `errors.test.mjs`; candidate-to-gate-start changes are only the R2 manifest, review log, and two R2 review Work Items; all nine reviewed blobs are unchanged after `8541d2b` | `PASS` |
+| `IG-HNS-CORE-004-001-06` | Maker / TECH / QA / Gate separation | R1 Makers, R2 remediation Maker, R1 and R2 TECH executions, R2 QA execution, and `IG-HNS-CORE-004-001-EXEC` are all distinct; this Gate execution ID was absent before this append; no Checker modified reviewed artifacts | `PASS` |
+| `IG-HNS-CORE-004-001-07` | Maker evidence | R1 and R2 Maker evidence are `READY_FOR_REVIEW` records with exact candidate/hash/scope bindings and do not claim Reviewer or Gate approval | `PASS` |
+| `IG-HNS-CORE-004-001-08` | Current TECH evidence | Latest TECH evidence is `REV-HNS-CORE-004-TECH-002`, decision `PASS`, bound to R2 candidate `8541d2b...` and manifest hash `d9bee8dc...`; commit changes only the review log | `PASS` |
+| `IG-HNS-CORE-004-001-09` | Current QA evidence | `REV-HNS-CORE-004-QA-002` is `PASS`, depends on current TECH PASS, binds the same R2 candidate/hash, validates every primary and companion AC, and its commit changes only the review log | `PASS` |
+| `IG-HNS-CORE-004-001-10` | Security review requirement | Independent canonical trigger calculation confirms pure in-memory metadata, immutable snapshots, typed causes, and redaction only; no auth, permission enforcement, credential source, real secret storage, external I/O, new dependency/trust, destructive, production, or expanded security boundary exists; `SECURITY_REVIEWER = NOT_REQUIRED` is valid and is neither Security PASS nor Accepted Risk | `PASS` |
+| `IG-HNS-CORE-004-001-11` | Historical and stale evidence handling | R1 `REV-HNS-CORE-004-TECH-001` remains historical `REQUEST_CHANGES`; `HNS-CORE-004-QA-REVIEW-001` was never executed and no QA-001 evidence exists; neither is used as a current PASS basis | `PASS` |
+| `IG-HNS-CORE-004-001-12` | Finding state | `FND-HNS-CORE-004-TECH-001-001` history retains `OPEN MAJOR`, but its latest independent state is `RESOLVED` on the exact R2 candidate/hash; no current `OPEN BLOCKING` or `OPEN MAJOR` finding remains | `PASS` |
+| `IG-HNS-CORE-004-001-13` | Canonical catalog and exit registry | Independent SDD parser compared runtime exports field by field: exactly 30 ordered Section 33 rows and exactly nine Section 34 definitions, exit codes `0..8`; duplicate, unknown, missing, unmapped, non-integer, and out-of-range cases fail closed with no Generic fallback | `PASS` |
+| `IG-HNS-CORE-004-001-14` | Redaction, cause, immutability, and central exit | Gate probe validates recursive redaction, all six compact-marker closures, neutral-sentinel containment, safe custom message retention, authentic typed immutable causes, raw/forged cause rejection, frozen isolated snapshots, compile/runtime exit override rejection, and central-only exit derivation | `PASS` |
+| `IG-HNS-CORE-004-001-15` | Default discovery and regression | Default runner discovers root, core, schema, and error groups; full run passes 96/96 and focused runs pass `3/3`, `13/13`, `38/38`, and `42/42`, all with zero failed, cancelled, skipped, todo, or focused declarations | `PASS` |
+| `IG-HNS-CORE-004-001-16` | Authorized scope and capability boundary | Exact commit scopes match the primary and companion Work Items; no dependency/lock drift, CLI, adapter, execution/runtime, process exit, filesystem/network/process capability, external import, broad `any`, governance/spec change, or HNS-CORE-005 implementation exists in the reviewed candidate | `PASS` |
+| `IG-HNS-CORE-004-001-17` | Dependency and SDD readiness | `HNS-CORE-001` and `HNS-CORE-002` are `DONE` with Implementation Gate PASS; `REV-HNS-SDD-001` records independent Phase 1 readiness and the current SDD differs from reviewed bytes only by approval metadata, not normative content | `PASS` |
+| `IG-HNS-CORE-004-001-18` | GateResult and lifecycle boundary | Reviewer decisions remain separate from this `GateResult`; this checker did not modify implementation, manifests, Work Items/statuses, prior evidence/finding state, merge, release, lifecycle, `main`, or CORE-005 | `PASS` |
+
+### R2 Artifact Identity Validation
+
+| Path | R2 Git Blob | Content SHA-256 | R2 Status |
+|---|---|---|---|
+| `work-items/HNS-CORE-004-TEST-DISCOVERY.md` | `85785481300f6be511c9c66625186aa7e45b6624` | `7ade47ad8cf45b84118473672fba3bcd04807f8efaad126f3a7a39a606a5e429` | `INHERITED PASS` |
+| `harness/package.json` | `f4dc6e4d7ecf35fa56493623e78a4d9d5a7f2562` | `8949f0350c37f0da1e5b4bd77c880ef9e53d75f09494e133c4ab1ceb330e9dd9` | `INHERITED PASS` |
+| `harness/src/errors/error-catalog.ts` | `8e21fb31747af4ec7af607b4101cab63f88c52cc` | `8025c4b45bffe920cb04868d18b934bde6e75e114fe28a4f41845844eb7dd982` | `INHERITED PASS` |
+| `harness/src/errors/exit-code-registry.ts` | `00b1962a1954def3c28d0101dd1ef643de1bf554` | `9e16fe96618c092ed48518db7189f32b2dc2039bfa878bd1c211ddb58fc31f32` | `INHERITED PASS` |
+| `harness/src/errors/harness-error.ts` | `a137dc20a534c9042f2baa9470ab8cda7b9579b8` | `71a31700b20b3b7b018648a0173f6ece1bb460605e3d9e7d2510b1d5cccfa81b` | `INHERITED PASS` |
+| `harness/src/errors/index.ts` | `af5a40b22966237747635ee85234c6a5390e5587` | `4ed4efb10f5af8550f7c4cca3a8890f13f972d56291b170cc1046f51ee520353` | `INHERITED PASS` |
+| `harness/src/errors/safe-details.ts` | `f0c00db864763cda0f72cb9192fb0116acdecd8a` | `66065b49582d380a9c985d6f487e5c6f9324ec4aea77cba94c085e772a550aca` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/errors.test.mjs` | `45792deca18f191735fa4643c29018895be2f953` | `d6b2902138d1a6ef42e39fc52eafd4fd71859391a2e0b1cd2f565d3a532a0d57` | `REPLACEMENT PASS` |
+| `harness/tests/unit/errors/harness-error.types.ts` | `203a25a1a0d5086c70bf759bfd6cb1393ab27cc8` | `eae46354acc7ff6ab7945e30394cf826bbc98101148cb86a8651b1f93b365ea3` | `INHERITED PASS` |
+
+### Exact Commit Scope Validation
+
+| Commit | Exact Scope | Result |
+|---|---|---|
+| `a78ab0b...` | Adds only `work-items/HNS-CORE-004-TEST-DISCOVERY.md` | `PASS` |
+| `449a24c...` | Adds five `harness/src/errors/**` files and two `harness/tests/unit/errors/**` files | `PASS` |
+| `b56bf10...` | Modifies only `harness-error.ts`, `safe-details.ts`, and `errors.test.mjs` | `PASS` |
+| `091307f...` | Modifies only `harness/package.json` default discovery | `PASS` |
+| `0ab11af...` | Adds R1 manifest and two R1 review Work Items; appends Maker evidence to review log | `PASS` |
+| `9a6428b...` | Modifies only `docs/08_agent_reviews/review_log.md` for R1 TECH evidence | `PASS` |
+| `8541d2b...` | Modifies only R2 `safe-details.ts` and `errors.test.mjs` replacements | `PASS` |
+| `be60100...` | Adds R2 manifest and two R2 review Work Items; appends R2 Maker evidence to review log | `PASS` |
+| `6cac78d...` | Modifies only `docs/08_agent_reviews/review_log.md` for TECH-002 | `PASS` |
+| `535f7e4...` | Modifies only `docs/08_agent_reviews/review_log.md` for QA-002 | `PASS` |
+| `d0f3f73...` | Modifies only `docs/08_agent_reviews/review_log.md` for Security calculation | `PASS` |
+
+### Commands and Independent Probes
+
+| Command / Probe | Result | Evidence |
+|---|---|---|
+| `node --version`; `npm --version`; runtime path resolution | `PASS` | `v24.19.0`; `11.17.0`; both resolve under the assigned runtime PATH |
+| `npm ci` | `PASS` | Added 7 packages; audited 8; found 0 vulnerabilities |
+| `npm run build` | `PASS` | Strict TypeScript build completed |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed |
+| `npm test` | `PASS` | 96 passed; 0 failed, cancelled, skipped, or todo |
+| `npm audit --audit-level=high` | `PASS` | Found 0 vulnerabilities |
+| `node --test tests/*.test.mjs` | `PASS` | Root smoke: 3/3; no fail/skipped/todo |
+| `node --test tests/unit/core/*.test.mjs` | `PASS` | Core regression: 13/13; no fail/skipped/todo |
+| `node --test tests/unit/schemas/*.test.mjs` | `PASS` | Schema regression: 38/38; no fail/skipped/todo |
+| `node --test tests/unit/errors/*.test.mjs` | `PASS` | Error registry: 42/42; no fail/skipped/todo |
+| Independent SDD-derived runtime gate probe | `PASS` | 30 catalog rows, 9 exit rows, six compact markers, typed cause, immutability, and central exit checks passed |
+| R1/R2 manifest and artifact identity probes | `PASS` | Both manifest hashes and all nine candidate/current Git blob and content SHA-256 identities match; only two R2 replacements; no post-candidate drift |
+| Skip / todo / only scan | `PASS` | No disabling or focused declarations/options under `harness/tests` |
+| Forbidden capability / import / broad typing scans | `PASS` | No production I/O/process/transport capability, external import, broad `any`, or suppression in the reviewed error boundary |
+| Package / lock diff | `PASS` | Package delta only adds the error test glob; no lockfile or dependency change |
+| Scoped `git diff --check 977a90f..8541d2b -- <nine reviewed artifacts>` | `PASS` | No whitespace errors in the reviewed artifact set |
+| Broad `git diff --check 977a90f..8541d2b` | `OBSERVATION` | Reports only three pre-existing new-blank-line-at-EOF notices in R1 review-control documents; none is a reviewed implementation artifact or changes behavior, identity, scope, or a Gate criterion |
+
+### Acceptance Criteria Validation
+
+| Acceptance Criterion | Result | Evidence Reference |
+|---|---|---|
+| `AC-HNS-CORE-004-001` | `PASS` | Independent SDD/runtime comparison verifies all 30 Section 33 codes and exact metadata each map to one Section 34 exit code |
+| `AC-HNS-CORE-004-002` | `PASS` | Duplicate, unknown, missing-catalog, missing-registry, unmapped, non-integer, and out-of-range probes fail closed |
+| `AC-HNS-CORE-004-003` | `PASS` | Recursive canonical/compact redaction, neutral-sentinel containment, typed authentic causes, immutable isolated snapshots, safe messages, and raw/forged cause rejection pass |
+| `AC-HNS-CORE-004-004` | `PASS` | Exit derives only from the central registry; compile-time and runtime caller overrides reject; no module-local fallback or `process.exit` exists |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-001` | `PASS` | Default and focused runs execute all 3 root smoke tests |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-002` | `PASS` | Default and focused runs execute all 13 core tests |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-003` | `PASS` | Default and focused runs execute all 38 tests across five schema test files |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-004` | `PASS` | Default and focused runs execute all 42 error registry tests |
+| `AC-HNS-CORE-004-TEST-DISCOVERY-005` | `PASS` | Full default run is 96/96 with zero fail/cancelled/skipped/todo/focused tests; discovery commit changes only package script, with no source/test/schema/dependency change |
+
+### Review and Security Requirements
+
+- `TECH_REVIEWER`: satisfied by current R2 `REV-HNS-CORE-004-TECH-002` `PASS` on candidate `8541d2b...` / manifest `d9bee8dc...`.
+- `QA_REVIEWER`: satisfied by current R2 `REV-HNS-CORE-004-QA-002` `PASS` on the same candidate/hash after TECH-002.
+- `SECURITY_REVIEWER`: independently confirmed `NOT_REQUIRED` under canonical risk policy. The candidate only performs pure in-memory redaction/immutable error modeling and introduces no security trigger or Accepted Risk.
+
+### Historical Evidence and Findings
+
+- R1 `REV-HNS-CORE-004-TECH-001` is retained as historical `REQUEST_CHANGES` evidence on R1 hash `3c7289da...`; it is not a PASS basis.
+- R1 `HNS-CORE-004-QA-REVIEW-001` was never executed; no `REV-HNS-CORE-004-QA-001` evidence exists or is used.
+- `FND-HNS-CORE-004-TECH-001-001` is latest `RESOLVED` by independent TECH-002 on the exact R2 candidate/hash; QA-002 reconfirms closure. No current `OPEN BLOCKING` or `OPEN MAJOR` finding remains.
+
+### Status and Scope Boundary
+
+- Changed by this Gate execution: append-only `IG-HNS-CORE-004-001` evidence in `docs/08_agent_reviews/review_log.md`.
+- Not changed: implementation, tests, manifests, Work Items/statuses, prior evidence, finding history/state, dependencies, governance, SDD, lifecycle, `main`, or CORE-005.
+- No merge, release, Delivery Assurance, lifecycle closure, force push, or work-item status transition was performed.
+
+### Result
+
+GateResult: `PASS`.
