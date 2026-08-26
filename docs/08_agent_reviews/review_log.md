@@ -1290,3 +1290,110 @@ GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
 - [x] Reviewer execution did not modify implementation, tests, schemas, manifest, Work Items, package files, governance, or other documentation.
 - [x] Required evidence and the open finding were appended only to `docs/08_agent_reviews/review_log.md`.
 - [x] This evidence remains bound to candidate `b12b416c51bbd4dc268c5e3d2cdbe811eba7565c` and manifest hash `2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58`; any artifact change invalidates it.
+
+## REV-HNS-CORE-003-TECH-002 - HNS-CORE-003 R2 Independent Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-003-TECH-002` |
+| Execution ID | `REV-HNS-CORE-003-TECH-002-EXEC` |
+| Work Item | `work-items/HNS-CORE-003-TECH-REVIEW-002.md` |
+| Role | `REVIEWER` |
+| Review Profile | `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `IMP-HNS-CORE-003-REMEDIATION-R2-001` |
+| Maker Evidence | `RCE-HNS-CORE-003-REMEDIATION-R2-001` |
+| Prior Review / Finding | `REV-HNS-CORE-003-TECH-001`; `FIND-HNS-CORE-003-TECH-001` |
+| Reviewer Execution ID | `REV-HNS-CORE-003-TECH-002-EXEC` |
+| Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-003-implementation-r2.md` |
+| Artifact Hash | `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` |
+| Parent Artifact Hash | `sha256:2e4277a051fc05fe260c4cfea538ca70b9fb0284c8eaa2288e59871a23f8dc58` |
+| Candidate Commit | `3b3040fed8aeec28b9afdb716c99cca24c89058e` |
+| Review Start HEAD | `97e6b4f2b3bd6f06fd5d4b58c223b5731beaf3cb` |
+| Timestamp | `2026-08-26T07:20:36Z` |
+
+### Specification References
+
+- Requirement IDs: `AC-HNS-CORE-003-001` through `AC-HNS-CORE-003-004`; all dependency and test-discovery companion ACs; `AC-HNS-CORE-003-TECH-REVIEW-002-001` through `AC-HNS-CORE-003-TECH-REVIEW-002-004`.
+- Feature / System Spec: `docs/harness_v0.1_SDD.md` Sections 5, 6, 40.1, and 46 Phase 1; `templates/Work_Item.md`.
+- Screen Specs: `N/A`.
+- Work Items: `work-items/HNS-CORE-003.md`; `work-items/HNS-CORE-003-DEPENDENCY-AJV.md`; `work-items/HNS-CORE-003-TEST-DISCOVERY.md`; `work-items/HNS-CORE-003-TECH-REVIEW-002.md`.
+- Review Evidence: R1 and R2 manifests; `RCE-HNS-CORE-003-REMEDIATION-R2-001`; `REV-HNS-CORE-003-TECH-001`; `FIND-HNS-CORE-003-TECH-001`.
+
+### Checks Performed
+
+| Check ID | Check | Method | Evidence Reference | Result |
+|---|---|---|---|---|
+| `REV-HNS-CORE-003-TECH-002-01` | Independent repository preflight | Fresh temporary HTTPS clone; verified origin, assigned branch, clean checkout, and expected review-start HEAD before review work | origin `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; HEAD `97e6b4f2b3bd6f06fd5d4b58c223b5731beaf3cb` | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-02` | Exact lineage and preparation isolation | Inspected every parent from base through R2 and review-start HEAD; compared post-candidate changed paths with the 45-artifact set | Linear chain through R1 `b12b416`, prior review `f72b8ab`, R2 `3b3040f`, and preparation `97e6b4f`; review/preparation commits have zero candidate-artifact mutations | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-03` | Manifest integrity and inheritance | Recomputed both manifest SHA-256 values; parsed all R1 artifact rows; recomputed Git blob and content SHA-256 identities at R1, R2, and review-start HEAD | R2 hash `e7dcf9d...60c`; parent hash `2e4277a...dc58`; 45 total, 43 inherited, 2 replacements, 0 mismatches | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-04` | Assignment and Maker separation | Cross-checked Work Item, R2 manifest, Maker evidence, candidate, profile, risk, and execution identities | `TECH_REVIEWER`, `MEDIUM`, candidate and hash bindings agree; Maker `IMP-HNS-CORE-003-REMEDIATION-R2-001` differs from Reviewer `REV-HNS-CORE-003-TECH-002-EXEC` | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-05` | Invalid-keyword transactional rollback | Instrumented the built registry's Ajv instance; forced strict unknown-keyword compilation failure; checked public maps, Ajv `getSchema`, `schemas`, and `refs`; retried a valid same-ID schema | One `removeSchema` call; no public or Ajv residual entry; valid retry passed; subsequent duplicate remained `DUPLICATE_SCHEMA` | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-06` | Unresolved-reference transactional rollback | Instrumented the built registry's Ajv instance; forced unresolved `$ref` compilation failure; checked public maps, Ajv `getSchema`, `schemas`, and `refs`; retried a valid same-ID schema | One `removeSchema` call; no public or Ajv residual entry; valid retry passed; subsequent duplicate remained `DUPLICATE_SCHEMA` | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-07` | Canonical registry and fail-closed versions | Compared SDD IDs and schema fields/enums/requiredness; enumerated and resolved built registry; probed malformed, unknown, unsupported, and exact IDs | All 12 canonical IDs in SDD order; exact resolution only; unknown schema/version remain distinct with no fallback | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-08` | Work Item version contract | Probed v1 migration input plus v2 valid, missing, invalid-enum, and wrong-version fixtures | v1 returned frozen `MIGRATION_REQUIRED`, target v2, `executable: false`; v2 valid passed and malformed/wrong versions failed closed | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-09` | Accountability contracts | Repeated valid, missing-required, invalid-value, and wrong-version checks for Review Assignment, Role Evidence, Finding, and Delivery Assurance | 16 independent checks passed; malformed inputs rejected and wrong versions were not downgraded | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-10` | Determinism and input integrity | Repeated validation, serialized before/after inputs, inspected result/issue freezing, and used accessor-backed document dispatch | Stable sorted results; inputs unchanged; results/issues frozen; accessor was not invoked | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-11` | JSON/runtime schema identity | Expanded local JSON Schema `$defs`/`$ref` values and normalized all checked-in artifacts against runtime TypeScript documents | 12 compared; 0 semantic mismatches | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-12` | Dependency, typing, packaging, and boundary | Inspected package/lock/config/source/declarations; ran dependency tree and scoped forbidden-capability / broad-typing scans | Exact `ajv@8.20.0`; `Ajv2020`; strict TypeScript; synchronized lock; no public Ajv types, broad `any`, vendor adapter, parser/migrator, filesystem/process/network/persistence capability | `PASS` |
+| `REV-HNS-CORE-003-TECH-002-13` | Test discovery and authorized scope | Ran default suite; scanned `.skip`/`.todo`/`.only`; compared base/R1/R2/preparation path sets with Work Item and manifests | Root, core, and schema tests discovered; 54 passed with 0 failed/cancelled/skipped/todo; 45-artifact R1 scope and two R2 replacements match | `PASS` |
+
+### Tests Performed
+
+| Test Type | Command / Runner | Result | Evidence Reference |
+|---|---|---|---|
+| Environment | Pinned local toolchain; `node --version`; `npm --version` | `PASS` | Node `v24.19.0`; npm `11.17.0` |
+| Clean Install | `npm ci` in `harness/` | `PASS` | `added 7 packages`; `found 0 vulnerabilities` |
+| Build | `npm run build` | `PASS` | `tsc --project tsconfig.json` completed |
+| Typecheck | `npm run typecheck` | `PASS` | `tsc --project tsconfig.json --noEmit` completed under strict settings |
+| Lint | `N/A` | `NOT_APPLICABLE` | No lint script is defined; `git diff --check` and scoped source scans passed |
+| Unit / Smoke Test | `npm test` | `PASS` | 54 tests; 54 passed; 0 failed, cancelled, skipped, or todo |
+| Dependency Audit | `npm audit --audit-level=high` | `PASS` | `found 0 vulnerabilities` |
+| Dependency Resolution | `npm ls ajv --all`; `npm ls --depth=0` | `PASS` | Exact `ajv@8.20.0`; expected direct runtime/dev dependencies only |
+| Transaction Rollback Probe | Inline Node probe against built `SchemaRegistry` with captured Ajv instances | `PASS` | Both formerly poisoned cases left no public/Ajv residue; both valid same-ID retries and duplicate checks passed |
+| Canonical Contract Probe | Inline Node probe against built `dist/schemas/index.js` and fixtures | `PASS` | 12 IDs; version/fail-closed behavior; 16 accountability checks; determinism, freezing, non-mutation, accessor safety |
+| JSON/TypeScript Parity Probe | Inline Node local-reference expansion and normalized deep comparison | `PASS` | 12 compared; 0 semantic mismatches |
+
+### Implementer Scope Evidence
+
+- Changed Files: R2 replaces only `harness/src/schemas/registry.ts` and `harness/tests/unit/schemas/registry.test.mjs` within the inherited 45-artifact R1 set.
+- Diff Scope: R2 adds Ajv rollback on compile failure and two focused same-ID retry regression tests; no schema, fixture, package, dependency, Work Item, manifest, or unrelated implementation artifact changes in the R2 candidate commit.
+- Preparation Isolation: Prior review/preparation commits and R2 review preparation commit changed only review evidence, manifests, and review Work Items; none changed a bound candidate artifact.
+- Unauthorized Change Check: No adapter, parser, migrator, compiler, persistence, filesystem, process, network, HNS-CORE-004, HNS-CORE-005, or unrelated capability was introduced.
+- Backward Compatibility: Duplicate rejection, canonical registration order, exact resolution, fail-closed version handling, and all R1 tests remain unchanged; the two formerly poisoned registration sequences now recover atomically.
+
+### Finding Resolution
+
+| Finding ID | Review Profile | Owner Role | Work Item | Artifact / Hash | Closure Evidence | Severity | Final Status |
+|---|---|---|---|---|---|---|---|
+| `FIND-HNS-CORE-003-TECH-001` | `TECH_REVIEWER` | `IMPLEMENTER` | `HNS-CORE-003` | `harness/src/schemas/registry.ts` / R2 manifest `sha256:e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c` | `REV-HNS-CORE-003-TECH-002-05`; `REV-HNS-CORE-003-TECH-002-06`; both failed compilations left no public/Ajv residual state and valid same-ID retry succeeded | `MAJOR` | `RESOLVED` |
+
+### Findings
+
+- New findings: `None`.
+- Accepted Risk References: `None`.
+
+### Known Limitations and Scope Boundary
+
+- The checked-in suite does not directly enforce semantic parity between all 12 JSON and TypeScript schema representations; this execution independently compared them and found zero mismatches.
+- This evidence is only a `TECH_REVIEWER` decision. It does not perform QA, Security, any Gate, merge, release, or delivery assurance.
+- `npm ci` and build created ignored `harness/node_modules/` and `harness/dist/` in the fresh temporary clone; neither is tracked or staged.
+
+### Result
+
+Reviewer decision: `PASS`.
+
+`FIND-HNS-CORE-003-TECH-001` final status: `RESOLVED`.
+
+GateResult: `N/A`; `IMPLEMENTATION_GATE` was not run.
+
+### Integrity and Independence Validation
+
+- [x] The review began from a fresh clone at the exact assigned HEAD and origin.
+- [x] Both manifest hashes, exact lineage, all 45 inherited/replaced artifact identities, and post-candidate preparation isolation were independently validated.
+- [x] Maker and Reviewer execution IDs are distinct and agree with the assigned Work Item, R2 manifest, and Maker evidence.
+- [x] No implementation, test, schema, manifest, Work Item, package, governance, or other documentation file was modified by this Reviewer.
+- [x] This execution appended only `docs/08_agent_reviews/review_log.md` and did not run QA, Security, any Gate, merge, or release action.
+- [x] This PASS and Finding resolution remain bound to candidate `3b3040fed8aeec28b9afdb716c99cca24c89058e` and manifest hash `e7dcf9d90061a20c78c1286278afecfbd9295a769772b3f818f45aaa118ee60c`; any candidate artifact change invalidates them.
