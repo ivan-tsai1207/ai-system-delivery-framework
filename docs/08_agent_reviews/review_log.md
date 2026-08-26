@@ -2266,3 +2266,46 @@ No new findings. Prior `FND-HNS-CORE-004-TECH-001-001` remains `RESOLVED` on the
 `PASS`
 
 All assigned R2 QA acceptance criteria are satisfied for manifest SHA-256 `d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` and candidate `8541d2b192392885c1d033cb5f05992c1b37a0d6`. No new finding was opened.
+
+---
+
+## SEC-CALC-HNS-CORE-004-001 - HNS-CORE-004 Security Reviewer Requirement Calculation
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `SEC-CALC-HNS-CORE-004-001` |
+| Evidence Type | `SECURITY_REVIEW_REQUIREMENT_CALCULATION` |
+| Work Item | `HNS-CORE-004` |
+| Risk Class | `LOW` |
+| Candidate | `8541d2b192392885c1d033cb5f05992c1b37a0d6` |
+| Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-004-implementation-r2.md` / `sha256:d9bee8dc562467809ae8a996d805250c3276d954d81a536e35987f3abbbee2ec` |
+| TECH Evidence | `REV-HNS-CORE-004-TECH-002` (`PASS`) |
+| QA Evidence | `REV-HNS-CORE-004-QA-002` (`PASS`) |
+| Decision | `SECURITY_REVIEWER = NOT_REQUIRED` |
+| Timestamp | `2026-08-26T13:43:00Z` |
+
+### Trigger Calculation
+
+| Security Trigger | Candidate State | Result |
+|---|---|---|
+| Authentication or authorization behavior | None | `NOT_TRIGGERED` |
+| Permission enforcement | None; only error metadata names are represented | `NOT_TRIGGERED` |
+| Credential or secret source | None; no credential lookup, storage, injection, transport, or real secret fixture | `NOT_TRIGGERED` |
+| Sensitive-data persistence or external write | None; pure in-memory snapshots only | `NOT_TRIGGERED` |
+| Filesystem, network, process, command, or environment boundary | None | `NOT_TRIGGERED` |
+| New dependency or dependency-trust change | None; package lock and dependency graph unchanged | `NOT_TRIGGERED` |
+| Production or destructive operation | None | `NOT_TRIGGERED` |
+| Security boundary expansion | None; the candidate narrows output by fail-closed redaction and rejects raw causes/messages | `NOT_TRIGGERED` |
+
+### Rationale
+
+- The candidate implements deterministic in-memory error metadata, immutable snapshots, typed cause validation, and output redaction only.
+- It never reads a credential source, handles authentication, enforces permission, stores real secrets, performs external I/O, adds a dependency, or changes a production/security execution boundary.
+- Synthetic sentinel values are test inputs only. Current independent TECH and QA executions validated canonical and compact marker redaction, unsafe-message rejection, typed-cause containment, and absence from message, stack, cause, details, and JSON.
+- `NOT_REQUIRED` is a risk-routing decision, not a Security review PASS and not `ACCEPTED_RISK`. If the candidate changes to add credential handling, external secret sources, dependency trust, auth, permission enforcement, I/O, or another security boundary, this decision becomes stale and a new `SECURITY_REVIEWER` execution is required.
+
+### Decision
+
+`SECURITY_REVIEWER = NOT_REQUIRED`
