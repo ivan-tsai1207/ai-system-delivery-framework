@@ -3065,3 +3065,42 @@ The current output contains names rather than values, but it authorizes later ch
 `REQUEST_CHANGES`
 
 The exact R2 candidate passes provenance, official commands, R1 regressions, narrowing, immutability, hostile-input checks, and the no-runtime-capability boundary. However, three `OPEN MAJOR` security findings remain in secret rejection, error non-disclosure, and Agent-visible environment filtering, so this candidate cannot proceed to `IMPLEMENTATION_GATE`.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R3-001 - HNS-CORE-005 R3 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R3-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R3-001` |
+| Source Review Evidence | `REV-HNS-CORE-005-SECURITY-002` |
+| Source Findings | `FND-HNS-CORE-005-SECURITY-002-001`; `-002`; `-003` |
+| R2 Candidate / Security Review | `0e0166d746f02c3e5ba00fcf3cc0812bfeeb34f9` / `dd191f42390c1884cded74477379f4a4a6f9f6c3` |
+| R3 Remediation / Candidate Commit | `d230f65f3590b6a69952a7567133e9288b58d9bd` |
+| R3 Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r3.md` |
+| R3 Artifact Hash | `sha256:328a6a6bb984e37027275360c9b556e7eb3468fb874b078f73173f9292337410` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T01:33:53Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact remediation scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed. |
+| Security Finding 001 | `READY_FOR_REVIEW` | Generalized high-confidence provider, quoted, compact, case, and separator secret-value rejection with non-secret text controls. |
+| Security Finding 002 | `READY_FOR_REVIEW` | Secret-shaped unknown keys are redacted before entering `message`, `stack`, `configPath`, or serialized output; non-sensitive paths remain useful. |
+| Security Finding 003 | `READY_FOR_REVIEW` | Credential-source, helper-command, runtime-option, loader-preload, shell-startup, and provider-config env classes denied; safe names preserved. |
+| Build / typecheck | `PASS` | Required runtime; strict build and no-emit typecheck passed. |
+| Focused / default tests | `PASS` | 38 hash/config and 134 default tests passed; 0 failed/skipped/todo. |
+| Security / dependency | `PASS` | npm high audit found 0 vulnerabilities; no dependency/lockfile change. |
+| Forbidden boundary | `PASS` | No package, fixture, docs, Work Item, governance, hash, I/O, runtime, adapter, or later-phase change. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+All three Security Findings remain `OPEN` until independent review of the exact R3 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
