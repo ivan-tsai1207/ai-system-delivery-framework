@@ -2565,3 +2565,118 @@ This evidence records lifecycle and merge completion only. It is not a Reviewer 
 `READY_FOR_REVIEW`
 
 This is Maker Role Completion Evidence only. It is not TECH, QA, Security, or Gate approval and does not close any Finding or Work Item.
+
+---
+
+## REV-HNS-CORE-005-TECH-001 - HNS-CORE-005 Independent Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-001` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-001-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-001` |
+| Maker Evidence | `RCE-HNS-CORE-005-IMPLEMENTATION-001` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation.md` |
+| Manifest SHA-256 | `432afa16c262c514d36eb74e212d322f5579f641dc7e0883ac9266fee8a99b0d` |
+| Manifest Git Blob | `9cdc04af7ed9d23eafa9197800e6743695a05312` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| Final Implementation Commit | `69cc15276f254544d4d06ceaae0125d815e2ac9d` |
+| Candidate / Test Discovery Commit | `86aa33f9fefdacbdd9577802861d49bb07477d2c` |
+| Review-start HEAD | `7d0b7c35d498b12ebf8c37e274985e6d42b3a694` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T00:48:51Z` |
+
+### Provenance and Identity Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | Fresh clone at review start; fetch and push origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and refreshed remote tip | `PASS` | Local HEAD and `git ls-remote` both resolved `feature/hns-core-005-config-hash` to `7d0b7c35d498b12ebf8c37e274985e6d42b3a694`. |
+| Clean starting tree | `PASS` | `git status --short` was empty before review commands. |
+| Independent execution identity | `PASS` | Reviewer execution/evidence IDs were absent from prior evidence and differ from both Maker execution IDs. |
+| Candidate ancestry | `PASS` | `fb48e9c... -> efbe79d... -> 69cc152... -> 86aa33f... -> 7d0b7c3...` is a direct-parent chain. |
+| Manifest integrity | `PASS` | Exact worktree bytes hash to the assigned SHA-256; manifest blob is `9cdc04af7ed9d23eafa9197800e6743695a05312`. |
+| Artifact identity | `PASS` | All 15 manifest rows independently matched both the recorded Git blob and content SHA-256. |
+| Post-candidate immutability | `PASS` | The diff after `86aa33f...` contains only review-preparation docs/evidence/Work Items; every reviewed artifact remains byte-identical. |
+
+### Commit and Scope Validation
+
+| Commit | Scope | Result |
+|---|---|---|
+| `efbe79d...` | Added only `work-items/HNS-CORE-005-TEST-DISCOVERY.md`. | `PASS` |
+| `69cc152...` | Added only the 13 authorized hash/config source, test, and fixture files. | `PASS` |
+| `86aa33f...` | Modified only `harness/package.json` test discovery. | `PASS` |
+| `7d0b7c3...` | Added immutable manifest and independent-review control artifacts; appended Maker evidence. No reviewed artifact changed. | `PASS` |
+
+`git diff --check` passed. No dependency or lockfile drift, Context/Policy compiler, audit store, runtime process, adapter, filesystem/network/process capability, later-phase module, focused/disabled test marker, or unauthorized candidate path was found.
+
+### Commands
+
+| Command | Result | Evidence |
+|---|---|---|
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 126 passed; 0 failed, cancelled, skipped, or todo. Root, core, schema, error, hash, and config suites were discovered. |
+| Focused hash/config suites | `PASS` | 30 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+
+### Independent Adversarial Probes
+
+| Probe | Result | Evidence |
+|---|---|---|
+| SHA-256 correctness | `PASS` | Independently matched Node `crypto` for random bytes at 17 boundary lengths from 0 through 4097 bytes, including 55/56/63/64/65-byte padding boundaries. |
+| UTF-8 correctness | `PASS` | Matched `TextEncoder` for ASCII, composed/decomposed Unicode, BMP, astral, NUL/control, and malformed surrogate inputs. |
+| Canonical serialization | `PASS` | Deterministic normalized keys/values, null-prototype values, shared references, ordering/path independence, negative zero, cycles, unsupported values, accessors, symbols, and normalized-key collisions behaved fail closed as required. |
+| Hash mismatch diagnostics | `PASS` | Invalid expected hashes rejected; mismatch surfaces contained only expected/actual hashes and `[REDACTED]`, never the independent secret sentinel. |
+| Config narrowing and immutability | `PASS` | Project/invocation re-expansion of visibility, adapters, environment, and numeric limits was rejected; source mutation did not alter frozen config/policy snapshots. |
+| Unknown/accessor/key/env boundary | `PASS` | Unknown keys, accessor-backed config, secret-bearing object keys, and representative cloud/SSH/registry/production/token environment names rejected without getter execution. |
+| Secret assignment marker boundary | `FAIL` | Allowed string fields retained obvious `api_key=`, `apikey=`, `authorization=`, `cookie=`, and `private_key=` query assignments with independent secret sentinels. |
+| Agent-visible bearer credential boundary | `FAIL` | `CI_JOB_JWT` and `CI_JOB_JWT_V2` were accepted by config validation and emitted in the child Agent-visible allowlist. |
+
+### Findings
+
+#### FND-HNS-CORE-005-TECH-001-001 - Obvious secret assignment markers bypass config value rejection
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-001-001` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-TECH-REVIEW-001-003`; SDD Section 31 |
+| Evidence | `harness/src/config/config.ts:126-133`, `harness/src/config/config.ts:209-225`; independent sentinel probes accepted and retained `api_key=`, `apikey=`, `authorization=`, `cookie=`, and `private_key=` values. |
+| Required Action | Extend fail-closed secret-value classification to cover normalized/obvious API-key, authorization, cookie, and private-key assignment markers in allowed string fields; ensure rejection diagnostics never retain or echo the value; add focused regression tests; issue a new immutable candidate/manifest and obtain new independent reviews. |
+
+The implementation rejects several provider prefixes and four generic assignment words, but omits markers that its own key classifier already identifies as sensitive. A config value such as a repository URL containing `?api_key=<secret>` therefore survives validation and is retained in the immutable config, contradicting the explicit SDD prohibition on API keys and other secret values.
+
+#### FND-HNS-CORE-005-TECH-001-002 - Agent-visible environment policy accepts JWT bearer credential names
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-001-002` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-TECH-REVIEW-001-003`; SDD Sections 32 and 38 |
+| Evidence | `harness/src/config/config.ts:120-125`, `harness/src/config/config.ts:376-387`; independent probes accepted `CI_JOB_JWT` and `CI_JOB_JWT_V2`, and `buildChildEnvironmentPolicy` returned them in its Agent-visible allowlist. |
+| Required Action | Deny recognized bearer-credential environment markers, including JWT forms, from Agent-visible propagation; preserve the empty-baseline/explicit-allowlist model; add focused config and child-policy regression tests; issue a new immutable candidate/manifest and obtain new independent reviews. |
+
+The environment classifier blocks token/key/password-style names but omits the equally credential-bearing JWT marker. This permits a CI bearer credential to be classified as Agent-visible even though Section 32 reserves secrets for tightly controlled Adapter-visible injection and Section 38 requires secret isolation.
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, governance file, prior evidence, status, package, source, or test was modified.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, Implementer, merger, or lifecycle closer.
+- Checked-in tests passed but were not trusted as sole evidence; provenance, content hashes, independent reference comparisons, runtime probes, and static capability/scope scans were performed.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+Candidate identity, scope, canonical serialization, SHA-256, narrowing, immutability, test discovery, and all official commands pass. However, two `OPEN MAJOR` findings remain in the config secret-isolation boundary, so `AC-HNS-CORE-005-002` and the assigned TECH review acceptance criteria are not satisfied for manifest SHA-256 `432afa16c262c514d36eb74e212d322f5579f641dc7e0883ac9266fee8a99b0d`.
