@@ -107,36 +107,140 @@ const CONTEXT_KEYS = new Set([
 const TIMEOUT_KEYS = new Set(["process_seconds"]);
 const ENVIRONMENT_KEYS = new Set(["allowlist"]);
 const ENVIRONMENT_NAME_PATTERN = /^[A-Z_][A-Z0-9_]{0,127}$/;
-const SENSITIVE_KEY_MARKERS = [
-  "apikey",
+const SENSITIVE_LABEL_TOKENS = new Set([
+  "auth",
   "authorization",
+  "bearer",
   "cookie",
   "credential",
+  "credentials",
+  "jwt",
+  "passwd",
   "password",
-  "privatekey",
+  "pwd",
   "secret",
   "token",
+]);
+const SENSITIVE_COMPACT_LABELS = new Set([
+  "apikey",
+  "authtoken",
+  "clientsecret",
+  "githubtoken",
+  "ghtoken",
+  "idtoken",
+  "nodeauthtoken",
+  "npmtoken",
+  "passwordhash",
+  "privatekey",
+  "refreshtoken",
+  "sessiontoken",
+  "tokenvalue",
+]);
+const SENSITIVE_LABEL_TOKEN_SEQUENCES: readonly (readonly string[])[] = [
+  ["access", "token"],
+  ["api", "key"],
+  ["auth", "token"],
+  ["client", "secret"],
+  ["github", "token"],
+  ["id", "token"],
+  ["node", "auth", "token"],
+  ["npm", "token"],
+  ["private", "key"],
+  ["refresh", "token"],
+  ["session", "token"],
 ];
-const DENIED_ENVIRONMENT_NAMES = [
-  /^(?:AWS|AZURE|GCP|GOOGLE|SSH|NPM|DOCKER|KUBE)_/,
-  /^(?:CI_JOB_TOKEN|DATABASE_URL|GITHUB_TOKEN|NODE_AUTH_TOKEN)$/,
-  /(?:AUTH|COOKIE|CREDENTIAL|JWT|KEY|PASSWORD|SECRET|TOKEN)/,
-  /(?:^|_)PROD(?:UCTION)?(?:_|$)/,
-  /^(?:KUBECONFIG|CLOUDSDK_CONFIG|(?:TF|OCI)_CLI_CONFIG_FILE|DOCKER_CONFIG)$/,
-  /^GIT_(?:SSH(?:_COMMAND)?|ASKPASS|CREDENTIAL(?:S|_HELPER)?(?:_.+)?)$/,
-  /^(?:NODE_OPTIONS|NODE_PATH|JAVA_TOOL_OPTIONS|_JAVA_OPTIONS|PYTHON(?:PATH|HOME|STARTUP)|RUBYOPT|PERL5OPT)$/,
-  /^(?:LD_PRELOAD|LD_LIBRARY_PATH|DYLD_(?:INSERT_LIBRARIES|LIBRARY_PATH|FRAMEWORK_PATH|FALLBACK_LIBRARY_PATH|FALLBACK_FRAMEWORK_PATH))$/,
-  /^(?:BASH_ENV|ENV|ZDOTDIR|PROMPT_COMMAND|SHELLOPTS|BASHOPTS)$/,
-];
-const SECRET_VALUE_PATTERNS = [
+const HIGH_CONFIDENCE_CREDENTIAL_PATTERNS = [
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/i,
   /\bBearer\s+[A-Za-z0-9._~+\/-]{8,}={0,2}\b/i,
-  /\b(?:gh[pousr]_|github_pat_|sk-|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/i,
+  /\b(?:gh[pousr]_|github_pat_|sk-(?:proj-)?|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/i,
   /(?:^|[^A-Za-z0-9])glpat-[A-Za-z0-9_-]{20,}(?=$|[^A-Za-z0-9_-])/i,
   /(?:^|[^A-Za-z0-9])AIza[0-9A-Za-z_-]{20,}(?=$|[^0-9A-Za-z_-])/i,
-  /(?:^|[^A-Za-z0-9])sk_live_[0-9A-Za-z]{16,}(?=$|[^0-9A-Za-z])/i,
-  /\bAKIA[0-9A-Z]{16}\b/,
+  /(?:^|[^A-Za-z0-9])(?:sk|rk)_(?:live|test)_[0-9A-Za-z]{16,}(?=$|[^0-9A-Za-z])/i,
+  /(?:^|[^A-Za-z0-9])whsec_[0-9A-Za-z]{16,}(?=$|[^0-9A-Za-z])/i,
+  /(?:^|[^A-Za-z0-9])GOCSPX-[0-9A-Za-z_-]{20,}(?=$|[^0-9A-Za-z_-])/i,
+  /(?:^|[^A-Za-z0-9])npm_[0-9A-Za-z]{20,}(?=$|[^0-9A-Za-z])/i,
+  /(?:^|[^A-Za-z0-9])SG\.[0-9A-Za-z_-]{16,}\.[0-9A-Za-z_-]{16,}(?=$|[^0-9A-Za-z_-])/i,
+  /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/,
   /[a-z][a-z0-9+.-]*:\/\/[^/\s:@]+:[^/\s@]+@/i,
+];
+const DENIED_ENVIRONMENT_EXACT_NAMES = new Set([
+  "BASH_ENV",
+  "BASHOPTS",
+  "CARGO_HOME",
+  "CI_JOB_JWT",
+  "CI_JOB_JWT_V2",
+  "CI_JOB_TOKEN",
+  "CLOUDSDK_CONFIG",
+  "COMPILER_PATH",
+  "DATABASE_URL",
+  "DOCKER_CONFIG",
+  "EDITOR",
+  "ENV",
+  "GCC_EXEC_PREFIX",
+  "GIT_ASKPASS",
+  "GIT_CONFIG",
+  "GIT_CONFIG_GLOBAL",
+  "GIT_CONFIG_NOSYSTEM",
+  "GIT_CONFIG_SYSTEM",
+  "GIT_CREDENTIAL_HELPER",
+  "GIT_CREDENTIALS",
+  "GIT_EDITOR",
+  "GIT_EXEC_PATH",
+  "GIT_EXTERNAL_DIFF",
+  "GIT_PAGER",
+  "GIT_PROXY_COMMAND",
+  "GIT_SSH",
+  "GIT_SSH_COMMAND",
+  "GIT_TERMINAL_PROMPT",
+  "GITHUB_TOKEN",
+  "JAVA_TOOL_OPTIONS",
+  "KUBECONFIG",
+  "LD_LIBRARY_PATH",
+  "LD_PRELOAD",
+  "LIBRARY_PATH",
+  "NODE_AUTH_TOKEN",
+  "NODE_OPTIONS",
+  "NODE_PATH",
+  "OCI_CLI_CONFIG_FILE",
+  "PAGER",
+  "PERL5OPT",
+  "PROMPT_COMMAND",
+  "PYTHONHOME",
+  "PYTHONPATH",
+  "PYTHONSTARTUP",
+  "RUBYOPT",
+  "RUSTC_WRAPPER",
+  "RUSTC_WORKSPACE_WRAPPER",
+  "RUSTDOCFLAGS",
+  "RUSTFLAGS",
+  "SHELLOPTS",
+  "SHELL",
+  "SSH_ASKPASS",
+  "TF_CLI_CONFIG_FILE",
+  "VISUAL",
+  "ZDOTDIR",
+  "_JAVA_OPTIONS",
+]);
+const DENIED_ENVIRONMENT_PREFIXES = [
+  "AWS_",
+  "AZURE_",
+  "CLOUDSDK_",
+  "DOCKER_",
+  "DYLD_",
+  "GCP_",
+  "GIT_CONFIG_",
+  "GOOGLE_",
+  "KUBE_",
+  "NPM_",
+  "SSH_",
+];
+const DENIED_ENVIRONMENT_STRUCTURED_PATTERNS = [
+  /^CARGO_REGISTRIES_[A-Z0-9_]+_TOKEN$/,
+  /^CARGO_TARGET_[A-Z0-9_]+_(?:LINKER|RUNNER|RUSTFLAGS)$/,
+  /^(?:C|CPLUS|OBJC)_INCLUDE_PATH$/,
+  /^(?:CC|CXX|CPP|LD|AR|AS|NM|OBJCOPY|OBJDUMP|RANLIB|STRIP)$/,
+  /^(?:CC|CXX|CPP|LD|AR|AS|NM|OBJCOPY|OBJDUMP|RANLIB|STRIP)_[A-Z0-9_]+$/,
+  /^(?:GIT|SSH)_[A-Z0-9_]*(?:ASKPASS|COMMAND|CREDENTIAL|EXEC_PATH|PROXY)[A-Z0-9_]*$/,
 ];
 
 type MutableFields<Value> = { -readonly [Key in keyof Value]: Value[Key] };
@@ -152,34 +256,82 @@ type MutableConfig = {
   environment?: Partial<MutableFields<EnvironmentConfig>>;
 };
 
-function normalizedMarker(value: string): string {
-  return value.replace(/[^A-Za-z0-9]+/g, "").toLowerCase();
+function normalizeCompactLabel(value: string): string {
+  return value.replace(/\\([:=\s._-])/g, "$1").replace(/[^A-Za-z0-9]+/g, "").toLowerCase();
 }
 
-function containsSensitiveKeyMarker(value: string): boolean {
-  const normalized = normalizedMarker(value);
-  return SENSITIVE_KEY_MARKERS.some((marker) => normalized.includes(marker));
+function labelTokens(value: string): readonly string[] {
+  const withoutEscapes = value.replace(/\\([:=\s._-])/g, "$1");
+  const withCaseBoundaries = withoutEscapes
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+  return withCaseBoundaries
+    .split(/[^A-Za-z0-9]+/)
+    .map((token) => token.toLowerCase())
+    .filter((token) => token.length > 0);
 }
 
-function containsSecretAssignment(value: string): boolean {
-  const assignmentPattern =
-    /(?:^|[?&#;,\s{])["']?([A-Za-z][A-Za-z0-9\s._-]{0,63})["']?\s*[:=]\s*(?=["']?[^\s,;&#])/gi;
-  for (const match of value.matchAll(assignmentPattern)) {
+function hasTokenSequence(tokens: readonly string[], sequence: readonly string[]): boolean {
+  if (sequence.length === 0 || tokens.length < sequence.length) return false;
+  for (let index = 0; index <= tokens.length - sequence.length; index += 1) {
+    let matched = true;
+    for (let offset = 0; offset < sequence.length; offset += 1) {
+      if (tokens[index + offset] !== sequence[offset]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) return true;
+  }
+  return false;
+}
+
+function isSensitiveLabel(value: string): boolean {
+  const compact = normalizeCompactLabel(value);
+  if (SENSITIVE_COMPACT_LABELS.has(compact)) return true;
+  const tokens = labelTokens(value);
+  return (
+    tokens.some((token) => SENSITIVE_LABEL_TOKENS.has(token)) ||
+    SENSITIVE_LABEL_TOKEN_SEQUENCES.some((sequence) => hasTokenSequence(tokens, sequence))
+  );
+}
+
+function containsHighConfidenceCredential(value: string): boolean {
+  return HIGH_CONFIDENCE_CREDENTIAL_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function containsSensitiveAssignment(value: string): boolean {
+  const assignmentPatterns = [
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?"([_A-Za-z][A-Za-z0-9\s._-]{0,63})"\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?'([_A-Za-z][A-Za-z0-9\s._-]{0,63})'\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?([_A-Za-z][A-Za-z0-9._-]{0,63})\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(_[A-Za-z][A-Za-z0-9._-]{1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
+  ];
+  for (const pattern of assignmentPatterns) {
+    for (const match of value.matchAll(pattern)) {
+      const label = match[1];
+      if (label !== undefined && isSensitiveLabel(label)) return true;
+    }
+  }
+
+  const cliFlagPattern =
+    /(?:^|\s)--([A-Za-z][A-Za-z0-9._-]{1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi;
+  for (const match of value.matchAll(cliFlagPattern)) {
     const label = match[1];
-    if (label !== undefined && containsSensitiveKeyMarker(label)) return true;
+    if (label !== undefined && isSensitiveLabel(label)) return true;
   }
   return false;
 }
 
 function containsSecretMaterial(value: string): boolean {
   return (
-    SECRET_VALUE_PATTERNS.some((pattern) => pattern.test(value)) ||
-    containsSecretAssignment(value)
+    containsHighConfidenceCredential(value) ||
+    containsSensitiveAssignment(value)
   );
 }
 
 function containsSensitiveKeyMaterial(value: string): boolean {
-  return containsSensitiveKeyMarker(value) || containsSecretMaterial(value);
+  return isSensitiveLabel(value) || containsSecretMaterial(value);
 }
 
 function safePath(parent: string, key: string): string {
@@ -235,6 +387,13 @@ function readRecord(value: unknown, path: string, allowedKeys: ReadonlySet<strin
 }
 
 function readString(value: unknown, path: string): string {
+  if (typeof value === "string" && containsSecretMaterial(value)) {
+    throw new ConfigValidationError(
+      "SECRET_CONFIG_REJECTED",
+      path,
+      `Secret-like config value rejected at ${path}; value was not retained.`,
+    );
+  }
   if (
     typeof value !== "string" ||
     value.length === 0 ||
@@ -242,13 +401,6 @@ function readString(value: unknown, path: string): string {
     /[\u0000-\u001f\u007f]/.test(value)
   ) {
     throw new ConfigValidationError("INVALID_CONFIG", path, `${path} must be a non-empty normalized string.`);
-  }
-  if (containsSecretMaterial(value)) {
-    throw new ConfigValidationError(
-      "SECRET_CONFIG_REJECTED",
-      path,
-      `Secret-like config value rejected at ${path}; value was not retained.`,
-    );
   }
   return value.normalize("NFC");
 }
@@ -401,10 +553,22 @@ function parseTimeouts(value: unknown, path: string): Partial<MutableFields<Time
   return result;
 }
 
+function isDeniedEnvironmentName(name: string): boolean {
+  if (DENIED_ENVIRONMENT_EXACT_NAMES.has(name)) return true;
+  if (DENIED_ENVIRONMENT_PREFIXES.some((prefix) => name.startsWith(prefix))) return true;
+  if (DENIED_ENVIRONMENT_STRUCTURED_PATTERNS.some((pattern) => pattern.test(name))) return true;
+
+  const tokens = labelTokens(name);
+  return (
+    tokens.some((token) => SENSITIVE_LABEL_TOKENS.has(token) || token === "prod" || token === "production") ||
+    SENSITIVE_LABEL_TOKEN_SEQUENCES.some((sequence) => hasTokenSequence(tokens, sequence))
+  );
+}
+
 function validateEnvironmentName(item: string, itemPath: string): string {
   if (
     !ENVIRONMENT_NAME_PATTERN.test(item) ||
-    DENIED_ENVIRONMENT_NAMES.some((pattern) => pattern.test(item))
+    isDeniedEnvironmentName(item)
   ) {
     throw new ConfigValidationError(
       "SECRET_CONFIG_REJECTED",

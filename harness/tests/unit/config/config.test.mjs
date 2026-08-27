@@ -28,6 +28,16 @@ function assertSecretRejectedWithoutDisclosure(action, secretMaterial) {
   });
 }
 
+function assertEnvironmentNameRejected(name) {
+  assert.throws(
+    () => buildChildEnvironmentPolicy(loadHarnessConfig({
+      schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+      environment: { allowlist: [name] },
+    })),
+    (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
+  );
+}
+
 test("config loader accepts the exact v1 schema and returns immutable snapshots", async () => {
   const source = await readJson("host-valid.json");
   const config = loadHarnessConfig(source);
@@ -116,6 +126,30 @@ test("provider credentials fail closed without leaking through error surfaces", 
   }
 });
 
+test("generalized provider and credential formats fail closed without leaking values", () => {
+  const providerSecrets = [
+    ["rk", "live", "HnsCore005SecuritySentinel001"].join("_"),
+    ["sk", "proj", "hnsCore005SecuritySentinel001"].join("-"),
+    ["GOCSPX", "HnsCore005SecuritySentinel001"].join("-"),
+    ["npm", "HnsCore005SecuritySentinel001"].join("_"),
+    ["SG", "HnsCore005SecuritySentinel001", "HnsCore005SecuritySentinel002"].join("."),
+    ["ASIA", "1234567890ABCDEF"].join(""),
+    "Bearer hnsCore005SecuritySentinel001",
+    "https://user:hnsCore005SecuritySentinel001@example.invalid/repo.git",
+    "-----BEGIN PRIVATE KEY-----\nhnsCore005SecuritySentinel001\n-----END PRIVATE KEY-----",
+  ];
+
+  for (const secret of providerSecrets) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: secret },
+      }),
+      secret,
+    );
+  }
+});
+
 test("quoted, compact, case, and separator secret assignments fail closed", () => {
   const sentinel = "hnsCore005AssignmentSentinel001";
   for (const value of [
@@ -128,6 +162,9 @@ test("quoted, compact, case, and separator secret assignments fail closed", () =
     `password_hash='${sentinel}'`,
     `clientSecret="${sentinel}"`,
     `credential-value=${sentinel}`,
+    `git clone --api-key ${sentinel} https://example.invalid/repo.git`,
+    `tool --client-secret\\=${sentinel}`,
+    `npm config set //registry.npmjs.org/:_authToken ${sentinel}`,
   ]) {
     assertSecretRejectedWithoutDisclosure(
       () => loadHarnessConfig({
@@ -146,6 +183,11 @@ test("secret-shaped unknown keys are redacted before entering any error surface"
     ["glpat", sentinel].join("-"),
     ["AI", "za", sentinel].join(""),
     ["sk", "live", sentinel].join("_"),
+    ["rk", "live", sentinel].join("_"),
+    ["GOCSPX", sentinel].join("-"),
+    ["npm", sentinel].join("_"),
+    ["SG", sentinel, `${sentinel}002`].join("."),
+    ["ASIA", "1234567890ABCDEF"].join(""),
     `client-credential-${sentinel}`,
   ]) {
     assert.throws(
@@ -175,14 +217,22 @@ test("secret-shaped unknown keys are redacted before entering any error surface"
   );
 });
 
-test("ordinary repository and path text remains valid", () => {
+test("ordinary repository, path, and boundary-safe assignment text remains valid", () => {
   const config = loadHarnessConfig({
     schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
-    framework: { repository: "https://github.com/example/token-parsing-guide.git" },
-    audit: { path: "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples" },
+    framework: {
+      repository: [
+        "https://github.com/example/token-parsing-guide.git",
+        "keyboard=ansi",
+        "tokenizer=cl100k_base",
+        "authors-style=apa",
+      ].join(" "),
+    },
+    audit: { path: "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples/authors-guide" },
   });
-  assert.equal(config.framework.repository, "https://github.com/example/token-parsing-guide.git");
-  assert.equal(config.audit.path, "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples");
+  assert.match(config.framework.repository, /token-parsing-guide/);
+  assert.match(config.framework.repository, /keyboard=ansi/);
+  assert.equal(config.audit.path, "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples/authors-guide");
 });
 
 test("trusted host config overrides built-ins before project narrowing", async () => {
@@ -273,10 +323,7 @@ test("environment allowlist may only preserve host-approved safe names and order
 
 test("cloud, SSH, registry, production, and secret environment names are denied", () => {
   for (const name of ["AWS_REGION", "SSH_AUTH_SOCK", "NPM_CONFIG_USERCONFIG", "GITHUB_TOKEN", "PRODUCTION_MODE", "API_KEY"]) {
-    assert.throws(
-      () => loadHarnessConfig({ schema_version: HARNESS_CONFIG_SCHEMA_VERSION, environment: { allowlist: [name] } }),
-      (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
-    );
+    assertEnvironmentNameRejected(name);
   }
 });
 
@@ -311,6 +358,12 @@ test("credential-source and process-injection environment classes are denied", (
   for (const name of [
     "KUBECONFIG",
     "CLOUDSDK_CONFIG",
+    "GIT_CONFIG",
+    "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_SYSTEM",
+    "GIT_EXEC_PATH",
+    "GIT_EXTERNAL_DIFF",
+    "GIT_PROXY_COMMAND",
     "GIT_SSH_COMMAND",
     "GIT_ASKPASS",
     "NODE_OPTIONS",
@@ -318,6 +371,8 @@ test("credential-source and process-injection environment classes are denied", (
     "DYLD_INSERT_LIBRARIES",
     "BASH_ENV",
     "ENV",
+    "SHELL",
+    "EDITOR",
     "TF_CLI_CONFIG_FILE",
     "OCI_CLI_CONFIG_FILE",
     "DOCKER_CONFIG",
@@ -326,19 +381,32 @@ test("credential-source and process-injection environment classes are denied", (
     "JAVA_TOOL_OPTIONS",
     "DYLD_LIBRARY_PATH",
     "PROMPT_COMMAND",
+    "GCC_EXEC_PREFIX",
+    "COMPILER_PATH",
+    "CC",
+    "CXX_FOR_BUILD",
+    "RUSTC_WRAPPER",
+    "RUSTC_WORKSPACE_WRAPPER",
+    "RUSTFLAGS",
+    "CARGO_HOME",
+    "CARGO_REGISTRIES_CRATES_IO_TOKEN",
+    "CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER",
   ]) {
-    assert.throws(
-      () => buildChildEnvironmentPolicy(loadHarnessConfig({
-        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
-        environment: { allowlist: [name] },
-      })),
-      (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
-    );
+    assertEnvironmentNameRejected(name);
   }
 });
 
 test("explicit safe environment names remain immutable and narrowable", () => {
-  const safeNames = ["LANG", "LC_ALL", "TOOL_MODE", "CI_JOB_ID", "HARNESS_COLOR"];
+  const safeNames = [
+    "LANG",
+    "LC_ALL",
+    "TOOL_MODE",
+    "CI_JOB_ID",
+    "HARNESS_COLOR",
+    "KEYBOARD_LAYOUT",
+    "TOKENIZER_MODE",
+    "AUTHORS_STYLE",
+  ];
   const host = loadHarnessConfig({
     schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
     environment: { allowlist: safeNames },
@@ -355,10 +423,10 @@ test("explicit safe environment names remain immutable and narrowable", () => {
     host,
     project: {
       schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
-      environment: { allowlist: ["LANG", "TOOL_MODE", "HARNESS_COLOR"] },
+      environment: { allowlist: ["LANG", "TOOL_MODE", "HARNESS_COLOR", "TOKENIZER_MODE"] },
     },
   });
-  assert.deepEqual(buildChildEnvironmentPolicy(narrowed).allowlist, ["LANG", "TOOL_MODE", "HARNESS_COLOR"]);
+  assert.deepEqual(buildChildEnvironmentPolicy(narrowed).allowlist, ["LANG", "TOOL_MODE", "HARNESS_COLOR", "TOKENIZER_MODE"]);
 });
 
 test("child environment policy starts empty and contains names only", async () => {
