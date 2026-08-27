@@ -2680,3 +2680,44 @@ The environment classifier blocks token/key/password-style names but omits the e
 `REQUEST_CHANGES`
 
 Candidate identity, scope, canonical serialization, SHA-256, narrowing, immutability, test discovery, and all official commands pass. However, two `OPEN MAJOR` findings remain in the config secret-isolation boundary, so `AC-HNS-CORE-005-002` and the assigned TECH review acceptance criteria are not satisfied for manifest SHA-256 `432afa16c262c514d36eb74e212d322f5579f641dc7e0883ac9266fee8a99b0d`.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R2-001 - HNS-CORE-005 R2 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Work Item | `HNS-CORE-005` |
+| Role | `IMPLEMENTER` |
+| Risk Class | `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Source Review Evidence | `REV-HNS-CORE-005-TECH-001` |
+| Source Findings | `FND-HNS-CORE-005-TECH-001-001`; `FND-HNS-CORE-005-TECH-001-002` |
+| R1 Candidate | `86aa33f9fefdacbdd9577802861d49bb07477d2c` |
+| R2 Remediation / Candidate Commit | `0e0166d746f02c3e5ba00fcf3cc0812bfeeb34f9` |
+| R2 Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r2.md` |
+| R2 Artifact Hash | `sha256:f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T00:56:13Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact remediation scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed. |
+| Finding 001 correction | `READY_FOR_REVIEW` | Added normalized API-key, authorization, cookie, and private-key assignment rejection with raw-value non-disclosure tests. |
+| Finding 002 correction | `READY_FOR_REVIEW` | Added JWT-bearing environment-name rejection and safe-name preservation tests. |
+| `npm ci` / build / typecheck | `PASS` | Required runtime; strict build and no-emit typecheck passed. |
+| Focused tests | `PASS` | 32 hash/config tests passed; 0 failed. |
+| Default tests | `PASS` | 128 passed; 0 failed, cancelled, skipped, or todo; count is evidence only. |
+| Security / dependency check | `PASS` | `npm audit --audit-level=high` found 0 vulnerabilities; no dependency or lockfile change. |
+| Forbidden boundary | `PASS` | No package, fixture, docs, Work Item, governance, runtime, adapter, I/O, hash module, or later-phase change. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+The two Findings remain `OPEN` until an independent Reviewer validates the exact R2 candidate/hash. This Maker evidence is not TECH, QA, Security, or Gate approval.
