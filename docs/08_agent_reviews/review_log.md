@@ -2932,3 +2932,136 @@ The complete R2 candidate satisfies the assigned technical review acceptance cri
 `PASS`
 
 The exact HNS-CORE-005 R2 candidate satisfies every assigned primary, companion, and QA acceptance criterion. Required commands and independent normal, boundary, negative, regression, determinism, non-disclosure, narrowing, environment, immutability, and discovery checks passed with no new QA finding.
+
+---
+
+## REV-HNS-CORE-005-SECURITY-002 - HNS-CORE-005 Independent R2 Security Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-SECURITY-002` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-SECURITY-002-EXEC` |
+| Role / Profile | `REVIEWER` / `SECURITY_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-SECURITY-REVIEW-002` |
+| Maker Evidence | `RCE-HNS-CORE-005-IMPLEMENTATION-001`; `RCE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001`; `EXE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r2.md` |
+| Manifest SHA-256 | `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0` |
+| Manifest Git Blob | `f01f210e4bb3b9ef920527fdafcb594ee8aa446c` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| R2 Remediation / Candidate Commit | `0e0166d746f02c3e5ba00fcf3cc0812bfeeb34f9` |
+| TECH / QA Evidence Verified | `REV-HNS-CORE-005-TECH-002`; `REV-HNS-CORE-005-QA-002` |
+| Review-start HEAD | `ea6014051fcbdc4b9307dd8acd29045d481c4e38` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T01:23:42Z` |
+
+### Provenance and Independence Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | Fresh single-branch clone; origin is exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and remote tip | `PASS` | Local HEAD and refreshed remote tip both resolved `feature/hns-core-005-config-hash` to `ea6014051fcbdc4b9307dd8acd29045d481c4e38`; starting tree was clean. |
+| Independent execution identity | `PASS` | `REV-HNS-CORE-005-SECURITY-002-EXEC` was absent from prior evidence and differs from every Maker, TECH, and QA execution ID. |
+| Candidate lineage | `PASS` | Base and R2 candidate are ancestors of review-start HEAD. |
+| Exact manifest integrity | `PASS` | Exact worktree bytes independently hash to the assigned SHA-256; manifest blob is `f01f210e4bb3b9ef920527fdafcb594ee8aa446c`. |
+| Artifact identity | `PASS` | All 15 manifest rows independently matched both the recorded Git blob and content SHA-256. |
+| R2 replacement / inheritance | `PASS` | The two `REPLACEMENT` artifacts and thirteen `INHERITED` artifacts match the manifest classification and identities. |
+| Post-candidate immutability | `PASS` | None of the 15 reviewed artifacts changed from `0e0166d...` through review-start HEAD. |
+| Current TECH / QA evidence | `PASS` | Both evidence records exist, bind the same R2 manifest/hash, use distinct execution IDs, and preserve reviewed artifacts. Their conclusions were not trusted as substitutes for this review. |
+
+### Commands and Scope Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion | `PASS` | Every accepted command and probe used Node `v24.19.0` and npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 128 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Diff / dependency boundary | `PASS` | `git diff --check` passed; no dependency or lockfile change exists in the candidate. |
+| Capability boundary scan | `PASS` | Reviewed source contains no `process.env` read, child-process execution, filesystem/network access, external I/O, adapter, credential source, persistence, production, destructive, or later-phase implementation. |
+
+### Threat and Control Results
+
+| Threat / Control | Result | Independent Evidence |
+|---|---|---|
+| R1 assignment-marker closure | `PASS` | API-key, authorization, cookie, and private-key markers across case and separator variants were rejected without sentinel disclosure. |
+| R1 JWT environment closure | `PASS` | `CI_JOB_JWT`, `CI_JOB_JWT_V2`, and representative token/cloud/SSH/registry/production credential names were rejected. |
+| Known provider, bearer, private-key, and URL credentials | `PASS` | GitHub, Anthropic/OpenAI, Slack, Bearer, PEM private-key, and URL-userinfo forms were rejected without raw-value disclosure. |
+| Additional provider and compact secret values | `FAIL` | GitLab PAT, Google API-key, Stripe secret-key, quoted API-key assignment, and compact token/password/credential assignment forms were accepted and retained. |
+| Error-surface non-disclosure | `FAIL` | A synthetic provider-token-shaped unknown key was copied into `message`, `stack`, `configPath`, and serialized error output. |
+| Agent-visible environment deny boundary | `FAIL` | Credential-source and process-injection names including Kubernetes/cloud config, Git SSH/helper, runtime option, loader preload, shell startup, Terraform, and OCI config forms were accepted. |
+| Narrowing-only privilege behavior | `PASS` | Visibility, adapter, environment, context, and timeout re-expansion failed closed; safe ordered subsets remained valid. |
+| Empty child baseline and safe names | `PASS` | Child policy remained `EMPTY`, disabled parent inheritance, emitted names only, and preserved `LANG`, `LC_ALL`, `TOOL_MODE`, `CI_JOB_ID`, and `HARNESS_COLOR`. |
+| Immutable snapshots | `PASS` | Effective config, nested sections, allowlists, and child policy were frozen and isolated from source mutation. |
+| Hostile object handling | `PASS` | Prototype-bearing objects, accessors without getter execution, symbols, custom classes, sparse arrays, and custom array properties failed closed; null-prototype plain data remained supported. |
+| Independent probe total | `PASS_WITH_FINDINGS` | 197 assertions completed; all expected controls and all three finding reproductions were deterministic. |
+
+### Findings
+
+#### FND-HNS-CORE-005-SECURITY-002-001 - Provider and compact secret-value forms bypass rejection
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-SECURITY-002-001` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-SECURITY-REVIEW-002-002`; SDD Sections 31 and 38 |
+| Evidence | Independent probes accepted representative `glpat-`, `AIza`, and `sk_live_` provider credentials, quoted API-key assignment text, and compact token/password/credential assignment labels in allowed string fields. |
+| Required Action | Extend fail-closed secret-value classification to the demonstrated high-confidence provider prefixes and normalized/quoted compact assignment forms; preserve ordinary non-secret text; add regression and raw-value non-disclosure tests; issue a new immutable candidate and manifest. |
+
+The R2 remediation closes the exact R1 markers but the value classifier remains narrower than the canonical prohibition on API keys, credentials, and other secret values. Accepted values are retained inside immutable config snapshots, so this is a security-boundary defect rather than a test-only gap.
+
+#### FND-HNS-CORE-005-SECURITY-002-002 - Secret-like unknown config key is disclosed by validation errors
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-SECURITY-002-002` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-SECURITY-REVIEW-002-002`; SDD Sections 31 and 38 |
+| Evidence | A synthetic GitHub-PAT-shaped unknown key was reproduced in `ConfigValidationError.message`, `stack`, `configPath`, and serialized error output because the key redaction classifier does not recognize provider credential prefixes. |
+| Required Action | Make unknown-key path construction fail closed for high-confidence provider-token and secret-bearing key forms before any raw key enters an error object; verify all error surfaces and preserve useful non-sensitive unknown-key diagnostics. |
+
+Value redaction alone is insufficient because an attacker-controlled or malformed config can place credential material in a property name. The current error object retains that key and can propagate it to logs or audit serialization.
+
+#### FND-HNS-CORE-005-SECURITY-002-003 - Agent-visible allowlist accepts credential-source and process-injection names
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-SECURITY-002-003` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-SECURITY-REVIEW-002-003`; SDD Sections 32 and 38 |
+| Evidence | `KUBECONFIG`, `CLOUDSDK_CONFIG`, `GIT_SSH_COMMAND`, `GIT_ASKPASS`, `NODE_OPTIONS`, `LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`, `BASH_ENV`, `ENV`, `TF_CLI_CONFIG_FILE`, and `OCI_CLI_CONFIG_FILE` were accepted by config validation and emitted by child-policy construction. |
+| Required Action | Deny credential-source, helper-command, runtime-option, loader-preload, shell-startup, and provider-config environment classes from Agent-visible propagation; keep the empty baseline and explicit safe-name behavior; add focused bypass and safe-name regressions. |
+
+The current output contains names rather than values, but it authorizes later child-environment construction to copy host values under those names. These variables are not task-safe Agent-visible settings and can expose credential sources or alter child-process behavior.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criteria | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-SECURITY-REVIEW-002-001` | `PASS` | Exact R2 identity, immutable artifact binding, Maker separation, and independent Security execution were verified. |
+| `AC-HNS-CORE-005-SECURITY-REVIEW-002-002` | `FAIL` | R1 gaps are closed, but additional provider/compact secret values and a raw-key error disclosure remain. |
+| `AC-HNS-CORE-005-SECURITY-REVIEW-002-003` | `FAIL` | Narrowing, safe names, immutability, and hostile objects pass, but credential-source and process-injection environment names remain Agent-visible. |
+| `AC-HNS-CORE-005-SECURITY-REVIEW-002-004` | `PASS` | Static and dependency checks found no credential source, actual environment injection, external I/O, network, adapter, dependency, production, or destructive implementation expansion. |
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no implementation, manifest, package, test, Work Item, status, prior evidence, prior finding state, gate, merge, accepted-risk, or lifecycle artifact was modified.
+- Existing TECH and QA evidence remains immutable historical evidence on this hash, but it does not close these newly identified Security findings.
+- This is `SECURITY_REVIEWER` evidence only. It does not act as Implementer, TECH, QA, Gate Checker, merger, accepted-risk authority, or lifecycle closer.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+The exact R2 candidate passes provenance, official commands, R1 regressions, narrowing, immutability, hostile-input checks, and the no-runtime-capability boundary. However, three `OPEN MAJOR` security findings remain in secret rejection, error non-disclosure, and Agent-visible environment filtering, so this candidate cannot proceed to `IMPLEMENTATION_GATE`.
