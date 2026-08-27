@@ -2830,3 +2830,105 @@ The R2 candidate rejects the two reported CI JWT names and representative JWT be
 `PASS`
 
 The complete R2 candidate satisfies the assigned technical review acceptance criteria. Provenance, scope, all 15 artifact identities, R2 replacement/inheritance, required commands, default discovery, and independent adversarial probes passed; both R1 findings are independently resolved with no new open technical finding.
+
+---
+
+## REV-HNS-CORE-005-QA-002 - HNS-CORE-005 Independent R2 QA Re-review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-QA-002` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-QA-002-EXEC` |
+| Role / Profile | `REVIEWER` / `QA_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-QA-REVIEW-002` |
+| Maker Evidence | `RCE-HNS-CORE-005-IMPLEMENTATION-001`; `RCE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001`; `EXE-HNS-CORE-005-REMEDIATION-R2-001` |
+| TECH Prerequisite | `REV-HNS-CORE-005-TECH-002` = `PASS` on the same manifest hash |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r2.md` |
+| Manifest SHA-256 | `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0` |
+| Manifest Git Blob | `f01f210e4bb3b9ef920527fdafcb594ee8aa446c` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| R2 Remediation / Candidate Commit | `0e0166d746f02c3e5ba00fcf3cc0812bfeeb34f9` |
+| Review-start HEAD | `8bea2c334694f164569d993c3488bd19cf0a3a33` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T01:13:51Z` |
+
+### Context and Provenance Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | Fresh single-branch clone; origin is exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and refreshed remote tip | `PASS` | Local HEAD, refreshed remote-tracking branch, and `git ls-remote` all resolved `feature/hns-core-005-config-hash` to `8bea2c334694f164569d993c3488bd19cf0a3a33`; starting tree was clean. |
+| Independent execution identity | `PASS` | `REV-HNS-CORE-005-QA-002-EXEC` differs from all Maker and TECH execution IDs and was absent from prior evidence. |
+| Candidate lineage | `PASS` | Base `fb48e9c...` and R2 candidate `0e0166d...` are ancestors of review-start HEAD; the candidate remained immutable after remediation. |
+| Exact R2 manifest integrity | `PASS` | Exact worktree bytes independently hash to `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0`. |
+| All 15 artifact identities | `PASS` | Every manifest row independently matched both its recorded Git blob and content SHA-256. |
+| Post-candidate immutability | `PASS` | None of the 15 reviewed artifacts changed from `0e0166d...` through review-start HEAD. |
+| TECH prerequisite binding | `PASS` | `REV-HNS-CORE-005-TECH-002` records `PASS` against this exact R2 manifest/hash and review commit `8bea2c...` is the review-start HEAD. |
+| Context files | `PASS` | Loaded Tier 1 REVIEWER/QA governance, active Implementation Gate, assigned Work Item, primary/companion Work Items, direct SDD Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1, R2 manifest, Maker evidence, R1 findings, R2 TECH evidence, and reviewed artifacts only. |
+
+### Commands and Reproducibility
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion | `PASS` | Every accepted command and probe used Node `v24.19.0` and npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 128 passed; 0 failed, cancelled, skipped, or todo. Root, core, schema, error, hash, and config suites were all discovered by the default command. |
+| Focused hash / config tests | `PASS` | 32 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Diff / dependency boundary | `PASS` | `git diff --check` passed; test-discovery commit changes only `harness/package.json`; no lockfile or dependency drift. |
+| Test integrity | `PASS` | No skipped/todo markers were present in the repository test suites. |
+| Forbidden capability / path scan | `PASS` | No filesystem, network, process, Context/Policy compiler, audit, adapter, execution, later-phase, forbidden-path, or lockfile change was introduced. |
+
+### Independent QA Acceptance Probes
+
+| Behavior | Result | Evidence |
+|---|---|---|
+| SHA-256 correctness and boundaries | `PASS` | Independently matched Node `crypto` for 14 deterministic byte lengths from 0 through 4097, including 55/56/63/64/65-byte padding boundaries. |
+| UTF-8 and Unicode determinism | `PASS` | Matched `TextEncoder` for empty, ASCII, NFC/NFD, CJK, astral, newline, and malformed-surrogate inputs; canonical NFC-equivalent values and keys produced identical bytes/hashes. |
+| Path-independent canonicalization | `PASS` | Independently loaded both differently located/ordered canonical fixtures; canonical bytes and SHA-256 matched exactly without source-path identity. |
+| Canonical normal/boundary/negative behavior | `PASS` | Nested ordering, null-prototype objects, shared references, negative zero, cycles, normalized-key collisions, accessors without getter execution, unsupported primitives, non-finite numbers, and mutable non-plain objects behaved deterministically or failed closed as required. |
+| Hash mismatch non-disclosure | `PASS` | Invalid expected hash failed closed; mismatch message, stack, serialized error, and diagnostic excluded the independent secret sentinel while exposing only expected/actual hashes and `[REDACTED]` artifact context. |
+| Config version and unknown-key behavior | `PASS` | Exact v1 accepted; missing, older, newer, and non-string versions rejected; unknown top-level, nested, and layer keys failed closed. |
+| Host/project/invocation precedence | `PASS` | Three-layer visibility, adapter, context, timeout, and environment narrowing produced the expected effective config; repository and audit identity remained host-owned. |
+| Re-expansion negative behavior | `PASS` | More-public visibility, adapter reorder, context/timeout growth, unapproved environment, repository/audit replacement, and invocation environment re-expansion all failed with `CONFIG_NARROWING_VIOLATION`. |
+| R1 secret-assignment regression | `PASS` | API-key, authorization, cookie, private-key, password, client-secret, and access-token markers across case, space, dot, hyphen, underscore, `=` and `:` variants were rejected without sentinel disclosure. Representative documentation and unrelated `monkey=value` text remained accepted. |
+| R1 JWT/environment regression | `PASS` | Reported CI JWT names and broader JWT/cloud/SSH/registry/production credential names were rejected; `LANG`, `LC_ALL`, `TOOL_MODE`, `CI_JOB_ID`, and `HARNESS_COLOR` remained accepted. |
+| Environment policy | `PASS` | Child policy used an immutable empty baseline, never inherited the parent environment, emitted names only, and preserved narrowing/order. |
+| Immutability and repeatability | `PASS` | Effective config, nested sections, allowlists, and child policy were frozen; post-resolution source mutations did not alter snapshots; repeated pristine inputs produced deeply equal outputs. |
+| Test discovery contract | `PASS` | Default script retains Node's built-in runner and all six required root/core/schema/error/hash/config globs; no framework or dependency was added. |
+| Independent probe total | `PASS` | Corrected independent QA run completed 138 assertions with 0 failures. |
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criteria | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-001` | `PASS` | Canonical ordering, NFC normalization, UTF-8 reference comparison, path-independent fixtures, SHA vectors, padding boundaries, and equivalent-input hash probes passed. |
+| `AC-HNS-CORE-005-002` | `PASS` | Version/unknown/secret fail-closed behavior, host-project-invocation narrowing, environment isolation, re-expansion negatives, and immutable snapshots passed. |
+| `AC-HNS-CORE-005-003` | `PASS` | Unicode/path-independent behavior and hash mismatch redaction were covered by checked-in tests and independent non-disclosure probes. |
+| `AC-HNS-CORE-005-004` | `PASS` | Static and diff scans found no Context/Policy compiler, audit store, runtime process, adapter behavior, I/O, dependency, or later-phase implementation. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-001` through `-006` | `PASS` | One default `npm test` invocation discovered root, core, schema, error, hash, and config suites. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-007` | `PASS` | All 128 discovered tests passed with no failed/skipped/todo tests; count was treated as execution evidence, not a permanent contract; companion commit changed package script only. |
+| `AC-HNS-CORE-005-QA-REVIEW-002-001` | `PASS` | Exact R2 manifest/hash and same-hash TECH prerequisite were independently verified. |
+| `AC-HNS-CORE-005-QA-REVIEW-002-002` | `PASS` | Every primary and companion AC passed independent acceptance and command verification. |
+| `AC-HNS-CORE-005-QA-REVIEW-002-003` | `PASS` | Both R1 regressions, diagnostic non-disclosure, safe-name preservation, and negative cases passed. |
+| `AC-HNS-CORE-005-QA-REVIEW-002-004` | `PASS` | Default/focused suites, prior CORE regression, discovery, and no-skip/todo checks passed. |
+
+### Findings and Limitations
+
+- No new QA finding was identified.
+- This review does not modify the prior R1 finding records or their TECH-owned status transitions; it independently confirms their regression behavior only for the exact R2 manifest hash above.
+- A preliminary QA probe incorrectly treated unchanged `public` visibility on a `public` host baseline as expansion. That probe result was discarded, its baseline corrected to `internal`, and the complete 138-assertion run was rerun successfully; no candidate artifact changed.
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no implementation, manifest, package, tests, Work Item, status, prior evidence, finding state, gate, merge, or lifecycle artifact was modified.
+- This is `QA_REVIEWER` evidence only. It does not act as TECH, Security, Gate Checker, Implementer, merger, or lifecycle closer.
+
+### Decision
+
+`PASS`
+
+The exact HNS-CORE-005 R2 candidate satisfies every assigned primary, companion, and QA acceptance criterion. Required commands and independent normal, boundary, negative, regression, determinism, non-disclosure, narrowing, environment, immutability, and discovery checks passed with no new QA finding.
