@@ -2721,3 +2721,112 @@ Candidate identity, scope, canonical serialization, SHA-256, narrowing, immutabi
 `READY_FOR_REVIEW`
 
 The two Findings remain `OPEN` until an independent Reviewer validates the exact R2 candidate/hash. This Maker evidence is not TECH, QA, Security, or Gate approval.
+
+---
+
+## REV-HNS-CORE-005-TECH-002 - HNS-CORE-005 Independent R2 Technical Re-review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-002` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-002-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-002` |
+| Maker Evidence | `RCE-HNS-CORE-005-IMPLEMENTATION-001`; `RCE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001`; `EXE-HNS-CORE-005-REMEDIATION-R2-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r2.md` |
+| Manifest SHA-256 | `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0` |
+| Manifest Git Blob | `f01f210e4bb3b9ef920527fdafcb594ee8aa446c` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| R1 Candidate | `86aa33f9fefdacbdd9577802861d49bb07477d2c` |
+| R2 Remediation / Candidate Commit | `0e0166d746f02c3e5ba00fcf3cc0812bfeeb34f9` |
+| Review-start HEAD | `2a84841b8c0b64adeb911e823fcb3c633501ae92` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T01:04:24Z` |
+
+### Provenance and Identity Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | Fresh single-branch clone; origin is exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and refreshed remote tip | `PASS` | Local HEAD and `git ls-remote` both resolved `feature/hns-core-005-config-hash` to `2a84841b8c0b64adeb911e823fcb3c633501ae92`; starting tree was clean. |
+| Independent execution identity | `PASS` | Reviewer execution ID differs from all three Maker execution IDs and was absent from prior evidence. |
+| Direct-parent lineage | `PASS` | `fb48e9c... -> efbe79d... -> 69cc152... -> 86aa33f... -> 7d0b7c3... -> 48a0e3e... -> 0e0166d... -> 2a84841...` was verified as a direct-parent chain. |
+| Exact R2 manifest integrity | `PASS` | Exact worktree bytes hash to the assigned SHA-256; Git blob is `f01f210e4bb3b9ef920527fdafcb594ee8aa446c`. |
+| All 15 artifact identities | `PASS` | Every manifest row independently matched both its recorded Git blob and content SHA-256 at review-start HEAD. |
+| R2 replacement / inheritance | `PASS` | `config.ts` and `config.test.mjs` differ from R1 exactly as `REPLACEMENT`; the other 13 artifacts match R1 byte-for-byte exactly as `INHERITED`. |
+| Remediation commit scope | `PASS` | `0e0166d...` modifies only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`. |
+| Post-candidate immutability | `PASS` | No reviewed artifact changed from `0e0166d...` through review-start HEAD; intervening changes are control-plane manifest, evidence, and review Work Items only. |
+| R1 supersession semantics | `PASS` | R1 manifest and review remain immutable historical evidence; R2 explicitly supersedes the R1 manifest and rebinds all current review checks to the R2 hash. |
+
+### Commands and Scope Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion | `PASS` | Required runtime resolved to Node `v24.19.0` and npm `11.17.0`. A preliminary host-default check was not used as evidence; `npm ci` and every recorded verification were rerun under the required runtime. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 128 passed; 0 failed, cancelled, skipped, or todo. Default discovery included root, core, schema, error, hash, and config suites. |
+| Focused hash / config tests | `PASS` | 32 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Diff and dependency scope | `PASS` | `git diff --check` passed; package change is test discovery only; no lockfile or dependency drift. |
+| Forbidden capability scan | `PASS` | No filesystem, network, process execution, Context/Policy compiler, audit store, persistence, runtime, adapter implementation, or later-phase capability was introduced. |
+| Test integrity scan | `PASS` | No focused-only, skipped, or todo marker exists in the hash/config suites. |
+
+### Independent R2 Technical Probes
+
+| Probe | Result | Evidence |
+|---|---|---|
+| SHA-256 correctness | `PASS` | Independently matched Node `crypto` for 17 random byte lengths from 0 through 4097, including 55/56/63/64/65-byte padding boundaries. |
+| UTF-8 correctness | `PASS` | Matched `TextEncoder` for ASCII, NFC/NFD Unicode, BMP, astral, control, and malformed-surrogate inputs. |
+| Canonical serialization | `PASS` | Key ordering, Unicode normalization, null-prototype values, shared references, negative zero, cycles, non-canonical types, accessors without getter execution, symbols, and normalized-key collisions behaved fail closed as required. |
+| Hash mismatch diagnostics | `PASS` | Invalid expected hashes fail closed; mismatch message and diagnostic never disclosed the independent sentinel and retained `[REDACTED]` artifact context. |
+| Config narrowing and immutability | `PASS` | Visibility, adapters, environment, context budget, and timeout re-expansion were rejected; immutable snapshots did not retain later source mutations. |
+| Unknown/accessor/key/environment boundary | `PASS` | Unknown keys, accessor-backed config, representative sensitive keys, and cloud/SSH/registry/production/token names were rejected without getter execution or sentinel disclosure. |
+| R1 Finding 001 reproduction | `PASS` | `api_key`, `apikey`, `authorization`, `cookie`, `private_key`, and `privatekey` were tested with `=`, `:`, spacing, case, hyphen, and dot variants; every assignment was rejected and no error surface disclosed the raw value or sentinel. |
+| Assignment false-positive regression | `PASS` | Ordinary API-key documentation, authorization/cookie policy, private-key documentation, and unrelated `monkey=value` repository text remained valid when no secret assignment marker was present. |
+| R1 Finding 002 reproduction | `PASS` | `CI_JOB_JWT`, `CI_JOB_JWT_V2`, `JWT`, `BUILD_JWT`, `OIDC_JWT_ASSERTION`, `SERVICE_JWT_CREDENTIAL`, and `MYJWT` were rejected from Agent-visible allowlists. |
+| Safe environment regression | `PASS` | `LANG`, `LC_ALL`, `TOOL_MODE`, `CI_JOB_ID`, and `HARNESS_COLOR` remained accepted, ordered, immutable, and narrowing-only in the empty-baseline child policy. |
+
+### Finding Transitions
+
+#### FND-HNS-CORE-005-TECH-001-001 - Obvious secret assignment markers bypass config value rejection
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-001-001` |
+| Severity | `MAJOR` |
+| Prior Status | `OPEN` |
+| New Status | `RESOLVED` |
+| Closure Evidence | `REV-HNS-CORE-005-TECH-002`; R2 manifest SHA-256 `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0`; independent assignment-variant and non-disclosure probes. |
+
+The R2 candidate rejects all required normalized API-key, authorization, cookie, and private-key assignment variants without retaining or echoing raw values. Representative non-assignment text remains valid, so the remediation closes the bypass without the tested false-positive regression.
+
+#### FND-HNS-CORE-005-TECH-001-002 - Agent-visible environment policy accepts JWT bearer credential names
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-001-002` |
+| Severity | `MAJOR` |
+| Prior Status | `OPEN` |
+| New Status | `RESOLVED` |
+| Closure Evidence | `REV-HNS-CORE-005-TECH-002`; R2 manifest SHA-256 `f9ad2bd656bed5a52d9c69c60cdbf2381282ee92aab34c8dab1b06bf44df25c0`; independent JWT rejection and safe-name preservation probes. |
+
+The R2 candidate rejects the two reported CI JWT names and representative JWT bearer names while preserving explicitly allowed non-secret names and narrowing semantics.
+
+### Findings and Limitations
+
+- No new finding was identified.
+- Both R1 `MAJOR` findings are `RESOLVED` only for the exact R2 manifest hash above; any reviewed-artifact change invalidates this closure evidence.
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no implementation, manifest, test, package, Work Item, status, prior evidence, gate, merge, or lifecycle artifact was changed.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, merger, or lifecycle closer.
+
+### Decision
+
+`PASS`
+
+The complete R2 candidate satisfies the assigned technical review acceptance criteria. Provenance, scope, all 15 artifact identities, R2 replacement/inheritance, required commands, default discovery, and independent adversarial probes passed; both R1 findings are independently resolved with no new open technical finding.
