@@ -120,7 +120,7 @@ const SENSITIVE_KEY_MARKERS = [
 const DENIED_ENVIRONMENT_NAMES = [
   /^(?:AWS|AZURE|GCP|GOOGLE|SSH|NPM|DOCKER|KUBE)_/,
   /^(?:CI_JOB_TOKEN|DATABASE_URL|GITHUB_TOKEN|NODE_AUTH_TOKEN)$/,
-  /(?:AUTH|COOKIE|CREDENTIAL|KEY|PASSWORD|SECRET|TOKEN)/,
+  /(?:AUTH|COOKIE|CREDENTIAL|JWT|KEY|PASSWORD|SECRET|TOKEN)/,
   /(?:^|_)PROD(?:UCTION)?(?:_|$)/,
 ];
 const SECRET_VALUE_PATTERNS = [
@@ -129,6 +129,7 @@ const SECRET_VALUE_PATTERNS = [
   /\b(?:gh[pousr]_|github_pat_|sk-|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/i,
   /\bAKIA[0-9A-Z]{16}\b/,
   /(?:password|secret|token|credential)\s*[:=]\s*\S+/i,
+  /(?:api[\s._-]*key|authorization|cookie|private[\s._-]*key)\s*[:=]\s*\S+/i,
   /[a-z][a-z0-9+.-]*:\/\/[^/\s:@]+:[^/\s@]+@/i,
 ];
 

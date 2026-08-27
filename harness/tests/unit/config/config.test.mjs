@@ -68,6 +68,27 @@ test("secret-bearing keys and values are rejected without echoing raw material",
   }
 });
 
+test("normalized secret assignment markers fail closed without disclosing values", () => {
+  const rawSecret = "hns-core-005-secret-sentinel";
+  for (const marker of ["api_key", "apikey", "authorization", "cookie", "private_key", "privatekey"]) {
+    const rawValue = `https://example.invalid/repository?${marker}=${rawSecret}`;
+    assert.throws(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: rawValue },
+      }),
+      (error) => {
+        assert.equal(error instanceof ConfigValidationError, true);
+        assert.equal(error.code, "SECRET_CONFIG_REJECTED");
+        assert.equal(error.message.includes(rawSecret), false);
+        assert.equal(error.message.includes(rawValue), false);
+        assert.equal(error.configPath.includes(rawSecret), false);
+        return true;
+      },
+    );
+  }
+});
+
 test("trusted host config overrides built-ins before project narrowing", async () => {
   const host = await readJson("host-valid.json");
   const project = await readJson("project-narrow.json");
@@ -161,6 +182,33 @@ test("cloud, SSH, registry, production, and secret environment names are denied"
       (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
     );
   }
+});
+
+test("JWT bearer environment names are denied while safe child names remain narrowable", () => {
+  for (const name of ["CI_JOB_JWT", "CI_JOB_JWT_V2"]) {
+    assert.throws(
+      () => buildChildEnvironmentPolicy(loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        environment: { allowlist: [name] },
+      })),
+      (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
+    );
+  }
+
+  const host = loadHarnessConfig({
+    schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+    environment: { allowlist: ["LANG", "TOOL_MODE"] },
+  });
+  assert.deepEqual(buildChildEnvironmentPolicy(host).allowlist, ["LANG", "TOOL_MODE"]);
+
+  const project = resolveHarnessConfig({
+    host,
+    project: {
+      schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+      environment: { allowlist: ["LANG"] },
+    },
+  });
+  assert.deepEqual(buildChildEnvironmentPolicy(project).allowlist, ["LANG"]);
 });
 
 test("child environment policy starts empty and contains names only", async () => {
