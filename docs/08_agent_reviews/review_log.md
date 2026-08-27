@@ -3104,3 +3104,134 @@ The exact R2 candidate passes provenance, official commands, R1 regressions, nar
 `READY_FOR_REVIEW`
 
 All three Security Findings remain `OPEN` until independent review of the exact R3 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
+
+---
+
+## REV-HNS-CORE-005-TECH-003 - HNS-CORE-005 Independent R3 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-003` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-003-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-003` |
+| Maker Evidence | `RCE-HNS-CORE-005-REMEDIATION-R3-001` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R3-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r3.md` |
+| Manifest SHA-256 | `328a6a6bb984e37027275360c9b556e7eb3468fb874b078f73173f9292337410` |
+| Manifest Git Blob | `9b0bbff1932129b69d10fbd59e39c94c15c42eb6` |
+| Base Commit | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` |
+| R3 Remediation / Candidate Commit | `d230f65f3590b6a69952a7567133e9288b58d9bd` |
+| Review-start HEAD | `0fc3ce6a78912af8dc29adc0d4ea5cffd71648a7` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-08-27T01:44:14Z` |
+
+### Provenance and Independence Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and exact origin | `PASS` | Fresh single-branch clone; origin is exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`. |
+| Branch and remote tip | `PASS` | Local HEAD, remote-tracking branch, and `git ls-remote` all resolved `feature/hns-core-005-config-hash` to `0fc3ce6a78912af8dc29adc0d4ea5cffd71648a7`; the starting tree was clean. |
+| Independent execution identity | `PASS` | `REV-HNS-CORE-005-TECH-003-EXEC` was absent from prior evidence and differs from all Maker and prior Reviewer execution IDs. |
+| Candidate lineage | `PASS` | Base `fb48e9c...`, initial candidate `86aa33f...`, R2 candidate `0e0166d...`, and R3 candidate `d230f65...` are ancestors of review-start HEAD. |
+| Exact R3 manifest integrity | `PASS` | Exact worktree bytes independently hash to `328a6a6bb984e37027275360c9b556e7eb3468fb874b078f73173f9292337410`. |
+| All 15 artifact identities | `PASS` | Every manifest row independently matched both its recorded Git blob and content SHA-256. |
+| R3 replacement / inheritance | `PASS` | The two `REPLACEMENT` artifacts differ from R2 as declared; all thirteen `INHERITED` artifacts match R2 byte-for-byte. |
+| Post-candidate immutability | `PASS` | None of the 15 reviewed artifacts changed from `d230f65...` through review-start HEAD. |
+| Maker / Reviewer separation | `PASS` | Maker and Reviewer execution IDs are distinct; this execution did not modify any reviewed artifact. Earlier evidence was used only for history and regression targeting, never as a substitute for independent verification. |
+
+### Commands and Technical Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion | `PASS` | Every accepted command and probe used Node `v24.19.0` and npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 134 passed; 0 failed, cancelled, skipped, or todo. Root, core, schema, error, hash, and config suites were all discovered by the default command. |
+| Focused hash / config tests | `PASS` | 38 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Diff / dependency boundary | `PASS` | `git diff --check` passed; the companion changes only `harness/package.json`; no lockfile or dependency change was introduced. |
+| Capability boundary scan | `PASS` | No Context/Policy compiler, audit persistence, runtime process, environment injection, adapter, filesystem/network I/O, external integration, production operation, destructive behavior, or later-phase implementation was added. |
+
+### Independent Technical and Adversarial Probes
+
+| Behavior | Result | Evidence |
+|---|---|---|
+| Canonical serialization and SHA-256 | `PASS` | Independently matched Node `crypto` for 18 byte lengths from 0 through 4097, including SHA-256 padding boundaries; key ordering, NFC normalization, UTF-8, shared references, negative zero, cycles, accessors without getter execution, non-plain objects, unsupported primitives, and mismatch redaction passed. |
+| Config parsing and narrowing | `PASS` | Exact versioning, unknown-key rejection, three-layer narrowing, immutable snapshots, empty child baseline, source isolation, hostile-object rejection, and visibility/adapter/environment/timeout re-expansion negatives passed. |
+| Historical TECH Finding regressions | `PASS` | API-key/authorization/cookie/private-key/password/client-secret/token assignment variants and both CI JWT names were independently rejected without raw-value disclosure. `FND-HNS-CORE-005-TECH-001-001` and `-002` remain `RESOLVED`. |
+| Historical Security Finding exact regressions | `PASS` | The exact GitLab, Google, Stripe, quoted/compact assignment, provider-key redaction, credential-source, helper-command, runtime-option, loader-preload, shell-startup, Terraform, and OCI cases from `REV-HNS-CORE-005-SECURITY-002` now pass. This TECH execution does not transition Security-owned Finding status. |
+| Generalized secret-value classification | `FAIL` | Additional high-confidence Stripe restricted, Google OAuth client-secret, npm access-token, SendGrid API-key, AWS temporary-access-key, CLI-style assignment, and escaped assignment classes were accepted and retained. |
+| Generalized secret-key error surfaces | `FAIL` | Five additional high-confidence provider-token-shaped unknown-key classes were returned as `UNKNOWN_CONFIG_KEY` and appeared verbatim in `message`, `stack`, `configPath`, and serialized error output. |
+| Generalized process-injection environment boundary | `FAIL` | Git config source/path, Git executable-path, compiler-wrapper, and command-prefix environment names were accepted into the Agent-visible allowlist. |
+| False-positive controls | `FAIL` | Existing ordinary repository/path controls and seven established safe names pass, but benign assignment labels containing ordinary words and task-safe names containing marker substrings such as keyboard, tokenizer, or authors are rejected solely by substring matching. |
+| Independent probe total | `FAIL_WITH_FINDINGS` | Corrected complete run executed 113 assertions: 90 passed and 23 failed, grouped into the three findings below. A preliminary UTF-8 oracle incorrectly normalized raw `encodeUtf8` input; that result was discarded, the oracle was corrected to raw `TextEncoder` semantics, and the full 113-assertion run was rerun. |
+
+### Findings
+
+#### FND-HNS-CORE-005-TECH-003-001 - Generalized secret classifier still permits high-confidence credentials and discloses secret-shaped keys
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-001` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-003`; SDD Sections 31 and 38 |
+| Evidence | Eight independently generated high-confidence provider/assignment value classes were accepted and retained. Five provider-token-shaped unknown-key classes were classified as ordinary unknown keys and leaked through every tested error surface. No raw synthetic credential is recorded in this evidence. |
+| Required Action | Replace the narrow provider/assignment allow-by-miss behavior with a maintainable high-confidence classifier that covers the reproduced provider and assignment classes for both values and keys; redact before error construction; preserve ordinary text; add non-disclosure and false-positive regressions; issue a new immutable candidate and manifest. |
+
+R3 closes the exact three provider prefixes and assignment forms named by the R2 Security review, but the same architectural boundary remains incomplete for other well-formed, high-confidence credential classes. Because accepted values are retained in immutable config and raw secret-shaped keys enter diagnostic surfaces, this is an implementation security-boundary defect.
+
+#### FND-HNS-CORE-005-TECH-003-002 - Additional process-injection environment names remain Agent-visible
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-002` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; SDD Sections 32 and 38 |
+| Evidence | Independent probes accepted Git global/system config source, Git executable path, compiler-wrapper, and command-prefix environment classes and emitted them through `buildChildEnvironmentPolicy`. |
+| Required Action | Extend the denied environment policy to the reproduced high-confidence Git configuration/executable and toolchain command-wrapper classes; retain the empty baseline and explicit safe-name narrowing; add focused regressions without broad substring matching. |
+
+These names can alter child-process configuration or command resolution when a later runtime copies their host values. Explicit presence in an allowlist is not sufficient to make process-injection classes task-safe under the canonical environment isolation contract.
+
+#### FND-HNS-CORE-005-TECH-003-003 - Substring markers overblock non-secret values and safe environment names
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-003` |
+| Severity | `MAJOR` |
+| Owner | `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-TECH-REVIEW-003-002`; SDD Sections 31-32 |
+| Evidence | Two benign assignment labels and three task-safe environment names were rejected only because ordinary words contained sensitive substrings. Existing ordinary repository/path controls do not exercise these token-boundary cases. |
+| Required Action | Use token/boundary-aware classification for assignment labels and environment names. Continue rejecting canonical secret markers and dangerous environment classes while accepting reproduced benign words and existing safe controls; add both positive and negative regression matrices. |
+
+The current substring policy creates a functional false-positive regression and conflicts with the assigned requirement to validate generalized classifiers without overblocking. A remediation should refine classification semantics instead of weakening secret or environment isolation.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criteria | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-TECH-REVIEW-003-001` | `PASS` | Exact R3 identity, lineage, 15 artifact identities, two replacements, thirteen inherited artifacts, post-candidate immutability, and Maker/Reviewer separation were independently verified. |
+| `AC-HNS-CORE-005-TECH-REVIEW-003-002` | `FAIL` | Exact historical regressions pass, but generalized secret/key/env probes expose additional bypasses and false-positive overblocking. |
+| `AC-HNS-CORE-005-TECH-REVIEW-003-003` | `FAIL` | Primary canonical hash behavior, commands, discovery, dependency, and capability boundaries pass, but `AC-HNS-CORE-005-002` fails for the classifier defects above. |
+| `AC-HNS-CORE-005-TECH-REVIEW-003-004` | `PASS` | This evidence and its new Findings are appended only to `docs/08_agent_reviews/review_log.md`. |
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no implementation, manifest, package, test, Work Item, status, prior evidence, prior Finding state, Gate, merge, or lifecycle artifact was modified.
+- The three R2 Security Finding exact reproductions now pass, but their formal lifecycle remains with the assigned independent `SECURITY_REVIEWER`; this TECH execution does not mark them `RESOLVED`.
+- This is `TECH_REVIEWER` evidence only. It does not act as Implementer, QA, Security, Gate Checker, merger, accepted-risk authority, or lifecycle closer.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+The exact R3 candidate passes provenance, immutable identity, official commands, all five historical Finding regressions, canonical hash behavior, narrowing, hostile-input handling, dependency checks, and forbidden-capability boundaries. It cannot proceed as a TECH PASS because three `OPEN MAJOR` classifier findings remain; remediation requires a new candidate manifest and fresh independent TECH, QA, and Security reviews.
