@@ -122,14 +122,20 @@ const DENIED_ENVIRONMENT_NAMES = [
   /^(?:CI_JOB_TOKEN|DATABASE_URL|GITHUB_TOKEN|NODE_AUTH_TOKEN)$/,
   /(?:AUTH|COOKIE|CREDENTIAL|JWT|KEY|PASSWORD|SECRET|TOKEN)/,
   /(?:^|_)PROD(?:UCTION)?(?:_|$)/,
+  /^(?:KUBECONFIG|CLOUDSDK_CONFIG|(?:TF|OCI)_CLI_CONFIG_FILE|DOCKER_CONFIG)$/,
+  /^GIT_(?:SSH(?:_COMMAND)?|ASKPASS|CREDENTIAL(?:S|_HELPER)?(?:_.+)?)$/,
+  /^(?:NODE_OPTIONS|NODE_PATH|JAVA_TOOL_OPTIONS|_JAVA_OPTIONS|PYTHON(?:PATH|HOME|STARTUP)|RUBYOPT|PERL5OPT)$/,
+  /^(?:LD_PRELOAD|LD_LIBRARY_PATH|DYLD_(?:INSERT_LIBRARIES|LIBRARY_PATH|FRAMEWORK_PATH|FALLBACK_LIBRARY_PATH|FALLBACK_FRAMEWORK_PATH))$/,
+  /^(?:BASH_ENV|ENV|ZDOTDIR|PROMPT_COMMAND|SHELLOPTS|BASHOPTS)$/,
 ];
 const SECRET_VALUE_PATTERNS = [
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/i,
   /\bBearer\s+[A-Za-z0-9._~+\/-]{8,}={0,2}\b/i,
   /\b(?:gh[pousr]_|github_pat_|sk-|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/i,
+  /(?:^|[^A-Za-z0-9])glpat-[A-Za-z0-9_-]{20,}(?=$|[^A-Za-z0-9_-])/i,
+  /(?:^|[^A-Za-z0-9])AIza[0-9A-Za-z_-]{20,}(?=$|[^0-9A-Za-z_-])/i,
+  /(?:^|[^A-Za-z0-9])sk_live_[0-9A-Za-z]{16,}(?=$|[^0-9A-Za-z])/i,
   /\bAKIA[0-9A-Z]{16}\b/,
-  /(?:password|secret|token|credential)\s*[:=]\s*\S+/i,
-  /(?:api[\s._-]*key|authorization|cookie|private[\s._-]*key)\s*[:=]\s*\S+/i,
   /[a-z][a-z0-9+.-]*:\/\/[^/\s:@]+:[^/\s@]+@/i,
 ];
 
@@ -155,8 +161,29 @@ function containsSensitiveKeyMarker(value: string): boolean {
   return SENSITIVE_KEY_MARKERS.some((marker) => normalized.includes(marker));
 }
 
+function containsSecretAssignment(value: string): boolean {
+  const assignmentPattern =
+    /(?:^|[?&#;,\s{])["']?([A-Za-z][A-Za-z0-9\s._-]{0,63})["']?\s*[:=]\s*(?=["']?[^\s,;&#])/gi;
+  for (const match of value.matchAll(assignmentPattern)) {
+    const label = match[1];
+    if (label !== undefined && containsSensitiveKeyMarker(label)) return true;
+  }
+  return false;
+}
+
+function containsSecretMaterial(value: string): boolean {
+  return (
+    SECRET_VALUE_PATTERNS.some((pattern) => pattern.test(value)) ||
+    containsSecretAssignment(value)
+  );
+}
+
+function containsSensitiveKeyMaterial(value: string): boolean {
+  return containsSensitiveKeyMarker(value) || containsSecretMaterial(value);
+}
+
 function safePath(parent: string, key: string): string {
-  return containsSensitiveKeyMarker(key) ? "[REDACTED]" : `${parent}.${key}`;
+  return containsSensitiveKeyMaterial(key) ? "[REDACTED]" : `${parent}.${key}`;
 }
 
 function isPlainObject(value: object): boolean {
@@ -176,7 +203,7 @@ function readRecord(value: unknown, path: string, allowedKeys: ReadonlySet<strin
       throw new ConfigValidationError("UNKNOWN_CONFIG_KEY", path, `${path} must not contain symbol keys.`);
     }
     const keyPath = safePath(path, key);
-    if (containsSensitiveKeyMarker(key)) {
+    if (containsSensitiveKeyMaterial(key)) {
       throw new ConfigValidationError(
         "SECRET_CONFIG_REJECTED",
         keyPath,
@@ -216,7 +243,7 @@ function readString(value: unknown, path: string): string {
   ) {
     throw new ConfigValidationError("INVALID_CONFIG", path, `${path} must be a non-empty normalized string.`);
   }
-  if (SECRET_VALUE_PATTERNS.some((pattern) => pattern.test(value))) {
+  if (containsSecretMaterial(value)) {
     throw new ConfigValidationError(
       "SECRET_CONFIG_REJECTED",
       path,

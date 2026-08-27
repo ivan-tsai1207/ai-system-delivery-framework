@@ -17,6 +17,17 @@ async function readJson(name) {
   return JSON.parse(await readFile(new URL(name, fixtureDirectory), "utf8"));
 }
 
+function assertSecretRejectedWithoutDisclosure(action, secretMaterial) {
+  assert.throws(action, (error) => {
+    assert.equal(error instanceof ConfigValidationError, true);
+    assert.equal(error.code, "SECRET_CONFIG_REJECTED");
+    for (const surface of [error.message, error.stack ?? "", error.configPath, JSON.stringify(error)]) {
+      assert.equal(surface.includes(secretMaterial), false);
+    }
+    return true;
+  });
+}
+
 test("config loader accepts the exact v1 schema and returns immutable snapshots", async () => {
   const source = await readJson("host-valid.json");
   const config = loadHarnessConfig(source);
@@ -87,6 +98,91 @@ test("normalized secret assignment markers fail closed without disclosing values
       },
     );
   }
+});
+
+test("provider credentials fail closed without leaking through error surfaces", () => {
+  for (const secret of [
+    ["glpat", "hnsCore005SecuritySentinel001"].join("-"),
+    ["AI", "za", "HnsCore005SecuritySentinel001"].join(""),
+    ["sk", "live", "HnsCore005SecuritySentinel001"].join("_"),
+  ]) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: secret },
+      }),
+      secret,
+    );
+  }
+});
+
+test("quoted, compact, case, and separator secret assignments fail closed", () => {
+  const sentinel = "hnsCore005AssignmentSentinel001";
+  for (const value of [
+    `api_key=${sentinel}`,
+    `"Api-Key" = "${sentinel}"`,
+    `AUTHORIZATION='${sentinel}'`,
+    `cookie:${sentinel}`,
+    `private.key = "${sentinel}"`,
+    `TOKENVALUE=${sentinel}`,
+    `password_hash='${sentinel}'`,
+    `clientSecret="${sentinel}"`,
+    `credential-value=${sentinel}`,
+  ]) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+    );
+  }
+});
+
+test("secret-shaped unknown keys are redacted before entering any error surface", () => {
+  const sentinel = "hnsCore005UnknownKeySentinel001";
+  for (const key of [
+    `github_pat_${sentinel}`,
+    ["glpat", sentinel].join("-"),
+    ["AI", "za", sentinel].join(""),
+    ["sk", "live", sentinel].join("_"),
+    `client-credential-${sentinel}`,
+  ]) {
+    assert.throws(
+      () => loadHarnessConfig({ schema_version: HARNESS_CONFIG_SCHEMA_VERSION, [key]: true }),
+      (error) => {
+        assert.equal(error instanceof ConfigValidationError, true);
+        assert.equal(error.code, "SECRET_CONFIG_REJECTED");
+        assert.equal(error.configPath, "[REDACTED]");
+        for (const surface of [error.message, error.stack ?? "", error.configPath, JSON.stringify(error)]) {
+          assert.equal(surface.includes(key), false);
+          assert.equal(surface.includes(sentinel), false);
+        }
+        return true;
+      },
+    );
+  }
+
+  assert.throws(
+    () => loadHarnessConfig({ schema_version: HARNESS_CONFIG_SCHEMA_VERSION, surprise_option: true }),
+    (error) => {
+      assert.equal(error instanceof ConfigValidationError, true);
+      assert.equal(error.code, "UNKNOWN_CONFIG_KEY");
+      assert.equal(error.configPath, "config.surprise_option");
+      assert.match(error.message, /config\.surprise_option/);
+      return true;
+    },
+  );
+});
+
+test("ordinary repository and path text remains valid", () => {
+  const config = loadHarnessConfig({
+    schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+    framework: { repository: "https://github.com/example/token-parsing-guide.git" },
+    audit: { path: "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples" },
+  });
+  assert.equal(config.framework.repository, "https://github.com/example/token-parsing-guide.git");
+  assert.equal(config.audit.path, "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples");
 });
 
 test("trusted host config overrides built-ins before project narrowing", async () => {
@@ -209,6 +305,60 @@ test("JWT bearer environment names are denied while safe child names remain narr
     },
   });
   assert.deepEqual(buildChildEnvironmentPolicy(project).allowlist, ["LANG"]);
+});
+
+test("credential-source and process-injection environment classes are denied", () => {
+  for (const name of [
+    "KUBECONFIG",
+    "CLOUDSDK_CONFIG",
+    "GIT_SSH_COMMAND",
+    "GIT_ASKPASS",
+    "NODE_OPTIONS",
+    "LD_PRELOAD",
+    "DYLD_INSERT_LIBRARIES",
+    "BASH_ENV",
+    "ENV",
+    "TF_CLI_CONFIG_FILE",
+    "OCI_CLI_CONFIG_FILE",
+    "DOCKER_CONFIG",
+    "GIT_CREDENTIAL_HELPER",
+    "PYTHONSTARTUP",
+    "JAVA_TOOL_OPTIONS",
+    "DYLD_LIBRARY_PATH",
+    "PROMPT_COMMAND",
+  ]) {
+    assert.throws(
+      () => buildChildEnvironmentPolicy(loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        environment: { allowlist: [name] },
+      })),
+      (error) => error instanceof ConfigValidationError && error.code === "SECRET_CONFIG_REJECTED",
+    );
+  }
+});
+
+test("explicit safe environment names remain immutable and narrowable", () => {
+  const safeNames = ["LANG", "LC_ALL", "TOOL_MODE", "CI_JOB_ID", "HARNESS_COLOR"];
+  const host = loadHarnessConfig({
+    schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+    environment: { allowlist: safeNames },
+  });
+  const policy = buildChildEnvironmentPolicy(host);
+  assert.deepEqual(policy.allowlist, safeNames);
+  assert.equal(Object.isFrozen(host), true);
+  assert.equal(Object.isFrozen(host.environment), true);
+  assert.equal(Object.isFrozen(host.environment.allowlist), true);
+  assert.equal(Object.isFrozen(policy), true);
+  assert.equal(Object.isFrozen(policy.allowlist), true);
+
+  const narrowed = resolveHarnessConfig({
+    host,
+    project: {
+      schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+      environment: { allowlist: ["LANG", "TOOL_MODE", "HARNESS_COLOR"] },
+    },
+  });
+  assert.deepEqual(buildChildEnvironmentPolicy(narrowed).allowlist, ["LANG", "TOOL_MODE", "HARNESS_COLOR"]);
 });
 
 test("child environment policy starts empty and contains names only", async () => {
