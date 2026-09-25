@@ -3584,3 +3584,39 @@ R5 closes the exact three R4 escaped/encoded examples and retains narrow decodin
 `REQUEST_CHANGES`
 
 R5 has valid provenance, immutable identity, exact scope, green official commands, correct canonical hash behavior, complete closure of the nine process-control environment cases, narrow encoded-label decoding, and preserved false-positive boundaries. It does not satisfy the assigned technical review because escaped colon/equal sensitive assignment labels still bypass fail-closed secret rejection and are retained in immutable config.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R6-001 - HNS-CORE-005 R6 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R6-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R6-001` |
+| Source Review Evidence / Finding | `REV-HNS-CORE-005-TECH-005` / `FND-HNS-CORE-005-TECH-003-001` |
+| R5 TECH Review / Parent | `7a2b9ab399fde3447a4cdb2ea34974bbf3268d55` |
+| R6 Remediation / Candidate Commit | `a7118b4a6e0e3625d58c4b13f9e271b93b5559af` |
+| R6 Artifact / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r6.md` / `sha256:a45ddb510402dab45b22a3d31b041ba7bbd230da4b3fa47f75b7cf72e4ae7740` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T21:10:47Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact remediation scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed. |
+| TECH Finding 001 | `READY_FOR_REVIEW` | Extractors now admit only already-supported escaped colon/equal separators before sensitive-label normalization; 11 positive cases and 8 negative/narrow controls added. |
+| Resolved Findings 002 / 003 | `PASS` | Nine environment cases, benign labels, safe names, narrowing, and immutability remain green. |
+| Build / typecheck | `PASS` | Exact required runtime; strict build and no-emit typecheck passed. |
+| Focused / default tests | `PASS` | 41 focused hash/config and 137 default tests passed; 0 failed/skipped/todo. |
+| Security / dependency | `PASS` | npm high audit found 0 vulnerabilities; no dependency or lockfile change. |
+| Forbidden boundary | `PASS` | No docs, Work Item, package, fixture, governance, hash, I/O, runtime, adapter, or later-phase implementation changed in the R6 candidate. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+The remaining TECH Finding stays `OPEN` until independent review of the exact R6 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
