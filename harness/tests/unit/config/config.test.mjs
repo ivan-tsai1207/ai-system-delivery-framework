@@ -176,6 +176,27 @@ test("quoted, compact, case, and separator secret assignments fail closed", () =
   }
 });
 
+test("shell-escaped and URL-encoded sensitive assignments fail closed without disclosure", () => {
+  const sentinel = "hnsCore005EscapedAssignmentSentinel001";
+  for (const value of [
+    `client\\-secret=${sentinel}`,
+    `"api\\_key" = "${sentinel}"`,
+    `'private\\.key'='${sentinel}'`,
+    `tool --client\\-secret ${sentinel}`,
+    `https://example.invalid/repository?api%5Fkey=${sentinel}`,
+    `https://example.invalid/repository?client%2Dsecret=${sentinel}`,
+    `https://example.invalid/repository?private%2Ekey=${sentinel}`,
+  ]) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+    );
+  }
+});
+
 test("secret-shaped unknown keys are redacted before entering any error surface", () => {
   const sentinel = "hnsCore005UnknownKeySentinel001";
   for (const key of [
@@ -189,6 +210,7 @@ test("secret-shaped unknown keys are redacted before entering any error surface"
     ["SG", sentinel, `${sentinel}002`].join("."),
     ["ASIA", "1234567890ABCDEF"].join(""),
     `client-credential-${sentinel}`,
+    `api\\_key-${sentinel}`,
   ]) {
     assert.throws(
       () => loadHarnessConfig({ schema_version: HARNESS_CONFIG_SCHEMA_VERSION, [key]: true }),
@@ -226,6 +248,13 @@ test("ordinary repository, path, and boundary-safe assignment text remains valid
         "keyboard=ansi",
         "tokenizer=cl100k_base",
         "authors-style=apa",
+        "monkey=capuchin",
+        "keyboard\\-layout=ansi",
+        `"tokenizer\\_mode"="standard"`,
+        "https://example.invalid/repository?authors%5Fstyle=apa&monkey%5Fmode=playful",
+        "https://example.invalid/repository?api%255Fkey=documentation",
+        "https://example.invalid/repository?api%5Akey=documentation",
+        "https://example.invalid/repository?api%2Fkey=documentation",
       ].join(" "),
     },
     audit: { path: "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples/authors-guide" },
@@ -361,6 +390,11 @@ test("credential-source and process-injection environment classes are denied", (
     "GIT_CONFIG",
     "GIT_CONFIG_GLOBAL",
     "GIT_CONFIG_SYSTEM",
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_INDEX_FILE",
     "GIT_EXEC_PATH",
     "GIT_EXTERNAL_DIFF",
     "GIT_PROXY_COMMAND",
@@ -383,6 +417,10 @@ test("credential-source and process-injection environment classes are denied", (
     "PROMPT_COMMAND",
     "GCC_EXEC_PREFIX",
     "COMPILER_PATH",
+    "CCACHE_PREFIX",
+    "CCACHE_PREFIX_CPP",
+    "CMAKE_C_COMPILER_LAUNCHER",
+    "CMAKE_CXX_COMPILER_LAUNCHER",
     "CC",
     "CXX_FOR_BUILD",
     "RUSTC_WRAPPER",

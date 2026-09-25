@@ -107,6 +107,8 @@ const CONTEXT_KEYS = new Set([
 const TIMEOUT_KEYS = new Set(["process_seconds"]);
 const ENVIRONMENT_KEYS = new Set(["allowlist"]);
 const ENVIRONMENT_NAME_PATTERN = /^[A-Z_][A-Z0-9_]{0,127}$/;
+const SHELL_ESCAPED_LABEL_SEPARATOR_PATTERN = /\\([:=\s._-])/g;
+const URL_ENCODED_LABEL_SEPARATOR_PATTERN = /%(2d|2e|5f)/gi;
 const SENSITIVE_LABEL_TOKENS = new Set([
   "auth",
   "authorization",
@@ -167,16 +169,21 @@ const DENIED_ENVIRONMENT_EXACT_NAMES = new Set([
   "BASH_ENV",
   "BASHOPTS",
   "CARGO_HOME",
+  "CCACHE_PREFIX",
+  "CCACHE_PREFIX_CPP",
   "CI_JOB_JWT",
   "CI_JOB_JWT_V2",
   "CI_JOB_TOKEN",
   "CLOUDSDK_CONFIG",
+  "CMAKE_C_COMPILER_LAUNCHER",
+  "CMAKE_CXX_COMPILER_LAUNCHER",
   "COMPILER_PATH",
   "DATABASE_URL",
   "DOCKER_CONFIG",
   "EDITOR",
   "ENV",
   "GCC_EXEC_PREFIX",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
   "GIT_ASKPASS",
   "GIT_CONFIG",
   "GIT_CONFIG_GLOBAL",
@@ -184,14 +191,18 @@ const DENIED_ENVIRONMENT_EXACT_NAMES = new Set([
   "GIT_CONFIG_SYSTEM",
   "GIT_CREDENTIAL_HELPER",
   "GIT_CREDENTIALS",
+  "GIT_DIR",
   "GIT_EDITOR",
   "GIT_EXEC_PATH",
   "GIT_EXTERNAL_DIFF",
+  "GIT_INDEX_FILE",
+  "GIT_OBJECT_DIRECTORY",
   "GIT_PAGER",
   "GIT_PROXY_COMMAND",
   "GIT_SSH",
   "GIT_SSH_COMMAND",
   "GIT_TERMINAL_PROMPT",
+  "GIT_WORK_TREE",
   "GITHUB_TOKEN",
   "JAVA_TOOL_OPTIONS",
   "KUBECONFIG",
@@ -256,13 +267,27 @@ type MutableConfig = {
   environment?: Partial<MutableFields<EnvironmentConfig>>;
 };
 
-function normalizeCompactLabel(value: string): string {
-  return value.replace(/\\([:=\s._-])/g, "$1").replace(/[^A-Za-z0-9]+/g, "").toLowerCase();
+function normalizeLabelSeparators(value: string, decodeUrlSeparators = false): string {
+  const shellNormalized = value.replace(SHELL_ESCAPED_LABEL_SEPARATOR_PATTERN, "$1");
+  if (!decodeUrlSeparators) return shellNormalized;
+  return shellNormalized.replace(URL_ENCODED_LABEL_SEPARATOR_PATTERN, (encoded) => {
+    switch (encoded.toLowerCase()) {
+      case "%2d": return "-";
+      case "%2e": return ".";
+      case "%5f": return "_";
+      default: return encoded;
+    }
+  });
 }
 
-function labelTokens(value: string): readonly string[] {
-  const withoutEscapes = value.replace(/\\([:=\s._-])/g, "$1");
-  const withCaseBoundaries = withoutEscapes
+function normalizeCompactLabel(value: string, decodeUrlSeparators = false): string {
+  return normalizeLabelSeparators(value, decodeUrlSeparators)
+    .replace(/[^A-Za-z0-9]+/g, "")
+    .toLowerCase();
+}
+
+function labelTokens(value: string, decodeUrlSeparators = false): readonly string[] {
+  const withCaseBoundaries = normalizeLabelSeparators(value, decodeUrlSeparators)
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
   return withCaseBoundaries
@@ -286,10 +311,10 @@ function hasTokenSequence(tokens: readonly string[], sequence: readonly string[]
   return false;
 }
 
-function isSensitiveLabel(value: string): boolean {
-  const compact = normalizeCompactLabel(value);
+function isSensitiveLabel(value: string, decodeUrlSeparators = false): boolean {
+  const compact = normalizeCompactLabel(value, decodeUrlSeparators);
   if (SENSITIVE_COMPACT_LABELS.has(compact)) return true;
-  const tokens = labelTokens(value);
+  const tokens = labelTokens(value, decodeUrlSeparators);
   return (
     tokens.some((token) => SENSITIVE_LABEL_TOKENS.has(token)) ||
     SENSITIVE_LABEL_TOKEN_SEQUENCES.some((sequence) => hasTokenSequence(tokens, sequence))
@@ -302,10 +327,10 @@ function containsHighConfidenceCredential(value: string): boolean {
 
 function containsSensitiveAssignment(value: string): boolean {
   const assignmentPatterns = [
-    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?"([_A-Za-z][A-Za-z0-9\s._-]{0,63})"\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
-    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?'([_A-Za-z][A-Za-z0-9\s._-]{0,63})'\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
-    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?([_A-Za-z][A-Za-z0-9._-]{0,63})\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
-    /(?:^|[/?::&#;,\s{[])(_[A-Za-z][A-Za-z0-9._-]{1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?"([_A-Za-z](?:[A-Za-z0-9\s._-]|\\[\s._-]){0,63})"\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?'([_A-Za-z](?:[A-Za-z0-9\s._-]|\\[\s._-]){0,63})'\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?([_A-Za-z](?:[A-Za-z0-9._-]|\\[._-]){0,63})\s*(?::|=|\\=)\s*(?=["']?[^\s,;&#}\]])/gi,
+    /(?:^|[/?::&#;,\s{[])(_[A-Za-z](?:[A-Za-z0-9._-]|\\[._-]){0,62})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
   ];
   for (const pattern of assignmentPatterns) {
     for (const match of value.matchAll(pattern)) {
@@ -314,8 +339,15 @@ function containsSensitiveAssignment(value: string): boolean {
     }
   }
 
+  const encodedQueryAssignmentPattern =
+    /[?&]([_A-Za-z](?:[A-Za-z0-9._-]|%(?:2d|2e|5f)){0,63})\s*=\s*(?=["']?[^\s,;&#}\]])/gi;
+  for (const match of value.matchAll(encodedQueryAssignmentPattern)) {
+    const label = match[1];
+    if (label !== undefined && isSensitiveLabel(label, true)) return true;
+  }
+
   const cliFlagPattern =
-    /(?:^|\s)--([A-Za-z][A-Za-z0-9._-]{1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi;
+    /(?:^|\s)--([A-Za-z](?:[A-Za-z0-9._-]|\\[._-]){1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi;
   for (const match of value.matchAll(cliFlagPattern)) {
     const label = match[1];
     if (label !== undefined && isSensitiveLabel(label)) return true;
