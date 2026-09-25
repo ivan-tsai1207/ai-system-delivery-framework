@@ -3235,3 +3235,42 @@ The current substring policy creates a functional false-positive regression and 
 `REQUEST_CHANGES`
 
 The exact R3 candidate passes provenance, immutable identity, official commands, all five historical Finding regressions, canonical hash behavior, narrowing, hostile-input handling, dependency checks, and forbidden-capability boundaries. It cannot proceed as a TECH PASS because three `OPEN MAJOR` classifier findings remain; remediation requires a new candidate manifest and fresh independent TECH, QA, and Security reviews.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R4-001 - HNS-CORE-005 R4 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R4-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R4-001` |
+| Source Review Evidence | `REV-HNS-CORE-005-TECH-003` |
+| Source Findings | `FND-HNS-CORE-005-TECH-003-001`; `-002`; `-003` |
+| R3 Review / Parent | `6b30eff391f33283daf2224b41348402189f9b91` |
+| R4 Remediation / Candidate Commit | `2d79a2cbeb3a1d133b979067aaa45d4df165c593` |
+| R4 Artifact | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r4.md` |
+| R4 Artifact Hash | `sha256:b9767c48f911032bee57416e024f1363fb20c15a7d9862731fbae50151052314` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T19:54:45Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact remediation scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed from the reviewed R3 parent. |
+| TECH Finding 001 | `READY_FOR_REVIEW` | Boundary-aware high-confidence credential classification applies consistently to values and keys, with pre-diagnostic redaction and positive/negative regressions. |
+| TECH Finding 002 | `READY_FOR_REVIEW` | Git config/executable, compiler-wrapper, command-prefix, and related process-injection environment classes are denied. |
+| TECH Finding 003 | `READY_FOR_REVIEW` | Token-boundary classification preserves benign labels and task-safe environment names while canonical sensitive markers remain denied. |
+| Build / typecheck | `PASS` | Exact required runtime; strict build and no-emit typecheck passed. |
+| Default tests | `PASS` | 135 tests passed; 0 failed, cancelled, skipped, or todo. |
+| Security / dependency | `PASS` | npm high audit found 0 vulnerabilities; no dependency or lockfile change. |
+| Forbidden boundary | `PASS` | No package, fixture, docs, Work Item, governance, hash, I/O, runtime, adapter, or later-phase implementation changed in the R4 candidate. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+All three R3 TECH Findings remain `OPEN` until independent review of the exact R4 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
