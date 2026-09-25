@@ -3742,3 +3742,121 @@ The R6 extractor change is limited to the colon/equal escape forms already norma
 `PASS`
 
 R6 has valid provenance, immutable identity, exact scope, green official commands, correct canonical hash behavior, complete historical regression coverage, preserved false-positive and narrow-decoding boundaries, and independent closure of `FND-HNS-CORE-005-TECH-003-001`. The exact R6 candidate satisfies all assigned TECH review acceptance criteria.
+
+---
+
+## REV-HNS-CORE-005-QA-006 - HNS-CORE-005 Independent R6 QA Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-QA-006` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-QA-006-EXEC-20260925T212206Z` |
+| Role / Profile | `REVIEWER` / `QA_REVIEWER` |
+| Risk Class / Active Gate | `MEDIUM` / `IMPLEMENTATION_GATE` |
+| Work Item | `HNS-CORE-005-QA-REVIEW-006` |
+| Maker Evidence / Execution | `RCE-HNS-CORE-005-REMEDIATION-R6-001` / `EXE-HNS-CORE-005-REMEDIATION-R6-001` |
+| TECH Prerequisite | `REV-HNS-CORE-005-TECH-006` / `PASS` on the exact R6 hash |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r6.md` |
+| Manifest SHA-256 / Git Blob | `a45ddb510402dab45b22a3d31b041ba7bbd230da4b3fa47f75b7cf72e4ae7740` / `609db040cb5969d056d71d87849f4763b022c409` |
+| Base / R6 Candidate | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` / `a7118b4a6e0e3625d58c4b13f9e271b93b5559af` |
+| Review-start Branch HEAD | `c65ce98d167f2958e1358432e7224ed50e4a9f48` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T21:22:06Z` |
+
+### Specification and Review Basis
+
+- Primary and companion acceptance criteria: `work-items/HNS-CORE-005.md`; `work-items/HNS-CORE-005-TEST-DISCOVERY.md`.
+- Assigned review contract: `work-items/HNS-CORE-005-QA-REVIEW-006.md`; `.ai/roles/reviewer.md`; `.ai/roles/reviewer-profiles/qa-reviewer.md`; `.ai/gates/implementation-gate.md`.
+- Canonical requirements: `docs/harness_v0.1_SDD.md` Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1.
+- Historical basis: all HNS-CORE-005 R1-R6 Maker, TECH, QA, Security, manifest, and Finding evidence through `REV-HNS-CORE-005-TECH-006`.
+
+### Provenance, Identity, and Prerequisite
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone / origin / clean start | `PASS` | Fresh single-branch clone at `/tmp/hns-core-005-qa-review-006.fu62YK/repo`; origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework`; starting tree was clean and no user checkout was used or modified. |
+| Branch and remote start | `PASS` | Local HEAD and `git ls-remote` both resolved `feature/hns-core-005-config-hash` to `c65ce98d167f2958e1358432e7224ed50e4a9f48`. |
+| Independent execution | `PASS` | `REV-HNS-CORE-005-QA-006-EXEC-20260925T212206Z` was absent from prior evidence and differs from all Maker and prior Reviewer execution IDs. |
+| Candidate lineage | `PASS` | Candidate exists, is an ancestor of review-start HEAD, has direct parent `7a2b9ab399fde3447a4cdb2ea34974bbf3268d55`, and the 20-commit base-to-candidate range contains no merge commit. |
+| Exact manifest binding | `PASS` | Manifest bytes independently hash to the assigned SHA-256; all 15 rows match their declared Git blobs and content SHA-256 values at the candidate and current HEAD. |
+| Replacement / inheritance / immutability | `PASS` | R6 replaces exactly `config.ts` and `config.test.mjs`; the other 13 artifacts are inherited. All 15 reviewed artifacts remain byte-identical after the candidate. |
+| Same-hash TECH prerequisite | `PASS` | `REV-HNS-CORE-005-TECH-006` records independent `PASS` against this exact manifest SHA-256 and candidate, with a distinct Reviewer execution ID. |
+
+### Commands and Regression Suites
+
+| Command / Suite | Result | Evidence |
+|---|---|---|
+| Runtime assertion / `npm ci` | `PASS` | Node `v24.19.0`, npm `11.17.0`; 7 packages added, 8 audited, 0 vulnerabilities. |
+| `npm run build` / `npm run typecheck` | `PASS` | Strict TypeScript build and no-emit typecheck completed. |
+| Default `npm test` | `PASS` | 137 passed; 0 failed, cancelled, skipped, or todo. Root, core, schema, error, hash, and config suites were discovered. |
+| Focused hash / config suites | `PASS` | 41 passed; 0 failed, cancelled, skipped, or todo. |
+| HNS-CORE-001 regression | `PASS` | Package smoke/configuration suite: 3 passed; 0 failed/skipped/todo. |
+| HNS-CORE-002 regression | `PASS` | Core domain suite: 13 passed; 0 failed/skipped/todo. |
+| HNS-CORE-003 regression | `PASS` | Schema suites: 38 passed; 0 failed/skipped/todo. |
+| HNS-CORE-004 regression | `PASS` | Error/exit registry suites: 42 passed; 0 failed/skipped/todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Test integrity | `PASS` | No `.only`, `.skip`, or `.todo` marker exists under `harness/tests`; no exact count is treated as a permanent contract. |
+
+### Independent Acceptance and Adversarial Probes
+
+The accepted independent matrix passed 198 of 198 bounded checks. A preliminary oracle incorrectly expected four malformed provider-value prefixes and three malformed provider-shaped keys to reject even though they did not meet the providers' token grammar. Those seven expectations were discarded, replaced with well-formed credential forms, and rerun successfully; no candidate artifact changed.
+
+| Behavior | Result | Evidence |
+|---|---|---|
+| Escaped assignment regression | `PASS` | 17 quoted, unquoted, CLI, npm-style, API-key, client-secret, private-key, auth-token, and refresh-token escaped colon/equal forms rejected without disclosure. |
+| Historical assignment / provider regression | `PASS` | 15 R1-R4 assignment forms and 13 well-formed provider, bearer, private-key, and credential-URL forms rejected without raw-value disclosure. |
+| Encoded label boundary | `PASS` | Six supported `%5F`, `%2D`, and `%2E` labels rejected; double-encoded, unrelated encoded separators, path text, and unsupported escapes remained accepted in the false-positive matrix. |
+| Diagnostic non-disclosure | `PASS` | 12 secret-shaped unknown keys produced `SECRET_CONFIG_REJECTED` with `[REDACTED]`; key and sentinel text were absent from message, stack, `configPath`, and serialized error output. |
+| False-positive controls | `PASS` | 20 benign repository/assignment/path values, including keyboard, tokenizer, authors-style, unsupported escapes, and narrow URL-decoding controls, remained accepted and byte-retained. |
+| Environment policy | `PASS` | 53 credential-source, Git redirection/config/helper, runtime loader, shell, compiler/toolchain, Cargo, registry, cloud, production, and token names rejected; eight task-safe names including `KEYBOARD_LAYOUT`, `TOKENIZER_MODE`, and `AUTHORS_STYLE` remained accepted. |
+| Narrowing / empty baseline | `PASS` | Ten visibility, adapter, environment, context, timeout, identity, owner, and audit re-expansions rejected; one multi-layer project/invocation narrowing case passed with ordered subsets and `EMPTY` child baseline behavior. |
+| Immutability / hostile inputs | `PASS` | Three snapshot/freeze checks and ten array, accessor, symbol, custom-object, duplicate, sparse, and newline-secret hostile cases passed; accessors were not invoked and secret classification preceded generic string rejection. |
+| Canonical hash references | `PASS` | 14 byte-length SHA-256 comparisons through 4097 bytes matched Node `crypto`; eight UTF-8 cases matched `TextEncoder`; eight ordering, NFC, mismatch-redaction, cycle, unsupported-value, collision, and negative-zero boundaries passed. |
+
+### Primary and Companion Acceptance Criteria
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-001` | `PASS` | Focused suite plus independent SHA-256, UTF-8, ordering, NFC, path-independent fixture, and canonical-boundary checks passed. |
+| `AC-HNS-CORE-005-002` | `PASS` | Unknown keys and secret values fail closed; host, project, and invocation precedence only narrow; environment propagation uses an explicit empty-baseline allowlist. |
+| `AC-HNS-CORE-005-003` | `PASS` | Unicode/path independence, hash mismatch, invalid hash, redacted diagnostics, secret-key surfaces, and newline-bearing secret behavior passed. |
+| `AC-HNS-CORE-005-004` | `PASS` | R6 adds no Context/Policy compiler, audit store, runtime process, filesystem/network I/O, environment injection, adapter, dependency, or later-phase capability. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-001` through `-006` | `PASS` | Default `npm test` discovered root, core, schema, error, hash, and config suites. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-007` | `PASS` | All 137 discovered tests passed with 0 failed/cancelled/skipped/todo; no source, test, schema, dependency, or lockfile change was made by the discovery artifact. |
+
+### Historical Finding Regression
+
+| Finding | QA Regression Result | Lifecycle Note |
+|---|---|---|
+| `FND-HNS-CORE-005-TECH-001-001` | `PASS` | Remains `RESOLVED`; assignment and non-disclosure regressions pass. |
+| `FND-HNS-CORE-005-TECH-001-002` | `PASS` | Remains `RESOLVED`; JWT and environment regressions pass. |
+| `FND-HNS-CORE-005-SECURITY-002-001` | `PASS` | Behavior passes; lifecycle remains `OPEN` for assigned `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-SECURITY-002-002` | `PASS` | Behavior passes; lifecycle remains `OPEN` for assigned `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-SECURITY-002-003` | `PASS` | Behavior passes; lifecycle remains `OPEN` for assigned `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-TECH-003-001` | `PASS` | Remains `RESOLVED`; all 17 escaped colon/equal and adjacent negative controls pass. |
+| `FND-HNS-CORE-005-TECH-003-002` | `PASS` | Remains `RESOLVED`; all nine R5 environment cases and broader deny classes pass. |
+| `FND-HNS-CORE-005-TECH-003-003` | `PASS` | Remains `RESOLVED`; benign labels and task-safe names remain accepted. |
+
+### Assigned QA Acceptance Criteria
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-QA-REVIEW-006-001` | `PASS` | Same-hash R6 TECH PASS, exact manifest binding, all 15 identities, lineage, immutability, and independent execution were verified. |
+| `AC-HNS-CORE-005-QA-REVIEW-006-002` | `PASS` | Every primary and companion AC and all historical finding behaviors passed independently. |
+| `AC-HNS-CORE-005-QA-REVIEW-006-003` | `PASS` | False positives, diagnostics, immutability, narrowing, hostile/negative cases, environment policy, and encoded/escaped boundaries passed. |
+| `AC-HNS-CORE-005-QA-REVIEW-006-004` | `PASS` | Default/focused suites and separate HNS-CORE-001 through `-004` regressions passed without failed/skipped/todo tests. |
+
+### Findings, Scope, and Limitations
+
+- No new QA finding was identified.
+- R6 candidate scope is exactly two authorized files with 38 insertions and 5 deletions. It changes no package, lockfile, dependency, manifest, governance, capability, or forbidden path.
+- This execution appends only this evidence to `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, prior evidence, governance file, Gate, or lifecycle record was modified.
+- Security-owned findings remain `OPEN` until their assigned `SECURITY_REVIEWER` execution. This QA decision does not close them and is not a GateResult, merge, release, or accepted-risk decision.
+
+### Decision
+
+`PASS`
+
+The exact R6 candidate satisfies every assigned primary, companion, historical-regression, and QA acceptance criterion. Identity, same-hash TECH prerequisite, default and focused discovery, prior CORE regressions, escaped/encoded credential boundaries, non-disclosure, false-positive controls, environment policy, narrowing, immutability, hostile inputs, scope, and forbidden-capability checks all pass independently.
