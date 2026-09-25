@@ -4013,3 +4013,123 @@ Exact R6 has valid provenance, same-hash TECH/QA prerequisites, green official c
 `READY_FOR_REVIEW`
 
 The new Security finding remains `OPEN` until independent review of exact R7. This Maker evidence is not reviewer or Gate approval.
+
+---
+
+## REV-HNS-CORE-005-TECH-007 - HNS-CORE-005 Independent R7 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-007` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-007-EXEC-20260925T214014Z` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class / Active Gate | `MEDIUM` / `IMPLEMENTATION_GATE` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-007` |
+| Maker Evidence / Execution | `RCE-HNS-CORE-005-REMEDIATION-R7-001` / `EXE-HNS-CORE-005-REMEDIATION-R7-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r7.md` |
+| Manifest SHA-256 / Git Blob | `de431db1016078d135bc561b44d83d7002c909768815b8b499d2c3c3a78f8ba3` / `b6e4b3722e14cd87e2bcfd3d5ca3ef377fb6f952` |
+| Base / R7 Candidate | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` / `137788993cc588836ee52292413b06b553b18ac1` |
+| Review-start Branch HEAD | `c2fadcdb0ffe29be49e7c6b781d8b1efc5b6b4bb` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T21:40:14Z` |
+
+### Specification and Context References
+
+- Primary and companion acceptance criteria: `work-items/HNS-CORE-005.md`; `work-items/HNS-CORE-005-TEST-DISCOVERY.md`.
+- Assigned review contract: `work-items/HNS-CORE-005-TECH-REVIEW-007.md`; `.ai/roles/reviewer.md`; `.ai/roles/reviewer-profiles/tech-reviewer.md`; `.ai/gates/implementation-gate.md`.
+- Canonical requirements: `docs/harness_v0.1_SDD.md` Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1.
+- Identity and lifecycle evidence: all HNS-CORE-005 R1-R7 manifests, Maker evidence, independent reviews, and Findings through `RCE-HNS-CORE-005-REMEDIATION-R7-001`.
+- Reviewed implementation: all 15 artifacts bound by the R7 manifest, with detailed review of the two R7 replacement artifacts.
+
+### Provenance, Identity, and Separation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone / origin / clean start | `PASS` | Fresh single-branch clone at `/tmp/hns-core-005-tech-review-007.vDQswM/repo`; origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework`; no user checkout was used or modified. |
+| Branch and remote start | `PASS` | Local HEAD, remote-tracking ref, and independent `ls-remote` resolved `feature/hns-core-005-config-hash` to required start `c2fadcdb0ffe29be49e7c6b781d8b1efc5b6b4bb`; starting tree was clean. |
+| Independent execution | `PASS` | `REV-HNS-CORE-005-TECH-007-EXEC-20260925T214014Z` was absent from prior evidence and differs from every Maker and prior Reviewer execution ID. |
+| Candidate lineage | `PASS` | R7 candidate exists, has direct parent `17ab303fa1ea40e5d8e34e9ce5e4870f71b04f84`, is the direct parent of review-start HEAD, and the 26-commit base-to-candidate range contains no merge commit. |
+| Manifest / supersession | `PASS` | Exact R7 manifest bytes match the assigned SHA-256 and Git blob; superseded R6 manifest independently matches declared SHA-256 `a45ddb510402dab45b22a3d31b041ba7bbd230da4b3fa47f75b7cf72e4ae7740`. |
+| All 15 artifact identities | `PASS` | Every manifest row independently matched its declared Git blob and content SHA-256 at candidate and review-start HEAD. |
+| Replacement / inheritance / immutability | `PASS` | R7 replaces exactly `config.ts` and `config.test.mjs`; 13 artifacts are inherited byte-for-byte from R6. All 15 are unchanged from candidate through review-start HEAD. |
+| Maker / Reviewer separation | `PASS` | This execution modified no reviewed artifact or manifest and used prior evidence only to enumerate historical cases for independent reproduction. |
+
+### Commands and Boundary Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion / `npm ci` | `PASS` | Every accepted command and probe used Node `v24.19.0` / npm `11.17.0`; 7 packages added, 8 audited, 0 vulnerabilities. |
+| `npm run build` / `npm run typecheck` | `PASS` | Strict TypeScript build and no-emit typecheck completed. |
+| Default `npm test` | `PASS` | 138 passed; 0 failed, cancelled, skipped, or todo; root, core, schema, error, hash, and config suites were discovered. |
+| Focused hash / config tests | `PASS` | 42 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Lint / formatter | `NOT_APPLICABLE` | No lint or formatter script is defined in `harness/package.json`; build and typecheck are the available static commands. |
+| Diff / test integrity | `PASS` | `git diff --check` passed; no `.only`, `.skip`, or `.todo` marker exists under `harness/tests`. |
+| R7 scope / dependency | `PASS` | R7 changes only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`, with 36 insertions and 2 deletions; no package, lockfile, or dependency changed. |
+| Forbidden capability boundary | `PASS` | Static source/import and candidate-diff scans found no credential source, `process.env` read, child process, environment injection, filesystem/network I/O, Context/Policy compiler, audit persistence, adapter behavior, external integration, production/destructive operation, or later-phase capability. |
+
+### Independent Technical and Adversarial Probes
+
+The independent matrix executed 248 bounded expectations: 243 passed and five failed. A separate 30-case characterization then confirmed 25 npm-style escaped-whitespace variants were accepted and byte-retained in frozen config snapshots while five adjacent controls rejected without disclosure. No candidate artifact changed during probing.
+
+| Behavior | Result | Independent Evidence |
+|---|---|---|
+| Exact Security-006 reproductions | `PASS` | The exact five unquoted escaped-whitespace assignment/CLI bypasses now reject with `SECRET_CONFIG_REJECTED`; the sentinel and raw value are absent from message, stack, `configPath`, and serialized error surfaces. |
+| General quoted / unquoted / CLI escaped whitespace | `PASS` | 44 generalized assignment and `--flag` cases across API-key, access/auth token, client secret, GitHub/id/node/npm/session/refresh token, and private-key families reject without disclosure. |
+| npm-style escaped whitespace | `FAIL` | Five unquoted npm `config set` semantic credential-label families were accepted in the main matrix. Characterization expanded them across unquoted, suffix-quoted, and whole-key quoted forms: all 25 values were accepted and retained. Escaped colon/equal, assignment-delimited, compact-token, and ordinary CLI controls reject. |
+| Historical TECH / Security assignment and provider regressions | `PASS` | 15 R1-R6 assignment forms, 13 provider/bearer/private-key/credential-URL value forms, and 11 secret-shaped unknown-key cases reject; all tested error surfaces remain redacted. |
+| Unsupported escapes and narrow URL decoding | `PASS` | Six unsupported `+`, `@`, and `/` escaped-label controls remain accepted. Four supported `%5F`, `%2D`, and `%2E` query labels reject; eight double/unrelated encoding, path, fragment, and encoded-value controls remain accepted. |
+| False-positive controls | `PASS` | Fourteen benign repository/assignment/CLI controls, including keyboard, tokenizer, authors-style, monkey, escaped colon/equal/whitespace, remain accepted and retained. |
+| Environment boundaries | `PASS` | 74 cloud, SSH, registry, token, credential-source, Git, runtime-loader, shell-startup, compiler/toolchain, Cargo, and command-prefix names reject. Eleven task-safe names, including `KEYBOARD_LAYOUT`, `TOKENIZER_MODE`, and `AUTHORS_STYLE`, remain accepted with an empty child baseline. |
+| Narrowing and immutability | `PASS` | One valid three-layer narrowing/freeze/source-isolation case passed; eight visibility, adapter, environment, context, timeout, identity, owner, and audit re-expansions failed closed. |
+| Canonical serialization and hash | `PASS` | 27 checks matched Node `crypto` at 13 byte lengths through 4097, matched `TextEncoder` for eight strings, and confirmed ordering, NFC equivalence, verification, negative-zero normalization, and cycle/non-finite rejection. |
+
+### Finding Lifecycle
+
+| Finding | Prior Status | Current Status | Evidence |
+|---|---|---|---|
+| `FND-HNS-CORE-005-TECH-001-001` | `RESOLVED` | `RESOLVED` | Historical assignment and non-disclosure regressions remain passing. |
+| `FND-HNS-CORE-005-TECH-001-002` | `RESOLVED` | `RESOLVED` | JWT and broader denied-environment regressions remain passing. |
+| `FND-HNS-CORE-005-SECURITY-002-001` | `RESOLVED` | `RESOLVED` | Provider and compact credential values remain rejected without disclosure. |
+| `FND-HNS-CORE-005-SECURITY-002-002` | `RESOLVED` | `RESOLVED` | Secret-shaped unknown keys remain redacted across all tested error surfaces. |
+| `FND-HNS-CORE-005-SECURITY-002-003` | `RESOLVED` | `RESOLVED` | Credential-source and process-injection environment classes remain denied. |
+| `FND-HNS-CORE-005-TECH-003-001` | `RESOLVED` | `RESOLVED` | Escaped colon/equal behavior, unsupported escapes, and narrow URL controls remain passing. |
+| `FND-HNS-CORE-005-TECH-003-002` | `RESOLVED` | `RESOLVED` | Exact Git redirection, ccache prefix, and CMake launcher cases remain denied. |
+| `FND-HNS-CORE-005-TECH-003-003` | `RESOLVED` | `RESOLVED` | Benign labels and task-safe environment names remain accepted. |
+| `FND-HNS-CORE-005-SECURITY-006-001` | `OPEN` | `OPEN` | Exact five bypasses pass behaviorally on R7; lifecycle closure remains with the assigned `SECURITY_REVIEWER`. The new finding below covers the still-unhandled npm extraction path. |
+
+#### FND-HNS-CORE-005-TECH-007-001 - npm-style escaped-whitespace sensitive labels bypass rejection
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-007-001` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Status | `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-003`; `AC-HNS-CORE-005-TECH-REVIEW-007-002`; `AC-HNS-CORE-005-TECH-REVIEW-007-003`; SDD Sections 31 and 38 |
+| Evidence | The independent 248-case matrix accepted five npm-style escaped-whitespace credential-label families. Follow-up characterization accepted and retained all 25 unquoted and quoted-key variants in frozen snapshots while adjacent compact, colon/equal, assignment, and CLI controls rejected without disclosure. No synthetic secret value is recorded here. |
+| Required Action | Align the npm-style underscore-label extractor with the declared escaped-whitespace normalization and quoted key forms, preserve narrow URL decoding and benign/unsupported-escape boundaries, add positive/negative and all-error-surface regressions, issue a new immutable candidate/manifest, and obtain fresh assigned reviews. |
+
+R7 updates the ordinary unquoted assignment extractor at `harness/src/config/config.ts:332` and CLI extractor at line 350, but leaves the adjacent npm-style underscore extractor at line 333 unable to admit escaped whitespace or quoted npm keys. Those labels therefore never reach the boundary-aware classifier at lines 314-321. Accepted secret-bearing values are retained in immutable config snapshots, violating fail-closed secret handling.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-TECH-REVIEW-007-001` | `PASS` | Required start/remote, candidate lineage, independent identity, exact manifest/hash, R6 supersession, all 15 identities, two replacements, 13 inherited artifacts, post-candidate immutability, and Maker separation were verified. |
+| `AC-HNS-CORE-005-TECH-REVIEW-007-002` | `FAIL` | The exact five and ordinary quoted/unquoted/CLI forms now fail closed, but generalized npm-style escaped-whitespace credential labels remain accepted and retained. |
+| `AC-HNS-CORE-005-TECH-REVIEW-007-003` | `FAIL` | Historical cases, commands, discovery, canonical hash, environment policy, narrowing, immutability, scope, dependency, and capability checks pass; primary fail-closed config requirements remain unsatisfied by `FND-HNS-CORE-005-TECH-007-001`. |
+| `AC-HNS-CORE-005-TECH-REVIEW-007-004` | `PASS` | This execution appends only this evidence to `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, governance file, or prior evidence was modified. |
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, package, lockfile, test, Work Item, governance file, prior evidence, Gate, merge, accepted-risk record, or release artifact was modified.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, Implementer, merger, accepted-risk authority, or release authority.
+- No GateResult is issued. The active `IMPLEMENTATION_GATE` cannot treat this TECH execution as passing evidence while `FND-HNS-CORE-005-TECH-007-001` remains `OPEN MAJOR`.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+Exact R7 has valid provenance and immutable identity, exact scope, green official commands, correct canonical hash behavior, complete historical regression coverage, and closes the exact five unquoted assignment/CLI bypasses behaviorally. It still accepts and retains npm-style escaped-whitespace semantic credential labels across unquoted and quoted key forms, so the assigned TECH review acceptance criteria are not fully satisfied.
