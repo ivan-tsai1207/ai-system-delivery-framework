@@ -3978,3 +3978,38 @@ The independent matrix executed 174 bounded cases: 169 passed and five failed. A
 `REQUEST_CHANGES`
 
 Exact R6 has valid provenance, same-hash TECH/QA prerequisites, green official commands, formally resolves all three Security-owned R2 findings, preserves environment, narrowing, immutability, redaction, and forbidden-capability boundaries, and introduces no dependency drift. It nevertheless accepts and retains five independently reproduced unquoted escaped-whitespace sensitive assignment forms under new `OPEN MAJOR` finding `FND-HNS-CORE-005-SECURITY-006-001`; the assigned Security acceptance criteria are therefore not fully satisfied.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R7-001 - HNS-CORE-005 R7 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R7-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R7-001` |
+| Source Review / Finding | `REV-HNS-CORE-005-SECURITY-006` / `FND-HNS-CORE-005-SECURITY-006-001` |
+| R6 Security Review / Parent | `17ab303fa1ea40e5d8e34e9ce5e4870f71b04f84` |
+| R7 Remediation / Candidate | `137788993cc588836ee52292413b06b553b18ac1` |
+| R7 Artifact / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r7.md` / `sha256:de431db1016078d135bc561b44d83d7002c909768815b8b499d2c3c3a78f8ba3` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T21:34:23Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed. |
+| Security Finding 006-001 | `READY_FOR_REVIEW` | Unquoted assignment/CLI extractors admit only declared escaped whitespace; exact five bypasses plus quoted, benign, unsupported-escape and all-surface controls added. |
+| Historical findings | `PASS` | Credential/key/environment, narrow decoding/escaping, false-positive, narrowing, immutability, and hostile-input regressions remain green. |
+| Build / tests | `PASS` | Build/typecheck; 42 focused and 138 default tests passed with no failed/skipped/todo. |
+| Security / dependency | `PASS` | High audit 0 vulnerabilities; no dependency or lockfile change. |
+| Forbidden boundary | `PASS` | No docs, Work Item, package, fixture, governance, hash, I/O, runtime, adapter, or later-phase implementation changed in R7. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+The new Security finding remains `OPEN` until independent review of exact R7. This Maker evidence is not reviewer or Gate approval.
