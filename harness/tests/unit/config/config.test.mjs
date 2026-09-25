@@ -197,6 +197,31 @@ test("shell-escaped and URL-encoded sensitive assignments fail closed without di
   }
 });
 
+test("escaped colon and equals sensitive label separators fail closed without disclosure", () => {
+  const sentinel = "hnsCore005EscapedSeparatorSentinel001";
+  for (const value of [
+    `api\\:key=${sentinel}`,
+    `"api\\:key"="${sentinel}"`,
+    `'api\\:key'='${sentinel}'`,
+    `client\\:secret=${sentinel}`,
+    `"client\\:secret"="${sentinel}"`,
+    `client\\=secret=${sentinel}`,
+    `"client\\=secret"="${sentinel}"`,
+    `'client\\=secret'='${sentinel}'`,
+    `tool --api\\:key ${sentinel}`,
+    `tool --client\\:secret ${sentinel}`,
+    `tool --client\\=secret ${sentinel}`,
+  ]) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+    );
+  }
+});
+
 test("secret-shaped unknown keys are redacted before entering any error surface", () => {
   const sentinel = "hnsCore005UnknownKeySentinel001";
   for (const key of [
@@ -251,10 +276,18 @@ test("ordinary repository, path, and boundary-safe assignment text remains valid
         "monkey=capuchin",
         "keyboard\\-layout=ansi",
         `"tokenizer\\_mode"="standard"`,
+        "keyboard\\:layout=ansi",
+        "tokenizer\\=mode=standard",
+        `"authors\\=style"="apa"`,
+        "tool --monkey\\:mode playful",
+        "api\\+key=documentation",
+        "client\\@secret=documentation",
         "https://example.invalid/repository?authors%5Fstyle=apa&monkey%5Fmode=playful",
         "https://example.invalid/repository?api%255Fkey=documentation",
         "https://example.invalid/repository?api%5Akey=documentation",
         "https://example.invalid/repository?api%2Fkey=documentation",
+        "https://example.invalid/repository?api%3Akey=documentation",
+        "https://example.invalid/repository?client%3Dsecret=documentation",
       ].join(" "),
     },
     audit: { path: "/var/lib/harness/glpat-overview/AIza-reference/sk_live_examples/authors-guide" },
