@@ -197,6 +197,32 @@ test("shell-escaped and URL-encoded sensitive assignments fail closed without di
   }
 });
 
+test("unquoted escaped-whitespace sensitive labels fail closed without disclosure", () => {
+  const sentinel = "hnsCore005EscapedWhitespaceSentinel001";
+  const reproducedUnquotedForms = [
+    `api\\ key=${sentinel}`,
+    `private\\ key=${sentinel}`,
+    `tool --api\\ key ${sentinel}`,
+    `tool --access\\ token ${sentinel}`,
+    `tool --private\\ key ${sentinel}`,
+  ];
+  const quotedControls = [
+    `"api\\ key"="${sentinel}"`,
+    `'access\\ token'='${sentinel}'`,
+    `"private\\ key"="${sentinel}"`,
+  ];
+  assert.equal(reproducedUnquotedForms.length, 5);
+  for (const value of [...reproducedUnquotedForms, ...quotedControls]) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+    );
+  }
+});
+
 test("escaped colon and equals sensitive label separators fail closed without disclosure", () => {
   const sentinel = "hnsCore005EscapedSeparatorSentinel001";
   for (const value of [
@@ -279,9 +305,17 @@ test("ordinary repository, path, and boundary-safe assignment text remains valid
         "keyboard\\:layout=ansi",
         "tokenizer\\=mode=standard",
         `"authors\\=style"="apa"`,
+        "keyboard\\ layout=ansi",
+        "tokenizer\\ mode=standard",
+        "authors\\ style=apa",
         "tool --monkey\\:mode playful",
+        "tool --keyboard\\ layout ansi",
+        "tool --tokenizer\\ mode standard",
+        "tool --authors\\ style apa",
         "api\\+key=documentation",
         "client\\@secret=documentation",
+        "tool --api\\+key documentation",
+        "tool --client\\@secret documentation",
         "https://example.invalid/repository?authors%5Fstyle=apa&monkey%5Fmode=playful",
         "https://example.invalid/repository?api%255Fkey=documentation",
         "https://example.invalid/repository?api%5Akey=documentation",
