@@ -3413,3 +3413,41 @@ Token- and sequence-aware classification preserves all reproduced benign assignm
 `REQUEST_CHANGES`
 
 R4 has valid provenance, immutable identity, exact scope, green official commands, correct canonical hash behavior, and a successful false-positive remediation. It does not satisfy the assigned technical review because two existing `MAJOR` findings remain open: escaped/encoded sensitive assignment labels bypass secret rejection, and Git repository redirection plus compiler launcher/prefix environment variables remain Agent-visible.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R5-001 - HNS-CORE-005 R5 Maker Remediation Evidence
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R5-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R5-001` |
+| Source Review Evidence | `REV-HNS-CORE-005-TECH-004` |
+| Source Findings | `FND-HNS-CORE-005-TECH-003-001`; `-002` |
+| R4 TECH Review / Parent | `ea6034f3bf26ec5651a19381f72bb1dffb6c17c9` |
+| R5 Remediation / Candidate Commit | `b0dd20c0ec6f4a23b420f2be43d8572156741f9e` |
+| R5 Artifact / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r5.md` / `sha256:499514daba7b8d7da9cd8cdb83ccfe5499b5a48b614459479741b6b55ee16a71` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T20:58:54Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact remediation scope | `PASS` | Only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs` changed. |
+| TECH Finding 001 | `READY_FOR_REVIEW` | Narrow normalization covers reproduced shell-escaped separators and high-confidence encoded query labels with non-disclosure and benign controls. |
+| TECH Finding 002 | `READY_FOR_REVIEW` | All nine reproduced Git redirection, ccache prefix, and CMake compiler-launcher names are denied. |
+| Resolved Finding 003 | `PASS` | Boundary-aware benign assignment and task-safe environment controls remain covered. |
+| Build / typecheck | `PASS` | Exact required runtime; strict build and no-emit typecheck passed. |
+| Focused / default tests | `PASS` | 40 focused hash/config and 136 default tests passed; 0 failed/skipped/todo. |
+| Security / dependency | `PASS` | npm high audit found 0 vulnerabilities; no dependency or lockfile change. |
+| Forbidden boundary | `PASS` | No docs, Work Item, package, fixture, governance, hash, I/O, runtime, adapter, or later-phase implementation changed in the R5 candidate. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+The two open TECH Findings remain `OPEN` until independent review of the exact R5 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
