@@ -3274,3 +3274,142 @@ The exact R3 candidate passes provenance, immutable identity, official commands,
 `READY_FOR_REVIEW`
 
 All three R3 TECH Findings remain `OPEN` until independent review of the exact R4 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
+
+---
+
+## REV-HNS-CORE-005-TECH-004 - HNS-CORE-005 Independent R4 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-004` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-004-EXEC-20260925T205155Z` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class | `MEDIUM` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-004` |
+| Maker Evidence | `RCE-HNS-CORE-005-IMPLEMENTATION-001`; `RCE-HNS-CORE-005-REMEDIATION-R2-001`; `RCE-HNS-CORE-005-REMEDIATION-R3-001`; `RCE-HNS-CORE-005-REMEDIATION-R4-001` |
+| Maker Execution IDs | `EXE-HNS-CORE-005-MAKER-001`; `EXE-HNS-CORE-005-TEST-DISCOVERY-MAKER-001`; `EXE-HNS-CORE-005-REMEDIATION-R2-001`; `EXE-HNS-CORE-005-REMEDIATION-R3-001`; `EXE-HNS-CORE-005-REMEDIATION-R4-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r4.md` |
+| Manifest SHA-256 / Git Blob | `b9767c48f911032bee57416e024f1363fb20c15a7d9862731fbae50151052314` / `a540babf34aca63c506d70d08c955aec6a506b59` |
+| Base / R4 Candidate | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` / `2d79a2cbeb3a1d133b979067aaa45d4df165c593` |
+| Review-start Branch HEAD | `6934759becc481fa948cc09fa70082ffb356fd56` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T20:51:55Z` |
+
+### Specification and Context References
+
+- Primary and companion acceptance criteria: `work-items/HNS-CORE-005.md`; `work-items/HNS-CORE-005-TEST-DISCOVERY.md`.
+- Assigned review contract: `work-items/HNS-CORE-005-TECH-REVIEW-004.md`; `.ai/roles/reviewer.md`; `.ai/roles/reviewer-profiles/tech-reviewer.md`; `.ai/gates/implementation-gate.md`.
+- Canonical requirements: `docs/harness_v0.1_SDD.md` Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1.
+- Identity and evidence: R1-R4 manifests; all HNS-CORE-005 Maker, TECH, QA, Security, and Finding records through `RCE-HNS-CORE-005-REMEDIATION-R4-001`.
+- Reviewed implementation: the 15 artifacts bound by the R4 manifest, with detailed inspection of `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`.
+
+### Provenance, Identity, and Separation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh checkout and origin | `PASS` | Fresh single-branch clone under `/private/tmp`; origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; neither prohibited existing checkout was used. |
+| Branch start and remote | `PASS` | Local branch, remote-tracking ref, and `git ls-remote` resolved `feature/hns-core-005-config-hash` to `6934759becc481fa948cc09fa70082ffb356fd56` before review. |
+| Independent execution | `PASS` | `REV-HNS-CORE-005-TECH-004-EXEC-20260925T205155Z` was absent from prior evidence and differs from every Maker and prior Reviewer execution ID. |
+| Direct-parent lineage | `PASS` | Independently enumerated the single-parent chain from `fb48e9c...` through R1, R2, R3, and R4 candidate `2d79a2c...`; review-start `6934759...` is the direct child of the R4 candidate. |
+| Manifest identity | `PASS` | Exact worktree bytes hash to assigned SHA-256 `b9767c...`; Git blob is `a540bab...`; superseded R3 manifest independently hashes to declared `328a6a6...`. |
+| Artifact identity | `PASS` | All 15 R4 manifest rows independently matched both declared Git blob and content SHA-256 at candidate commit. |
+| Replacement / inheritance | `PASS` | Exactly two `REPLACEMENT` rows differ from R3 (`config.ts`, `config.test.mjs`); all 13 `INHERITED` rows are byte-identical to R3. |
+| Post-candidate immutability | `PASS` | All 15 reviewed artifacts are byte-identical between `2d79a2c...` and review-start `6934759...`; the intervening commit contains review preparation/evidence only. |
+| Maker / Reviewer separation | `PASS` | This execution did not modify the manifest or any reviewed artifact and used prior conclusions only to target independent regression checks. |
+
+### Commands and Technical Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime acquisition | `PASS` | Host Node was `v24.16.0`; official `node-v24.19.0-darwin-arm64.tar.gz` was downloaded to temporary storage and matched published SHA-256 `8294b7aa9b03997481c06babf1e8b270c859358f27da57a11509afe537ac381d`. Every accepted build, test, audit, and probe used Node `v24.19.0` / npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 135 passed; 0 failed, cancelled, skipped, or todo; root, core, schema, error, hash, and config suites were discovered. |
+| Focused hash / config tests | `PASS` | 39 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Lint / formatter | `NOT_APPLICABLE` | No lint or formatter script is defined in `harness/package.json`; build and typecheck are the available static commands. |
+| Diff / test integrity | `PASS` | `git diff --check` passed; no `.skip`, `.todo`, `.only`, or equivalent disabling marker was found under `harness/tests`. |
+| Candidate scope | `PASS` | R4 commit changes only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`; prior primary and companion commits remain within their exact authorized source/test/fixture and package-discovery scopes. |
+| Dependency boundary | `PASS` | Only the default test script changed in `harness/package.json`; no dependency or lockfile change exists. |
+| Capability boundary | `PASS` | Static source and diff scans found no Context/Policy compiler, audit persistence, runtime process, `process.env` read, environment injection, filesystem/network I/O, adapter, external integration, production operation, destructive behavior, or later-phase implementation. |
+
+### Independent Technical and Adversarial Probes
+
+The corrected full independent matrix executed 105 assertions: 93 passed and 12 failed. A preliminary 108-assertion run included three over-broad benign-label expectations (`authorization-guide`, `cookie-policy`, and `private-key-docs` assignments); that oracle was discarded, those expectations were removed, and the complete corrected matrix was rerun without changing the candidate.
+
+| Behavior | Result | Evidence |
+|---|---|---|
+| Canonical serialization and SHA-256 | `PASS` | SHA-256 independently matched Node `crypto` at 11 deterministic lengths from 0 through 4097, including 55/56/63/64/65-byte boundaries; canonical key ordering and NFC-equivalent values matched. |
+| Historical secret/provider regressions | `PASS` | API-key, authorization, private-key, compact/camel labels, CLI flags, npm `_authToken`, Stripe restricted/webhook, Google OAuth, npm, SendGrid, AWS temporary key, bearer, URL-userinfo, and private-key forms were rejected without raw-value disclosure. |
+| Secret-shaped key redaction | `PASS` | Six independently generated provider or semantic secret-key classes returned `SECRET_CONFIG_REJECTED`; key material was absent from message, stack, `configPath`, and JSON surfaces. |
+| Escaped / encoded assignment classification | `FAIL` | `client\\-secret=<synthetic>`, quoted `api\\_key=<synthetic>`, and a URL query using `api%5Fkey=<synthetic>` were accepted and retained. The assignment regexes at `config.ts:303-323` do not admit escaped label separators or decode a high-confidence encoded query label before classification. |
+| Established false-positive controls | `PASS` | Benign repository text and `keyboard`, `tokenizer`, `authors-style`, and `monkey` assignments remained accepted; `KEYBOARD_LAYOUT`, `TOKENIZER_MODE`, `AUTHORS_STYLE`, and six additional task-safe environment names remained accepted and narrowable. |
+| Historical environment regressions | `PASS` | 31 denied credential, Git config/executable, compiler/toolchain, loader, shell, cloud, registry, and production names were rejected. |
+| Additional process-injection environment boundary | `FAIL` | `GIT_DIR`, `GIT_WORK_TREE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_INDEX_FILE`, `CCACHE_PREFIX`, `CCACHE_PREFIX_CPP`, `CMAKE_C_COMPILER_LAUNCHER`, and `CMAKE_CXX_COMPILER_LAUNCHER` were accepted and emitted by `buildChildEnvironmentPolicy`. The finite deny tables at `config.ts:166-244` and matcher at `config.ts:556-565` do not cover these repository redirection and compiler command-launch classes. |
+| Narrowing and immutable child policy | `PASS` | Visibility, adapter, context, timeout, and environment narrowing succeeded for valid subsets; five re-expansion attempts failed with `CONFIG_NARROWING_VIOLATION`; child policy remained empty-baseline and names-only. |
+
+The environment failures are process-control behavior, not merely naming concerns: Git documents the accepted `GIT_*` variables as redirecting repository, worktree, index, and object storage paths; CMake documents `CMAKE_<LANG>_COMPILER_LAUNCHER` as a command line run before the compiler; and ccache documents `CCACHE_PREFIX` / `CCACHE_PREFIX_CPP` as command prefixes for compiler/preprocessor execution. These classes conflict with SDD Sections 32 and 38 and the existing R3 requirement to deny Git path, compiler-wrapper, and command-prefix environment controls.
+
+### Finding Status
+
+#### FND-HNS-CORE-005-TECH-003-001 - Generalized secret classifier still permits high-confidence credentials and discloses secret-shaped keys
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-001` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Prior Status / Current Status | `OPEN` / `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-003`; `AC-HNS-CORE-005-TECH-REVIEW-004-002`; SDD Sections 31 and 38 |
+| Evidence | Corrected independent matrix accepted and retained two shell-escaped sensitive labels and one URL-encoded API-key query label; 19 unescaped/known secret classes and six secret-key redaction classes passed. |
+| Required Action | Normalize supported shell-escaped label separators and high-confidence encoded assignment labels before boundary-aware classification, preserve the passing benign controls, add positive/negative regressions, issue a new immutable candidate/manifest, and obtain fresh independent review. |
+
+R4 materially improves provider, compact, quoted, CLI, npm, and redaction behavior, but the existing finding is not fully remediated because semantically equivalent escaped/encoded labels bypass the classifier and remain in immutable config.
+
+#### FND-HNS-CORE-005-TECH-003-002 - Additional process-injection environment names remain Agent-visible
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-002` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Prior Status / Current Status | `OPEN` / `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-TECH-REVIEW-004-002`; SDD Sections 32 and 38 |
+| Evidence | Nine independently probed Git repository-path, ccache command-prefix, and CMake compiler-launcher variables were accepted and emitted as Agent-visible; 31 historical denied-name controls passed. |
+| Required Action | Extend the deny policy to high-confidence Git repository redirection and compiler command-launch/prefix classes, retain passing safe-name and narrowing controls, add focused regressions, issue a new immutable candidate/manifest, and obtain fresh independent review. |
+
+The R4 deny list closes the exact Git config/executable and several toolchain cases from R3, but it still permits variables that redirect Git filesystem state or place arbitrary launch commands in front of compiler/preprocessor execution.
+
+#### FND-HNS-CORE-005-TECH-003-003 - Substring markers overblock non-secret values and safe environment names
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-003` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Prior Status / New Status | `OPEN` / `RESOLVED` |
+| Closure Evidence | `REV-HNS-CORE-005-TECH-004`; exact R4 manifest SHA-256 `b9767c48f911032bee57416e024f1363fb20c15a7d9862731fbae50151052314`; checked-in and independent positive/negative boundary matrices. |
+
+Token- and sequence-aware classification preserves all reproduced benign assignment labels and task-safe environment names while canonical sensitive labels remain denied. No tested substring-only false-positive regression remains for this exact R4 artifact.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-TECH-REVIEW-004-001` | `PASS` | Exact R4 manifest/hash, full direct-parent lineage, R1-R4 supersession, 15 artifact identities, two replacements, thirteen inherited artifacts, post-candidate immutability, and Maker/Reviewer separation were independently verified. |
+| `AC-HNS-CORE-005-TECH-REVIEW-004-002` | `FAIL` | Historical and most R4 regressions pass and Finding 003 is resolved, but Findings 001 and 002 remain `OPEN` on escaped/encoded assignments and process-injection environment classes. |
+| `AC-HNS-CORE-005-TECH-REVIEW-004-003` | `FAIL` | Commands, discovery, canonical hash, scope, dependency, and forbidden-capability boundaries pass; the primary config contract still fails for the two open classifier defects. |
+| `AC-HNS-CORE-005-TECH-REVIEW-004-004` | `PASS` | This execution appends evidence only to `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, governance file, or prior evidence was modified. |
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no implementation, manifest, package, test, Work Item, governance, prior evidence, Gate, merge, or lifecycle artifact was modified.
+- R1 TECH finding regressions remain passing. Exact R2 Security finding reproductions pass, but formal Security-owned lifecycle remains with `SECURITY_REVIEWER` and is not transitioned here.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, Implementer, merger, accepted-risk authority, or lifecycle closer.
+- No GateResult is issued. The active `IMPLEMENTATION_GATE` cannot treat this TECH execution as passing evidence while two `OPEN MAJOR` findings remain.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+R4 has valid provenance, immutable identity, exact scope, green official commands, correct canonical hash behavior, and a successful false-positive remediation. It does not satisfy the assigned technical review because two existing `MAJOR` findings remain open: escaped/encoded sensitive assignment labels bypass secret rejection, and Git repository redirection plus compiler launcher/prefix environment variables remain Agent-visible.
