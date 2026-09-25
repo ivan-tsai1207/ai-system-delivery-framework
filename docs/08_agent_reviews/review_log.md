@@ -3451,3 +3451,136 @@ R4 has valid provenance, immutable identity, exact scope, green official command
 `READY_FOR_REVIEW`
 
 The two open TECH Findings remain `OPEN` until independent review of the exact R5 candidate/hash. This is Maker evidence only and is not TECH, QA, Security, or Gate approval.
+
+---
+
+## REV-HNS-CORE-005-TECH-005 - HNS-CORE-005 Independent R5 Technical Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-005` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-005-EXEC-20260925T210409Z` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Risk Class / Active Gate | `MEDIUM` / `IMPLEMENTATION_GATE` |
+| Work Item | `HNS-CORE-005-TECH-REVIEW-005` |
+| Maker Evidence / Execution | `RCE-HNS-CORE-005-REMEDIATION-R5-001` / `EXE-HNS-CORE-005-REMEDIATION-R5-001` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r5.md` |
+| Manifest SHA-256 / Git Blob | `499514daba7b8d7da9cd8cdb83ccfe5499b5a48b614459479741b6b55ee16a71` / `27d3326e807091fa0d686a0c30fb7ffe4b79d2be` |
+| Base / R5 Candidate | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` / `b0dd20c0ec6f4a23b420f2be43d8572156741f9e` |
+| Review-start Branch HEAD | `6ce7f314f1f1fb01b7da9103ec5a546d16da4ea7` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-25T21:04:09Z` |
+
+### Specification and Context References
+
+- Primary and companion acceptance criteria: `work-items/HNS-CORE-005.md`; `work-items/HNS-CORE-005-TEST-DISCOVERY.md`.
+- Assigned review contract: `work-items/HNS-CORE-005-TECH-REVIEW-005.md`; `.ai/roles/reviewer.md`; `.ai/roles/reviewer-profiles/tech-reviewer.md`; `.ai/gates/implementation-gate.md`.
+- Canonical requirements: `docs/harness_v0.1_SDD.md` Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1.
+- Identity and lifecycle evidence: R1-R5 manifests and all HNS-CORE-005 Maker, TECH, QA, Security, and Finding records through `RCE-HNS-CORE-005-REMEDIATION-R5-001`.
+- Reviewed implementation: all 15 artifacts bound by the R5 manifest, with detailed review of the two R5 replacement artifacts.
+
+### Provenance, Identity, and Separation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone and origin | `PASS` | Fresh single-branch clone at `/private/tmp/hns-core-005-review-r5.3ktizQ/repo`; origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; neither existing user checkout was used or modified. |
+| Branch and remote start | `PASS` | Local HEAD, remote-tracking ref, and `git ls-remote` resolved `feature/hns-core-005-config-hash` to `6ce7f314f1f1fb01b7da9103ec5a546d16da4ea7` before review; starting tree was clean. |
+| Independent execution | `PASS` | `REV-HNS-CORE-005-TECH-005-EXEC-20260925T210409Z` was absent from prior evidence and differs from every Maker and prior Reviewer execution ID. |
+| Direct-parent lineage | `PASS` | The base-to-candidate ancestry contains 17 single-parent commits and no merge commit; R5 candidate parent is R4 TECH review commit `ea6034f3bf26ec5651a19381f72bb1dffb6c17c9`; review-start HEAD is the direct child of the R5 candidate. |
+| Manifest and supersession | `PASS` | Exact R5 manifest bytes match the assigned SHA-256 and Git blob; the superseded R4 manifest independently matches declared SHA-256 `b9767c48f911032bee57416e024f1363fb20c15a7d9862731fbae50151052314`. |
+| All 15 artifact identities | `PASS` | Every row independently matched both its declared Git blob and content SHA-256 at candidate commit `b0dd20c...`. |
+| Replacement / inheritance | `PASS` | Exactly `config.ts` and `config.test.mjs` differ from R4 as `REPLACEMENT`; all 13 `INHERITED` artifacts are byte-identical to R4. |
+| Candidate scope and immutability | `PASS` | R5 commit changes only the two authorized config implementation/test artifacts; all 15 reviewed artifacts are byte-identical between candidate and review-start HEAD. |
+| Maker / Reviewer separation | `PASS` | This execution modified no reviewed artifact or manifest and used prior evidence only to identify historical cases for independent reproduction. |
+
+### Commands and Technical Validation
+
+| Command / Check | Result | Evidence |
+|---|---|---|
+| Runtime assertion | `PASS` | Every accepted build, test, audit, and independent probe used Node `v24.19.0` and npm `11.17.0`. |
+| `npm ci` | `PASS` | 7 packages added; 8 packages audited; 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed. |
+| `npm run typecheck` | `PASS` | No-emit strict typecheck completed. |
+| `npm test` | `PASS` | 136 passed; 0 failed, cancelled, skipped, or todo; root, core, schema, error, hash, and config suites were discovered. |
+| Focused hash / config tests | `PASS` | 40 passed; 0 failed, cancelled, skipped, or todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Lint / formatter | `NOT_APPLICABLE` | No lint or formatter script is defined in `harness/package.json`; build and typecheck are the available static commands. |
+| Diff / test integrity | `PASS` | `git diff --check` passed; no `.only`, `.skip`, `.todo`, or equivalent disabling marker was found under `harness/tests`. |
+| Dependency and package boundary | `PASS` | R5 changes no package or lockfile; the inherited package change remains limited to default test discovery and introduces no dependency. |
+| Capability boundary | `PASS` | Static import/source and candidate-diff scans found no Context/Policy compiler, audit persistence, runtime process, `process.env` read, environment injection, filesystem/network I/O, adapter, external integration, production operation, destructive behavior, or later-phase implementation. |
+
+### Independent Technical and Adversarial Probes
+
+The full independent matrix executed 135 assertions: 133 passed and 2 failed. A separate 10-case characterization matrix then confirmed five escaped-separator forms rejected with non-disclosure and five accepted and retained; it did not alter candidate artifacts.
+
+| Behavior | Result | Evidence |
+|---|---|---|
+| Historical R1 TECH findings | `PASS` | 13 API-key, authorization, cookie, private-key, password, client-secret, token, CLI, and npm assignment cases rejected without disclosure; both CI JWT names and broader historical environment controls rejected. |
+| Historical R2 Security findings | `PASS` | 12 provider/bearer/URL/private-key value classes and 11 secret-shaped key classes failed closed without disclosure; all exact credential-source, helper, runtime, loader, shell, Terraform, OCI, Git, and toolchain environment reproductions rejected. This TECH review does not transition Security-owned findings. |
+| Exact R4 escaped / encoded reproductions | `PASS` | Escaped hyphen, underscore, and dot labels, escaped assignment delimiter, CLI escaped label, and `%5F` / `%2D` / `%2E` query-label cases rejected without sentinel disclosure. |
+| Narrow URL decoding | `PASS` | Upper/lower-case supported encodings rejected only in query-label position; double encoding, unrelated `%2F` / `%3A` / `%5A`, non-sensitive encoded labels, encoded value text, and the same encoded label outside query position remained accepted. |
+| Generalized escaped separators | `FAIL` | Quoted and unquoted escaped-colon API-key labels, quoted escaped-colon client-secret labels, and quoted/unquoted escaped-equals client-secret labels were accepted and retained. Escaped space, hyphen, underscore, and dot controls rejected correctly. |
+| All nine R4 process-control names | `PASS` | `GIT_DIR`, `GIT_WORK_TREE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_INDEX_FILE`, `CCACHE_PREFIX`, `CCACHE_PREFIX_CPP`, `CMAKE_C_COMPILER_LAUNCHER`, and `CMAKE_CXX_COMPILER_LAUNCHER` all rejected. |
+| False-positive controls | `PASS` | Eight benign repository/assignment controls, including keyboard, tokenizer, authors-style, monkey, escaped benign separators, and encoded benign query labels, remained accepted. All eight task-safe environment names, including `KEYBOARD_LAYOUT`, `TOKENIZER_MODE`, and `AUTHORS_STYLE`, remained accepted, ordered, immutable, and narrowable. |
+| Narrowing and immutability | `PASS` | Valid three-layer narrowing passed; five visibility/adapter/context/timeout/environment re-expansions failed with `CONFIG_NARROWING_VIOLATION`; effective config and child policy were deeply frozen and isolated from source mutation. |
+| Canonical serialization and hash | `PASS` | 14 SHA-256 lengths from 0 through 4097 independently matched Node `crypto`, including 55/56/63/64/65-byte boundaries; eight UTF-8 cases matched `TextEncoder`; ordering, NFC equivalence, path-independent shape, verification, negative zero, cycle, unsupported, and non-finite handling passed. |
+
+The failure is visible in `harness/src/config/config.ts:270-280` and `:328-350`: normalization explicitly recognizes escaped `:` and `=` separators, but the quoted, unquoted, and CLI label extractors admit only escaped whitespace, dot, underscore, or hyphen. Therefore the sensitive label never reaches normalization for several semantically equivalent escaped forms. The checked-in R5 regression matrix at `harness/tests/unit/config/config.test.mjs:179-198` covers escaped hyphen, underscore, and dot but not escaped colon or equals labels.
+
+### Finding Lifecycle
+
+| Finding | Prior Status | Current Status | Evidence |
+|---|---|---|---|
+| `FND-HNS-CORE-005-TECH-001-001` | `RESOLVED` | `RESOLVED` | Historical assignment forms and non-disclosure independently pass on R5. |
+| `FND-HNS-CORE-005-TECH-001-002` | `RESOLVED` | `RESOLVED` | CI JWT regressions and safe-name controls independently pass on R5. |
+| `FND-HNS-CORE-005-SECURITY-002-001` | `OPEN` | `OPEN` | Exact value regressions pass, but lifecycle ownership remains with `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-SECURITY-002-002` | `OPEN` | `OPEN` | Exact key non-disclosure regressions pass, but lifecycle ownership remains with `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-SECURITY-002-003` | `OPEN` | `OPEN` | Exact environment regressions pass, but lifecycle ownership remains with `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-TECH-003-001` | `OPEN` | `OPEN` | R4 exact escaped/encoded cases pass, but escaped colon/equal sensitive assignment labels remain accepted and retained. |
+| `FND-HNS-CORE-005-TECH-003-002` | `OPEN` | `RESOLVED` | All nine reproduced Git repository-redirection, ccache prefix, and CMake compiler-launcher names reject on exact R5 identity. |
+| `FND-HNS-CORE-005-TECH-003-003` | `RESOLVED` | `RESOLVED` | Benign label and task-safe environment controls remain passing without substring overblocking. |
+
+#### FND-HNS-CORE-005-TECH-003-001 - Generalized secret classifier still permits escaped sensitive assignment labels
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-001` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Prior Status / Current Status | `OPEN` / `OPEN` |
+| Affected Requirements | `AC-HNS-CORE-005-002`; `AC-HNS-CORE-005-003`; `AC-HNS-CORE-005-TECH-REVIEW-005-002`; SDD Sections 31 and 38 |
+| Evidence | The independent 135-assertion matrix failed both escaped-colon API-key cases. A follow-up 10-case matrix accepted and retained five quoted/unquoted escaped-colon or escaped-equals API-key/client-secret forms while the adjacent escaped space/hyphen/underscore/dot controls rejected without disclosure. No synthetic secret is recorded here. |
+| Required Action | Align assignment-label extraction with the declared escaped-separator normalization for supported colon/equal forms, preserve narrow URL decoding and all passing benign controls, add positive/negative and non-disclosure regressions, issue a new immutable candidate/manifest, and obtain fresh independent review. |
+
+R5 closes the exact three R4 escaped/encoded examples and retains narrow decoding, but the same classifier boundary remains incomplete. Sensitive values accepted through these forms are retained in immutable config, so the primary fail-closed requirement is not satisfied.
+
+#### FND-HNS-CORE-005-TECH-003-002 - Additional process-injection environment names remain Agent-visible
+
+| Field | Value |
+|---|---|
+| Finding ID | `FND-HNS-CORE-005-TECH-003-002` |
+| Severity / Owner | `MAJOR` / `IMPLEMENTER` |
+| Prior Status / New Status | `OPEN` / `RESOLVED` |
+| Closure Evidence | `REV-HNS-CORE-005-TECH-005`; exact R5 manifest SHA-256 `499514daba7b8d7da9cd8cdb83ccfe5499b5a48b614459479741b6b55ee16a71`; all nine exact environment names rejected in independent probes. |
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-TECH-REVIEW-005-001` | `PASS` | Exact R5 manifest/hash, direct-parent lineage, R4 supersession, all 15 identities, two replacements, thirteen inherited artifacts, post-candidate immutability, and Maker/Reviewer separation independently verified. |
+| `AC-HNS-CORE-005-TECH-REVIEW-005-002` | `FAIL` | All nine environment names and the exact R4 escaped/encoded cases pass, and the resolved false-positive boundary remains green; generalized escaped colon/equal sensitive assignments still bypass rejection. |
+| `AC-HNS-CORE-005-TECH-REVIEW-005-003` | `FAIL` | Commands, discovery, canonical hash, narrowing, immutability, scope, dependency, and capability checks pass, but primary `AC-HNS-CORE-005-002` and diagnostic coverage in `AC-HNS-CORE-005-003` remain unsatisfied by the open classifier defect. |
+| `AC-HNS-CORE-005-TECH-REVIEW-005-004` | `PASS` | This execution appends only to `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, Work Item, governance file, or prior evidence was modified. |
+
+### Scope and Limitations
+
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, package, Work Item, governance file, prior evidence, Gate, merge, or lifecycle artifact was modified.
+- This is `TECH_REVIEWER` evidence only. It does not act as QA, Security, Gate Checker, Implementer, merger, accepted-risk authority, or lifecycle closer.
+- No GateResult is issued. The active `IMPLEMENTATION_GATE` cannot treat this TECH execution as passing evidence while `FND-HNS-CORE-005-TECH-003-001` remains `OPEN MAJOR`.
+
+### Decision
+
+`REQUEST_CHANGES`
+
+R5 has valid provenance, immutable identity, exact scope, green official commands, correct canonical hash behavior, complete closure of the nine process-control environment cases, narrow encoded-label decoding, and preserved false-positive boundaries. It does not satisfy the assigned technical review because escaped colon/equal sensitive assignment labels still bypass fail-closed secret rejection and are retained in immutable config.
