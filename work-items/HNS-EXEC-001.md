@@ -8,7 +8,7 @@
 | Role | `IMPLEMENTER` |
 | Feature | `minimal-execution-engine` |
 | Phase | `IMPLEMENTATION` |
-| Status | `TODO` |
+| Status | `DONE` |
 | Spec Version | `harness-v0.1-review` |
 | Design Version | `N/A` |
 | Risk Class | `HIGH` |
@@ -95,10 +95,10 @@ Implement deterministic Work Item v2 loading and validation plus the legal execu
 
 ## Acceptance Criteria
 
-- [ ] `AC-HNS-EXEC-001-001`: Canonical v2 Work Items load into immutable normalized values with deterministic document hashes.
-- [ ] `AC-HNS-EXEC-001-002`: Malformed, duplicate, v1, path-escaping, filename/ID mismatch, invalid review-only fields, AC, and gate inputs fail closed with `HNS-WI-001` details.
-- [ ] `AC-HNS-EXEC-001-003`: Every canonical legal execution transition succeeds and representative illegal, terminal, and stale-state transitions fail closed.
-- [ ] `AC-HNS-EXEC-001-004`: No generator, adapter, enforcement, network, credential, or production capability is introduced.
+- [x] `AC-HNS-EXEC-001-001`: Canonical v2 Work Items load into immutable normalized values with deterministic document hashes.
+- [x] `AC-HNS-EXEC-001-002`: Malformed, duplicate, v1, path-escaping, filename/ID mismatch, invalid review-only fields, AC, and gate inputs fail closed with `HNS-WI-001` details.
+- [x] `AC-HNS-EXEC-001-003`: Every canonical legal execution transition succeeds and representative illegal, terminal, and stale-state transitions fail closed.
+- [x] `AC-HNS-EXEC-001-004`: No generator, adapter, enforcement, network, credential, or production capability is introduced.
 
 ## Required Gates
 
@@ -116,4 +116,3 @@ Implement deterministic Work Item v2 loading and validation plus the legal execu
 ## Notes
 
 - Required independent profiles: `TECH_REVIEWER`, `QA_REVIEWER`, `SECURITY_REVIEWER`.
-
