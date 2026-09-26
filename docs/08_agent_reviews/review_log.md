@@ -4133,3 +4133,32 @@ R7 updates the ordinary unquoted assignment extractor at `harness/src/config/con
 `REQUEST_CHANGES`
 
 Exact R7 has valid provenance and immutable identity, exact scope, green official commands, correct canonical hash behavior, complete historical regression coverage, and closes the exact five unquoted assignment/CLI bypasses behaviorally. It still accepts and retains npm-style escaped-whitespace semantic credential labels across unquoted and quoted key forms, so the assigned TECH review acceptance criteria are not fully satisfied.
+
+---
+
+## RCE-HNS-CORE-005-REMEDIATION-R8-001 - HNS-CORE-005 R8 Maker Remediation Evidence
+
+| Field | Value |
+|---|---|
+| Evidence / Execution | `RCE-HNS-CORE-005-REMEDIATION-R8-001` / `EXE-HNS-CORE-005-REMEDIATION-R8-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Source Review / Finding | `REV-HNS-CORE-005-TECH-007` / `FND-HNS-CORE-005-TECH-007-001` |
+| Parent / R8 Candidate | `f388d85adf1601f70f2d1682e64c0931759740b9` / `27b14265ebb4a5870573abecae4a551014445982` |
+| R8 Manifest / Hash | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r8.md` / `sha256:e66abaaa9318d7a17870e79509490411a0425f4ac3646e22ff6fc339a4588b95` |
+| Runtime / Timestamp | Node `v24.19.0`, npm `11.17.0` / `2026-09-26T01:05:10Z` |
+
+### Remediation and Validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Exact scope | `PASS` | Only `config.ts` and `config.test.mjs`; 66 insertions, 3 deletions. |
+| TECH Finding 007-001 | `READY_FOR_REVIEW` | Bounded npm-style escaped-whitespace and quoted-key extraction; exact 25-case sensitive matrix, 5 adjacent controls, and all-surface non-disclosure coverage. |
+| Historical boundaries | `PASS` | Narrow escape/URL decoding, R7 forms, credentials/keys/environment, benign controls, narrowing, immutability, hash, and capabilities remain green. |
+| Commands | `PASS` | Install/build/typecheck; 140 default, 44 focused, 29 config tests; high audit 0 vulnerabilities; no failed/skipped/todo. |
+| Forbidden scope | `PASS` | No docs/evidence, Work Item, dependency, fixture, governance, runtime, adapter, I/O, or later-phase candidate change. |
+
+### Result
+
+`READY_FOR_REVIEW`
+
+The TECH finding remains `OPEN` until independent exact-hash review. This Maker evidence is not reviewer or Gate approval.
