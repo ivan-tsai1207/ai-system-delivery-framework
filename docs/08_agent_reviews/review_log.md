@@ -4725,3 +4725,98 @@ Validation ran from an exported immutable candidate tree at `2ab7924e1c95facf41b
 `REQUEST_CHANGES`
 
 The exact candidate builds and its complete checked-in suite passes, but immutable lineage and two fail-closed parser contracts are incorrect. The three open MAJOR findings require Implementer correction and a new immutable candidate/manifest followed by fresh independent review.
+
+## REV-HNS-EXEC-001-TECH-002 - HNS-EXEC-001 R2 Independent Technical Re-review
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-EXEC-001-TECH-002` |
+| Reviewer Execution ID | `EXE-HNS-EXEC-001-TECH-REVIEW-002` |
+| Work Item | `HNS-EXEC-001-TECH-REVIEW-002` |
+| Role / Profile / Risk | `REVIEWER` / `TECH_REVIEWER` / `HIGH` |
+| Maker Execution ID | `EXE-HNS-EXEC-001-REMEDIATION-R2-001` |
+| Reviewed Candidate | `0f98124c9e053314f63e9fd3937918d176fc32c2` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-EXEC-001-implementation-r2.md` |
+| Expected / Actual Manifest SHA-256 | `1eddcedd96d643ecd27db655b61161d9985fe987aebf8f431c81f2759f344b9b` / `1eddcedd96d643ecd27db655b61161d9985fe987aebf8f431c81f2759f344b9b` |
+| Exact Runtime | Node `v24.19.0` / npm `11.17.0` |
+| Timestamp | `2026-09-26T10:33:10+08:00` |
+| Decision | `BLOCK` |
+
+### Independence and Identity
+
+| Check | Result | Evidence |
+|---|---|---|
+| Maker / Reviewer separation | `PASS` | Maker execution `EXE-HNS-EXEC-001-REMEDIATION-R2-001` differs from fresh Reviewer execution `EXE-HNS-EXEC-001-TECH-REVIEW-002`; the Reviewer modified no candidate, manifest, Work Item, governance, or Gate artifact. |
+| Manifest digest | `PASS` | The R2 manifest hashes exactly to the Work Item-bound SHA-256 `1eddcedd96d643ecd27db655b61161d9985fe987aebf8f431c81f2759f344b9b`. |
+| Candidate identity | `PASS` | Commit `0f98124c9e053314f63e9fd3937918d176fc32c2` exists and is an ancestor of review-assignment HEAD `94da529f02c157c41d10fbf56054970d22ed5219`; all three replacement and six inherited manifest Git blobs and content SHA-256 values match the candidate tree exactly. |
+| Manifest lineage | `PASS` | Original candidate `2ab7924e1c95facf41bbf4bdd01124c04ca021e0` has sole parent `27cf599b753196e8a1fa84cd3d2f64a4aebf7ff8`; R2 candidate `0f98124c9e053314f63e9fd3937918d176fc32c2` has sole parent R1 TECH evidence commit `5d89027dd6b4f15b929935bbb91a6b20502a3827`, exactly as recorded. |
+| R2 diff scope | `PASS` | Parent-to-candidate remediation changes exactly `harness/src/work-items/index.ts`, `harness/src/work-items/parser.ts`, and `harness/tests/unit/work-items/parser.test.mjs`; `206` insertions and `8` deletions; `git diff --check 5d89027..0f98124` passes. |
+
+### R1 Finding Closure
+
+| Finding | Result | Evidence |
+|---|---|---|
+| `FND-HNS-EXEC-001-TECH-001-001` | `RESOLVED` | Replacement manifest records the actual original parent and exact R1-evidence-to-R2 lineage; all manifest identities reproduce. |
+| `FND-HNS-EXEC-001-TECH-001-002` | `RESOLVED` | Unsupported embedded/extended glob segments reject in both Write and Forbidden Scope; supported whole-segment `*` overlap rejects bidirectionally and bounded non-overlap controls remain accepted. |
+| `FND-HNS-EXEC-001-TECH-001-003` | `RESOLVED` | Caller-supplied bounded canonical targets resolve registered Work Item dependencies, artifact paths, and anchors; nonexistent dependency, path, and anchor controls reject with `HNS-WI-001`. |
+
+### Technical Review
+
+| Area | Result | Evidence |
+|---|---|---|
+| Work Item v2 structure / metadata | `FAIL` | General parsing, enums, filename binding, review field shape, deterministic hash, and immutability pass, but a REVIEWER Work Item with nonexistent unregistered `Reviewed Artifact` path parses successfully. See `FND-HNS-EXEC-001-TECH-002-001`. |
+| Scope validation | `PASS` | Scope syntax rejects unsupported embedded glob forms; whole-segment `*` / `**` overlap is symmetric and conservative for tested positive and negative controls. |
+| Reference / dependency resolution | `PASS` | Bounded registry validation closes the three R1 resolution cases for requirement paths/anchors and Work Item dependencies without repository scan. |
+| Acceptance criteria / Gate validation | `PASS` | AC identity/completion, canonical Gate enum, phase Gate, and Delivery Assurance binding behavior remain covered and pass. |
+| Execution state | `PASS` | Eleven canonical states, legal forward and stop transitions, `FAILED_GATE` boundary, terminal rejection, stale expected-state rejection, and immutable diagnostics pass. |
+| Dependency impact | `PASS` | `mdast-util-from-markdown@2.0.3` remains exact-pinned in package and lock data; clean install audited 42 packages with 0 vulnerabilities. |
+| Unauthorized capability / scope | `PASS` | Candidate remains parser/state foundation only; no generator, adapter, enforcement, network, credential, persistence, Gate runner, or production capability is introduced. |
+
+### Exact-Runtime Validation
+
+Validation ran from an exported immutable candidate tree at `0f98124c9e053314f63e9fd3937918d176fc32c2`, outside the repository checkout, using the supplied pinned runtime.
+
+| Check | Result |
+|---|---|
+| Runtime identity | `PASS`; Node `v24.19.0`, npm `11.17.0` |
+| `npm ci` | `PASS`; 41 packages added, 42 packages audited, 0 vulnerabilities |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| `npm test` | `PASS`; 172 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+| Bounded technical probes | `FAIL`; 21 closure/positive/negative observations behaved correctly, but one nonexistent unregistered `Reviewed Artifact` was accepted; 22/22 expected probe observations reproduced |
+
+### Acceptance Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-EXEC-001-TECH-REVIEW-002-001` | `PASS` | R2 manifest identity, actual lineage, three-file remediation scope, artifact hashes, and execution separation all reproduce. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-002-002` | `PASS` | All three R1 findings close under independent source inspection, checked-in regression tests, and bounded probes without introducing unauthorized capability. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-002-003` | `FAIL` | Exact-runtime build, typecheck, complete tests, audit, and R1 closure probes pass, but full technical AC verification exposes a new generalized reviewer-artifact binding failure. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-002-004` | `PASS` | This execution appends only this review evidence to `docs/08_agent_reviews/review_log.md`; it does not modify the candidate, manifest, Work Items, governance, or Gate state. |
+
+### Findings
+
+#### FND-HNS-EXEC-001-TECH-002-001 - Reviewed Artifact path is not canonically resolved
+
+| Field | Value |
+|---|---|
+| Severity / Status | `MAJOR` / `OPEN` |
+| Subject / Return Owner | REVIEWER Work Item binding correctness / `IMPLEMENTER` |
+| Evidence | `parser.ts` normalizes `Reviewed Artifact` syntactically at lines 617-622 but never passes it through `validateCanonicalReference`; a bounded exact-candidate probe supplied only the registered SDD target while setting `Reviewed Artifact` to nonexistent `docs/not-real-reviewed-artifact.md`, and the parser returned `ok: true`. The checked-in valid-binding test also supplies `harness/src/index.ts` outside its canonical target registry, so the missing existence check is not covered. |
+| Impact | A REVIEWER Work Item can bind a plausible SHA-256 and Maker execution ID to an artifact path that is absent from the caller's bounded canonical registry, violating SDD Section 17 step 10 and allowing dispatch/review metadata to appear valid without an existing reviewed artifact. This is generalized across reviewer profiles and artifact paths. |
+| Required correction | Resolve `Reviewed Artifact` through the same explicit bounded canonical target boundary and reject an unregistered path with structured `HNS-WI-001`; add positive and negative reviewer-binding tests. |
+| Stop rule | This is a new generalized `MAJOR` after the single R2 remediation cycle. `HNS-EXEC-001` remediation is exhausted, so this review records `BLOCK` and stops the automatic review loop rather than authorizing another candidate mutation. |
+
+### Known Limitations and Decision
+
+- Probes were bounded to assigned ACs, the three R1 findings, and one directly observed reviewer-binding contract gap; no open-ended fuzzing or speculative grammar taxonomy was performed.
+- This TECH review does not substitute for assigned QA or Security review and does not approve `IMPLEMENTATION_GATE`.
+- Candidate, manifest, Work Items, governance, source, tests, dependencies, and Gate state remain unchanged; Reviewer write scope is limited to this append.
+- All three R1 findings are independently resolved, but the new generalized MAJOR finding triggers the Work Item's exhausted-remediation stop rule.
+
+`BLOCK`
+
+R2 closes the three assigned R1 findings and passes all exact-runtime checked-in validation, but the parser still accepts a nonexistent unregistered Reviewed Artifact for REVIEWER Work Items. Because the only automatic remediation cycle is exhausted, the technical review loop stops with `FND-HNS-EXEC-001-TECH-002-001` open; no Gate decision is issued.
