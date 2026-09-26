@@ -4585,3 +4585,36 @@ HNS-CORE-005 may proceed to develop merge and post-merge validation only. Execut
 ### Closure Decision
 
 HNS-CORE-005 lifecycle is closed on `develop` after passing required independent TECH, QA, SECURITY review evidence and `IMPLEMENTATION_GATE`. No post-CORE-005 Master Program work is authorized or started by this closure.
+
+## LC-HNS-CORE-005-CORRECTION-001 - HNS-CORE-005 Final Closure Normalization
+
+| Field | Value |
+|---|---|
+| Lifecycle Correction Evidence ID | `LC-HNS-CORE-005-CORRECTION-001` |
+| Work Item | `HNS-CORE-005` |
+| Validated Branch / Starting HEAD | `develop` / `570e44b60c78d1857c3c3db3747dc0f506036984` |
+| Exact Runtime | Node `v24.19.0` / npm `11.17.0` |
+| Final Candidate | `a0877b3c79328b72fee12f477df6c0107373e121` / unchanged |
+| Final Candidate Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| Final Candidate Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` / unchanged |
+| Implementation Gate | `IG-HNS-CORE-005-002` / `PASS` / unchanged |
+| Status Normalization | `work-items/HNS-CORE-005.md`: `TODO` -> `DONE` |
+| Source Code | No source code changed |
+
+### Exact-Runtime Final Validation
+
+| Check | Result |
+|---|---|
+| `npm ci` | `PASS`; Node `v24.19.0`, npm `11.17.0`, 0 vulnerabilities |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| `npm test` | `PASS`; 140 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+
+### Historical Control-Plane Traceability Limitation
+
+R9 TECH, QA, and SECURITY executions and evidence already exist as `REV-HNS-CORE-005-TECH-009`, `REV-HNS-CORE-005-QA-009`, and `REV-HNS-CORE-005-SECURITY-009`, but corresponding `REVIEW-009` Work Item files were not committed at that time. This correction records that historical omission without fabricating retrospective Work Items. Existing R9 Reviewer evidence remains unchanged; no reviewer execution was rerun, no R10 was created, and existing Gate, candidate, and manifest hashes remain unchanged.
+
+### Correction Decision
+
+HNS-CORE-005 canonical lifecycle status is normalized to `DONE` after exact-runtime final validation. This correction changes control-plane closure records only and does not start the Execution Engine or any later Master Program phase.
