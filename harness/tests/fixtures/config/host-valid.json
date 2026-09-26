@@ -1,0 +1,30 @@
+{
+  "schema_version": "harness.config/v1",
+  "framework": {
+    "repository": "https://github.com/ivan-tsai1207/ai-system-delivery-framework"
+  },
+  "github": {
+    "default_owner": "ivan-tsai1207",
+    "default_visibility": "public"
+  },
+  "adapters": {
+    "preference": ["codex", "claude"]
+  },
+  "audit": {
+    "path": "/var/lib/harness/audit"
+  },
+  "context": {
+    "initial_max_files": 24,
+    "initial_max_sections": 64,
+    "initial_max_bytes": 1048576,
+    "hard_max_files": 200,
+    "hard_max_sections": 1000,
+    "hard_max_bytes": 20971520
+  },
+  "timeouts": {
+    "process_seconds": 900
+  },
+  "environment": {
+    "allowlist": ["LANG", "LC_ALL", "TOOL_MODE"]
+  }
+}
