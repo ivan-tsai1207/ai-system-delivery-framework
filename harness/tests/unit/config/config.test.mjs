@@ -161,12 +161,16 @@ test("quoted, compact, case, and separator secret assignments fail closed", () =
     `cookie:${sentinel}`,
     `private.key = "${sentinel}"`,
     `TOKENVALUE=${sentinel}`,
+    `TOKENVALUE\\ ${sentinel}`,
     `password_hash='${sentinel}'`,
+    `password_hash\\ ${sentinel}`,
     `clientSecret="${sentinel}"`,
     `credential-value=${sentinel}`,
     `git clone --api-key ${sentinel} https://example.invalid/repo.git`,
+    `tool --client-secret\\ ${sentinel}`,
     `tool --client-secret\\=${sentinel}`,
     `npm config set //registry.npmjs.org/:_authToken ${sentinel}`,
+    `npm config set //registry.npmjs.org/:_authToken\\ ${sentinel}`,
   ]) {
     assertSecretRejectedWithoutDisclosure(
       () => loadHarnessConfig({

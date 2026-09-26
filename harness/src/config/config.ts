@@ -335,6 +335,7 @@ function containsSensitiveAssignment(value: string): boolean {
     /(?:^|[/?::&#;,\s{[])'(_[A-Za-z](?:[A-Za-z0-9._-]|\\[:=\s._-]){0,62})'\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
     /"(?:\\.|[^"\\\r\n]){0,255}[/?::&#;,{[](_[A-Za-z](?:[A-Za-z0-9._-]|\\[:=\s._-]){0,62})"\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
     /'(?:\\.|[^'\\\r\n]){0,255}[/?::&#;,{[](_[A-Za-z](?:[A-Za-z0-9._-]|\\[:=\s._-]){0,62})'\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
+    /(?:^|[/?::&#;,\s{[])(?:--?|\/)?([_A-Za-z][A-Za-z0-9._-]{0,63})\\\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi,
   ];
   for (const pattern of assignmentPatterns) {
     for (const match of value.matchAll(pattern)) {
@@ -351,7 +352,7 @@ function containsSensitiveAssignment(value: string): boolean {
   }
 
   const cliFlagPattern =
-    /(?:^|\s)--([A-Za-z](?:[A-Za-z0-9._-]|\\[:=\s._-]){1,63})\s+(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi;
+    /(?:^|\s)--([A-Za-z](?:[A-Za-z0-9._-]|\\[:=\s._-]){1,63})(?:\s+|\\\s+)(?:"(?:\\.|[^"])+?"|'(?:\\.|[^'])+?'|[^\s,;&]+)/gi;
   for (const match of value.matchAll(cliFlagPattern)) {
     const label = match[1];
     if (label !== undefined && isSensitiveLabel(label)) return true;
