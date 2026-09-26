@@ -46,6 +46,15 @@ export type WorkItemParseResult =
   | Readonly<{ readonly ok: true; readonly value: WorkItem }>
   | Readonly<{ readonly ok: false; readonly error: readonly WorkItemParseErrorDetail[] }>;
 
+export interface CanonicalReferenceTarget {
+  readonly path: string;
+  readonly anchors?: readonly string[];
+}
+
+export interface WorkItemParseContext {
+  readonly canonical_targets: readonly CanonicalReferenceTarget[];
+}
+
 type ErrorInput = Omit<WorkItemParseErrorDetail, "path" | "error_code">;
 
 const METADATA_FIELDS = [
@@ -259,11 +268,14 @@ function normalizeRepositoryPath(value: string): string | undefined {
 
 function normalizeScopePattern(value: string): string | undefined {
   const normalized = normalizeRepositoryPath(value);
-  if (normalized === undefined || normalized.includes("[")) {
+  if (normalized === undefined) {
     return undefined;
   }
   const segments = normalized.split("/");
-  if (segments.some((segment) => segment.includes("***") || (segment.includes("**") && segment !== "**"))) {
+  if (segments.some((segment) =>
+    segment !== "*"
+    && segment !== "**"
+    && (/[*?\[\]{}]/.test(segment) || segment.startsWith("!") || /[+@]\(/.test(segment)))) {
     return undefined;
   }
   return normalized;
@@ -380,8 +392,87 @@ function extractTrailingAnchor(item: AstNode, finalToken: string): string | unde
   return suffix.length > 0 ? suffix.normalize("NFC") : undefined;
 }
 
+function canonicalTargetMap(
+  context: WorkItemParseContext | undefined,
+  addError: (input: ErrorInput) => void,
+): ReadonlyMap<string, ReadonlySet<string>> {
+  const targets = new Map<string, ReadonlySet<string>>();
+  for (const target of context?.canonical_targets ?? []) {
+    const path = normalizeRepositoryPath(target.path);
+    if (path === undefined || targets.has(path)) {
+      addError({
+        field: "canonical_targets",
+        expected: "unique safe repository-relative canonical target paths",
+        actual: target.path,
+      });
+      continue;
+    }
+    const anchors = new Set<string>();
+    let valid = true;
+    for (const anchorInput of target.anchors ?? []) {
+      const anchor = anchorInput.trim().normalize("NFC");
+      if (anchor.length === 0 || anchors.has(anchor)) {
+        addError({
+          field: "canonical_targets",
+          expected: "unique non-empty anchors per canonical target",
+          actual: `${target.path}#${anchorInput}`,
+        });
+        valid = false;
+      } else {
+        anchors.add(anchor);
+      }
+    }
+    if (valid) {
+      targets.set(path, anchors);
+    }
+  }
+  return targets;
+}
+
+function requiresCanonicalResolution(reference: ArtifactReference): boolean {
+  if (reference.kind === "requirement") {
+    return false;
+  }
+  if (reference.kind === "dependency" && reference.path.includes("@") && !reference.path.endsWith(".md")) {
+    return false;
+  }
+  return reference.path.includes("/") || reference.path.endsWith(".md");
+}
+
+function validateCanonicalReference(
+  reference: ArtifactReference,
+  targets: ReadonlyMap<string, ReadonlySet<string>>,
+  section: string,
+  field: string | undefined,
+  addError: (input: ErrorInput) => void,
+): boolean {
+  if (!requiresCanonicalResolution(reference)) {
+    return true;
+  }
+  const anchors = targets.get(reference.path);
+  if (anchors === undefined) {
+    addError({
+      section,
+      ...(field === undefined ? {} : { field }),
+      expected: "registered canonical artifact path",
+      actual: reference.path,
+    });
+    return false;
+  }
+  if (reference.anchor !== undefined && !anchors.has(reference.anchor)) {
+    addError({
+      section,
+      ...(field === undefined ? {} : { field }),
+      expected: `registered anchor for ${reference.path}`,
+      actual: reference.anchor,
+    });
+    return false;
+  }
+  return true;
+}
+
 export class WorkItemParser {
-  parse(sourcePathInput: string, markdown: string): WorkItemParseResult {
+  parse(sourcePathInput: string, markdown: string, context?: WorkItemParseContext): WorkItemParseResult {
     const errors: WorkItemParseErrorDetail[] = [];
     const sourcePath = normalizeRepositoryPath(sourcePathInput);
     const addError = (input: ErrorInput): void => {
@@ -391,6 +482,7 @@ export class WorkItemParser {
         error_code: "HNS-WI-001" as const,
       }));
     };
+    const canonicalTargets = canonicalTargetMap(context, addError);
 
     if (sourcePath === undefined || !/^work-items\/[^/]+\.md$/.test(sourcePath)) {
       addError({ field: "path", expected: "canonical repository-relative work-items/<ID>.md path", actual: sourcePathInput });
@@ -593,7 +685,9 @@ export class WorkItemParser {
               addError({ section: "Requirement References", field, expected: "unique references", actual: token });
             } else {
               seenReferences.add(key);
-              requirementReferences.push(reference);
+              if (validateCanonicalReference(reference, canonicalTargets, "Requirement References", field, addError)) {
+                requirementReferences.push(reference);
+              }
             }
           }
         }
@@ -726,7 +820,7 @@ export class WorkItemParser {
       const reference = referenceFromToken("dependency", token);
       if (reference === undefined) {
         addError({ section: "Dependencies", expected: "safe Work Item, artifact, or exact package dependency", actual: dependency });
-      } else {
+      } else if (validateCanonicalReference(reference, canonicalTargets, "Dependencies", undefined, addError)) {
         dependencies.push(reference);
       }
     }
@@ -797,6 +891,10 @@ export class WorkItemParser {
 
 const defaultParser = new WorkItemParser();
 
-export function parseWorkItem(sourcePath: string, markdown: string): WorkItemParseResult {
-  return defaultParser.parse(sourcePath, markdown);
+export function parseWorkItem(
+  sourcePath: string,
+  markdown: string,
+  context?: WorkItemParseContext,
+): WorkItemParseResult {
+  return defaultParser.parse(sourcePath, markdown, context);
 }

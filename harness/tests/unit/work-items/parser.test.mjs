@@ -3,12 +3,33 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { createSchemaRegistry } from "../../../dist/schemas/index.js";
-import { parseWorkItem } from "../../../dist/work-items/index.js";
+import { parseWorkItem as parseWorkItemWithContext } from "../../../dist/work-items/index.js";
 
 const fixtureUrl = new URL("../../fixtures/work-items/HNS-FIXTURE-001.md", import.meta.url);
 const assignedWorkItemUrl = new URL("../../../../work-items/HNS-EXEC-001.md", import.meta.url);
 const packageUrl = new URL("../../../package.json", import.meta.url);
 const packageLockUrl = new URL("../../../package-lock.json", import.meta.url);
+
+const fixtureContext = Object.freeze({
+  canonical_targets: Object.freeze([
+    Object.freeze({ path: "docs/harness_v0.1_SDD.md", anchors: Object.freeze(["Section 17"]) }),
+  ]),
+});
+const assignedContext = Object.freeze({
+  canonical_targets: Object.freeze([
+    Object.freeze({
+      path: "docs/harness_v0.1_SDD.md",
+      anchors: Object.freeze(["Sections 5.2-5.3, 17, 35, 40.1, 46 Phase 2"]),
+    }),
+    Object.freeze({ path: "work-items/HNS-CORE-005.md", anchors: Object.freeze(["lifecycle closure"]) }),
+  ]),
+});
+
+function parseWorkItem(sourcePath, markdown, context) {
+  const canonicalContext = context
+    ?? (sourcePath === "work-items/HNS-EXEC-001.md" ? assignedContext : fixtureContext);
+  return parseWorkItemWithContext(sourcePath, markdown, canonicalContext);
+}
 
 async function fixture() {
   return readFile(fixtureUrl, "utf8");
@@ -206,6 +227,83 @@ test("Write Scope overlap with Forbidden Scope fails closed", async () => {
   expectFailure(
     parseWorkItem("work-items/HNS-FIXTURE-001.md", candidate),
     (detail) => detail.section === "Write Scope" && detail.expected.includes("no overlap"),
+  );
+});
+
+test("unsupported embedded glob segments fail closed in both scope directions", async () => {
+  const markdown = await fixture();
+  for (const pattern of ["*.ts", "file?.ts", "[ab].ts", "{a,b}.ts", "@(a|b).ts", "!index.ts"]) {
+    const writeGlob = replaceOnce(markdown, "`harness/src/work-items/**`", `\`harness/src/${pattern}\``);
+    const forbiddenGlob = replaceOnce(markdown, "`docs/**`", `\`harness/src/${pattern}\``);
+
+    expectFailure(parseWorkItem("work-items/HNS-FIXTURE-001.md", writeGlob), (detail) => detail.section === "Write Scope");
+    expectFailure(parseWorkItem("work-items/HNS-FIXTURE-001.md", forbiddenGlob), (detail) => detail.section === "Forbidden Scope");
+  }
+});
+
+test("supported segment globs detect overlap in both operand directions", async () => {
+  const markdown = await fixture();
+  const writeGlob = replaceOnce(
+    replaceOnce(markdown, "`harness/src/work-items/**`", "`harness/src/*`"),
+    "`docs/**`",
+    "`harness/src/index.ts`",
+  );
+  const forbiddenGlob = replaceOnce(
+    replaceOnce(markdown, "`harness/src/work-items/**`", "`harness/src/index.ts`"),
+    "`docs/**`",
+    "`harness/src/*`",
+  );
+
+  for (const candidate of [writeGlob, forbiddenGlob]) {
+    expectFailure(
+      parseWorkItem("work-items/HNS-FIXTURE-001.md", candidate),
+      (detail) => detail.section === "Write Scope" && detail.expected.includes("no overlap"),
+    );
+  }
+});
+
+test("supported segment globs preserve non-overlap in both operand directions", async () => {
+  const markdown = await fixture();
+  const writeGlob = replaceOnce(markdown, "`harness/src/work-items/**`", "`harness/src/*`");
+  const forbiddenGlob = replaceOnce(
+    replaceOnce(markdown, "`harness/src/work-items/**`", "`docs/index.ts`"),
+    "`docs/**`",
+    "`harness/src/*`",
+  );
+
+  for (const candidate of [writeGlob, forbiddenGlob]) {
+    const result = parseWorkItem("work-items/HNS-FIXTURE-001.md", candidate);
+    assert.equal(result.ok, true, result.ok ? undefined : JSON.stringify(result.error));
+  }
+});
+
+test("canonical Work Item dependencies, artifact paths, and anchors resolve or fail closed", async () => {
+  const markdown = await fixture();
+  const dependency = replaceOnce(markdown, "## Dependencies\n\n- None", "## Dependencies\n\n- `HNS-CORE-005`");
+  const resolved = parseWorkItemWithContext("work-items/HNS-FIXTURE-001.md", dependency, {
+    canonical_targets: [
+      { path: "docs/harness_v0.1_SDD.md", anchors: ["Section 17"] },
+      { path: "work-items/HNS-CORE-005.md" },
+    ],
+  });
+  assert.equal(resolved.ok, true, resolved.ok ? undefined : JSON.stringify(resolved.error));
+
+  const missingWorkItem = replaceOnce(markdown, "## Dependencies\n\n- None", "## Dependencies\n\n- `HNS-NOT-REAL-999`");
+  expectFailure(
+    parseWorkItem("work-items/HNS-FIXTURE-001.md", missingWorkItem),
+    (detail) => detail.section === "Dependencies" && detail.actual === "work-items/HNS-NOT-REAL-999.md",
+  );
+
+  const missingPath = replaceOnce(markdown, "`docs/harness_v0.1_SDD.md`", "`docs/not-real.md`");
+  expectFailure(
+    parseWorkItem("work-items/HNS-FIXTURE-001.md", missingPath),
+    (detail) => detail.section === "Requirement References" && detail.actual === "docs/not-real.md",
+  );
+
+  const missingAnchor = replaceOnce(markdown, "Section 17", "Section 999");
+  expectFailure(
+    parseWorkItem("work-items/HNS-FIXTURE-001.md", missingAnchor),
+    (detail) => detail.section === "Requirement References" && detail.actual === "Section 999",
   );
 });
 
