@@ -4820,3 +4820,88 @@ Validation ran from an exported immutable candidate tree at `0f98124c9e053314f63
 `BLOCK`
 
 R2 closes the three assigned R1 findings and passes all exact-runtime checked-in validation, but the parser still accepts a nonexistent unregistered Reviewed Artifact for REVIEWER Work Items. Because the only automatic remediation cycle is exhausted, the technical review loop stops with `FND-HNS-EXEC-001-TECH-002-001` open; no Gate decision is issued.
+
+## REV-HNS-EXEC-001-TECH-003 - HNS-EXEC-001 Targeted R3 Independent Technical Review
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-EXEC-001-TECH-003` |
+| Reviewer Execution ID | `EXE-HNS-EXEC-001-TECH-REVIEW-003` |
+| Work Item | `HNS-EXEC-001-TECH-REVIEW-003` |
+| Role / Profile / Risk | `REVIEWER` / `TECH_REVIEWER` / `HIGH` |
+| Maker Execution ID | `EXE-HNS-EXEC-001-TARGETED-REMEDIATION-R3-001` |
+| Reviewed Candidate | `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-EXEC-001-implementation-r3.md` |
+| Expected / Actual Manifest SHA-256 | `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1` / `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1` |
+| Exact Runtime | Node `v24.19.0` / npm `11.17.0` |
+| Timestamp | `2026-09-26T13:34:52+08:00` |
+| Decision | `PASS` |
+
+### Independence and Identity
+
+| Check | Result | Evidence |
+|---|---|---|
+| Maker / Reviewer separation | `PASS` | Maker execution `EXE-HNS-EXEC-001-TARGETED-REMEDIATION-R3-001` differs from fresh Reviewer execution `EXE-HNS-EXEC-001-TECH-REVIEW-003`; this Reviewer modified no candidate, manifest, Work Item, governance, or Gate artifact. |
+| Manifest digest | `PASS` | The R3 manifest hashes exactly to the Work Item-bound SHA-256 `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1`. |
+| Candidate identity | `PASS` | Commit `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` exists and is an ancestor of review-assignment HEAD `88fb610928b9c3e69b3ba55690675b616b3a69f3`; both replacement and all seven inherited manifest Git blobs and content SHA-256 values match the candidate tree exactly. |
+| Manifest lineage | `PASS` | Candidate `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` has sole parent R2 TECH evidence commit `89e96338c2ab9201cfbe5ad28841de0ec6512c1f`, exactly as recorded. |
+| R3 diff scope | `PASS` | Parent-to-candidate remediation changes exactly `harness/src/work-items/parser.ts` and `harness/tests/unit/work-items/parser.test.mjs`; 133 insertions and 16 deletions; `git diff --check 89e9633..a8dc207` passes. Dependency, public export, fixture, and execution-state artifacts are unchanged from R2. |
+
+### Targeted Finding Closure
+
+| Finding | Result | Evidence |
+|---|---|---|
+| `FND-HNS-EXEC-001-TECH-002-001` | `RESOLVED` | `Reviewed Artifact` now resolves through the caller-supplied bounded canonical-target registry; the selected target must carry valid `reviewed_artifact_hash` metadata and the Work Item hash must match it exactly. Registered/matching input passes; nonexistent, unregistered, traversal, absolute, unsupported metadata, malformed metadata, hash mismatch, and malformed binding inputs fail closed with `HNS-WI-001`. |
+
+### Technical Review
+
+| Area | Result | Evidence |
+|---|---|---|
+| Work Item v2 reviewer binding | `PASS` | Existing valid `REVIEWER` binding preserves typed artifact path/hash identity, while non-`REVIEWER` all-`N/A` behavior remains valid and normalized to null review fields. |
+| Canonical resolution / hash binding | `PASS` | Resolution is deterministic against an explicit in-memory registry; no filesystem scan or I/O is introduced. Invalid registry paths, duplicate paths/anchors, and malformed reviewer hash metadata remain fail-closed. |
+| Parser regression | `PASS` | All 26 focused parser tests pass, including deterministic document hash, immutability, dependency/reference/anchor resolution, scope overlap, AC, Gate, and malformed-input behavior. |
+| Execution state | `PASS` | All nine state tests pass; the independent probe confirms one legal forward transition and terminal-state rejection. |
+| Dependency impact | `PASS` | `mdast-util-from-markdown@2.0.3` remains exact-pinned in package and lock data; clean install audited 42 packages with 0 vulnerabilities. |
+| Unauthorized capability / scope | `PASS` | Candidate remains a parser/state foundation only; no generator, adapter, enforcement, network, credential, persistence, Gate runner, or production capability is introduced. |
+
+### Exact-Runtime Validation
+
+Validation ran from an exported immutable candidate tree at `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0`, outside the repository checkout, using the supplied pinned runtime.
+
+| Check | Result |
+|---|---|
+| Runtime identity | `PASS`; Node `v24.19.0`, npm `11.17.0` |
+| `npm ci` | `PASS`; 41 packages added, 42 packages audited, 0 vulnerabilities |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| Focused parser tests | `PASS`; 26 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm test` | `PASS`; 175 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+| Bounded technical probes | `PASS`; 15/15 positive, negative, non-`REVIEWER`, and execution-state observations passed |
+
+### Acceptance Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-EXEC-001-TECH-REVIEW-003-001` | `PASS` | R3 manifest identity, lineage, nine artifact identities, two-file diff scope, and Maker/Reviewer separation reproduce exactly. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-003-002` | `PASS` | `FND-HNS-EXEC-001-TECH-002-001` closes under source inspection, checked-in regression tests, and independent bounded positive/negative probes. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-003-003` | `PASS` | Exact-runtime install, build, typecheck, focused tests, complete tests, audit, dependency checks, state regressions, and capability boundary all pass with no new unrelated MAJOR/BLOCKING finding. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-003-004` | `PASS` | This execution appends only this review evidence to `docs/08_agent_reviews/review_log.md`; it does not modify the candidate, manifest, Work Items, governance, or Gate state. |
+
+### Findings
+
+- `FND-HNS-EXEC-001-TECH-002-001`: `MAJOR` / `RESOLVED`.
+- New findings: None.
+
+### Known Limitations and Decision
+
+- Review and probes were bounded to HNS-EXEC-001 canonical ACs, `FND-HNS-EXEC-001-TECH-002-001`, registered Reviewed Artifact path/hash metadata, and directly affected parser/state/dependency/capability regressions; no open-ended fuzzing, unrelated grammar, or new taxonomy was performed.
+- This TECH review does not substitute for assigned QA or Security review and does not approve `IMPLEMENTATION_GATE`.
+- Candidate, manifest, Work Items, governance, source, tests, dependencies, and Gate state remain unchanged; Reviewer write scope is limited to this append.
+- Neither `TARGETED_REMEDIATION_FAILED` nor `NEW_MAJOR_FINDING` applies.
+
+`PASS`
+
+R3 closes `FND-HNS-EXEC-001-TECH-002-001` and passes all bounded exact-runtime validation without a new unrelated MAJOR/BLOCKING finding. No Gate decision is issued.
