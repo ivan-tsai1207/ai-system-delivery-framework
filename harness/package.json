@@ -24,13 +24,14 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "npm run build --silent && node --test tests/*.test.mjs tests/unit/core/*.test.mjs tests/unit/schemas/*.test.mjs tests/unit/errors/*.test.mjs tests/unit/core/hash/*.test.mjs tests/unit/config/*.test.mjs"
+    "test": "npm run build --silent && node --test tests/*.test.mjs tests/unit/core/*.test.mjs tests/unit/schemas/*.test.mjs tests/unit/errors/*.test.mjs tests/unit/core/hash/*.test.mjs tests/unit/config/*.test.mjs tests/unit/work-items/*.test.mjs tests/unit/execution/*.test.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "ajv": "8.20.0"
+    "ajv": "8.20.0",
+    "mdast-util-from-markdown": "2.0.3"
   }
 }
