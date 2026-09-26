@@ -4985,3 +4985,88 @@ Validation ran from an isolated export of immutable candidate `a8dc2070d3ae19ff2
 `PASS`
 
 Exact R3 acceptance, targeted reviewer artifact path/hash closure, parser/state regressions, and complete test discovery pass without a new unrelated MAJOR/BLOCKING finding. No Gate decision is issued.
+
+## REV-HNS-EXEC-001-SECURITY-003 - HNS-EXEC-001 Targeted R3 Independent Security Review
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-EXEC-001-SECURITY-003` |
+| Reviewer Execution ID | `EXE-HNS-EXEC-001-SECURITY-REVIEW-003` |
+| Work Item | `HNS-EXEC-001-SECURITY-REVIEW-003` |
+| Role / Profile / Risk | `REVIEWER` / `SECURITY_REVIEWER` / `HIGH` |
+| Maker Execution ID | `EXE-HNS-EXEC-001-TARGETED-REMEDIATION-R3-001` |
+| Reviewed Candidate | `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-EXEC-001-implementation-r3.md` |
+| Expected / Actual Manifest SHA-256 | `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1` / `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1` |
+| Exact Runtime | Node `v24.19.0` / npm `11.17.0` |
+| Timestamp | `2026-09-26T13:42:24+08:00` |
+| Decision | `PASS` |
+
+### Independence and Identity
+
+| Check | Result | Evidence |
+|---|---|---|
+| Maker / Reviewer separation | `PASS` | Maker execution `EXE-HNS-EXEC-001-TARGETED-REMEDIATION-R3-001` differs from fresh Reviewer execution `EXE-HNS-EXEC-001-SECURITY-REVIEW-003`; this Reviewer modified no candidate, manifest, Work Item, governance, source, test, dependency, or Gate artifact. |
+| Manifest digest | `PASS` | The exact R3 manifest hashes to the Work Item-bound SHA-256 `52da10037915b88f9bf86a524cd5f3cf65b5e065e2333ee9e10ea4f1e036d7c1`. |
+| Candidate identity | `PASS` | Candidate `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` exists and is an ancestor of Security assignment HEAD `ac8da57a9c4abe6ac0685517699d8b6a9888db05`; both replacement and all seven inherited manifest Git blobs and content SHA-256 values match the candidate tree exactly. |
+| Manifest lineage | `PASS` | Candidate `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` has sole parent `89e96338c2ab9201cfbe5ad28841de0ec6512c1f`, exactly as recorded. |
+| Candidate and remediation scope | `PASS` | Branch-creation-to-candidate Harness changes are exactly the nine paths registered by the R3 manifest. Parent-to-R3 remediation changes exactly `harness/src/work-items/parser.ts` and `harness/tests/unit/work-items/parser.test.mjs`; `git diff --check` passes. |
+
+### Targeted Finding Closure
+
+| Finding | Result | Evidence |
+|---|---|---|
+| `FND-HNS-EXEC-001-TECH-002-001` | `RESOLVED` | `REVIEWER` artifact identity is accepted only when a safe repository-relative path is present in the caller-supplied bounded canonical-target registry, that target supplies valid lowercase SHA-256 metadata, and the Work Item hash matches exactly. Independent registered/matching and immutable-output observations pass; nonexistent, unregistered, traversal, absolute, wildcard, unsupported metadata, malformed registry hash, mismatched hash, malformed Work Item hash, missing Maker binding, and duplicate registry target observations fail closed with `HNS-WI-001`. |
+
+### Threat and Control Mapping
+
+| Threat | Result | Control Evidence |
+|---|---|---|
+| Fabricated or stale reviewed-artifact identity | `PASS` | Exact registry membership plus exact registered SHA-256 comparison binds the parsed artifact path and hash; mismatch and malformed hash cases reject. |
+| Repository boundary escape | `PASS` | Traversal, absolute, wildcard, and unregistered paths reject before a reviewed artifact value can be returned. |
+| Registry ambiguity or unsupported metadata | `PASS` | Canonical target paths must be unique and normalized; reviewed-artifact targets require valid hash metadata. Duplicate targets and missing or malformed metadata reject. |
+| Mutable security decision output | `PASS` | Successful parsed Work Item, nested reviewed-artifact identity, failure result, and error array are frozen; complete tests also exercise deep immutable domain values. |
+| Capability expansion | `PASS` | Production parser/state source contains no repository scan, filesystem I/O/write, process, network, credential, adapter, audit, Gate runner, enforcement, persistence, or production capability. Resolution remains deterministic against caller-supplied in-memory targets. |
+| Dependency or supply-chain drift | `PASS` | `mdast-util-from-markdown@2.0.3` is exact-pinned in package and lock data; installed resolution is exactly `2.0.3`; clean install audited 42 packages and both install-time and explicit audit reported 0 vulnerabilities. |
+
+### Exact-Runtime Validation
+
+Validation ran from an isolated export of immutable candidate `a8dc2070d3ae19ff28daab4c30fcf4923b3fa0a0` using the supplied pinned runtime.
+
+| Check | Result |
+|---|---|
+| Runtime identity | `PASS`; Node `v24.19.0`, npm `11.17.0` |
+| `npm ci` | `PASS`; 41 packages added, 42 packages audited, 0 vulnerabilities |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| Focused parser tests | `PASS`; 26 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm test` | `PASS`; 175 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+| Bounded Security probes | `PASS`; 12/12 registered identity, bounded negative binding, registry integrity, and immutable-output observations passed |
+
+### Acceptance Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-EXEC-001-SECURITY-REVIEW-003-001` | `PASS` | R3 candidate, manifest digest, lineage, all nine artifact identities, exact dependency resolution, and independent Maker/Reviewer binding reproduce. |
+| `AC-HNS-EXEC-001-SECURITY-REVIEW-003-002` | `PASS` | `FND-HNS-EXEC-001-TECH-002-001` closes under source inspection, checked-in focused coverage, and 12 bounded independent positive/negative Security observations. |
+| `AC-HNS-EXEC-001-SECURITY-REVIEW-003-003` | `PASS` | Source and candidate-scope inspection plus exact-runtime validation show no scan, filesystem write, process, credential, network, adapter, audit, enforcement, persistence, or production capability expansion. |
+| `AC-HNS-EXEC-001-SECURITY-REVIEW-003-004` | `PASS` | This execution appends only this Security review evidence to `docs/08_agent_reviews/review_log.md`; candidate, manifest, Work Items, governance, source, tests, dependencies, and Gate state remain unchanged. |
+
+### Findings
+
+- `FND-HNS-EXEC-001-TECH-002-001`: `MAJOR` / `RESOLVED`.
+- New findings: None.
+
+### Known Limitations and Decision
+
+- Review and probes were bounded to exact R3 identity, `FND-HNS-EXEC-001-TECH-002-001`, registered Reviewed Artifact path and SHA-256 metadata, immutable parser output, exact dependency/audit evidence, and directly affected capability boundaries; no open-ended fuzzing, unrelated grammar, or new taxonomy was performed.
+- This Security review does not substitute for another assigned profile and does not approve `IMPLEMENTATION_GATE`.
+- Candidate, manifest, Work Items, governance, source, tests, dependencies, and Gate state remain unchanged; Reviewer write scope is limited to this append.
+- Neither `TARGETED_REMEDIATION_FAILED` nor `NEW_MAJOR_FINDING` applies.
+
+`PASS`
+
+Exact R3 artifact binding, bounded path/hash failures, immutable output, dependency/audit integrity, and capability boundaries pass without a new unrelated MAJOR/BLOCKING finding. No Gate decision is issued.
