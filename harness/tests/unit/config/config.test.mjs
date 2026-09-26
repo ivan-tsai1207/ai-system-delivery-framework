@@ -17,12 +17,14 @@ async function readJson(name) {
   return JSON.parse(await readFile(new URL(name, fixtureDirectory), "utf8"));
 }
 
-function assertSecretRejectedWithoutDisclosure(action, secretMaterial) {
+function assertSecretRejectedWithoutDisclosure(action, ...secretMaterials) {
   assert.throws(action, (error) => {
     assert.equal(error instanceof ConfigValidationError, true);
     assert.equal(error.code, "SECRET_CONFIG_REJECTED");
     for (const surface of [error.message, error.stack ?? "", error.configPath, JSON.stringify(error)]) {
-      assert.equal(surface.includes(secretMaterial), false);
+      for (const secretMaterial of secretMaterials) {
+        assert.equal(surface.includes(secretMaterial), false);
+      }
     }
     return true;
   });
@@ -223,6 +225,62 @@ test("unquoted escaped-whitespace sensitive labels fail closed without disclosur
   }
 });
 
+test("npm-style escaped-whitespace sensitive labels fail closed across quoted key forms", () => {
+  const sentinel = "hnsCore005NpmWhitespaceSentinel001";
+  const labels = [
+    "_auth\\ token",
+    "_access\\ token",
+    "_client\\ secret",
+    "_private\\ key",
+    "_refresh\\ token",
+  ];
+  const keyForms = [
+    (label) => `//registry.npmjs.org/:${label}`,
+    (label) => `//registry.npmjs.org/:"${label}"`,
+    (label) => `//registry.npmjs.org/:'${label}'`,
+    (label) => `"//registry.npmjs.org/:${label}"`,
+    (label) => `'//registry.npmjs.org/:${label}'`,
+  ];
+  const variants = labels.flatMap((label) => keyForms.map((keyForm) => (
+    `npm config set ${keyForm(label)} ${sentinel}`
+  )));
+
+  assert.equal(variants.length, 25);
+  for (const value of variants) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+      value,
+    );
+  }
+});
+
+test("adjacent npm, assignment, and CLI credential controls remain rejected", () => {
+  const sentinel = "hnsCore005NpmControlSentinel001";
+  const controls = [
+    `npm config set //registry.npmjs.org/:_authToken ${sentinel}`,
+    `npm config set //registry.npmjs.org/:_auth\\:token ${sentinel}`,
+    `npm config set //registry.npmjs.org/:_client\\=secret ${sentinel}`,
+    `_access\\ token=${sentinel}`,
+    `tool --refresh\\ token ${sentinel}`,
+  ];
+
+  assert.equal(controls.length, 5);
+  for (const value of controls) {
+    assertSecretRejectedWithoutDisclosure(
+      () => loadHarnessConfig({
+        schema_version: HARNESS_CONFIG_SCHEMA_VERSION,
+        framework: { repository: value },
+      }),
+      sentinel,
+      value,
+    );
+  }
+});
+
 test("escaped colon and equals sensitive label separators fail closed without disclosure", () => {
   const sentinel = "hnsCore005EscapedSeparatorSentinel001";
   for (const value of [
@@ -312,6 +370,7 @@ test("ordinary repository, path, and boundary-safe assignment text remains valid
         "tool --keyboard\\ layout ansi",
         "tool --tokenizer\\ mode standard",
         "tool --authors\\ style apa",
+        "npm config set //registry.npmjs.org/:_authors\\ style apa",
         "api\\+key=documentation",
         "client\\@secret=documentation",
         "tool --api\\+key documentation",
