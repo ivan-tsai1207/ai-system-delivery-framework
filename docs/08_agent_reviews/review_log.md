@@ -4618,3 +4618,110 @@ R9 TECH, QA, and SECURITY executions and evidence already exist as `REV-HNS-CORE
 ### Correction Decision
 
 HNS-CORE-005 canonical lifecycle status is normalized to `DONE` after exact-runtime final validation. This correction changes control-plane closure records only and does not start the Execution Engine or any later Master Program phase.
+
+## REV-HNS-EXEC-001-TECH-001 - HNS-EXEC-001 Independent Technical Review
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-EXEC-001-TECH-001` |
+| Reviewer Execution ID | `EXE-HNS-EXEC-001-TECH-REVIEW-001` |
+| Work Item | `HNS-EXEC-001-TECH-REVIEW-001` |
+| Role / Profile / Risk | `REVIEWER` / `TECH_REVIEWER` / `HIGH` |
+| Maker Execution ID | `EXE-HNS-EXEC-001-IMPLEMENTATION-001` |
+| Reviewed Candidate | `2ab7924e1c95facf41bbf4bdd01124c04ca021e0` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-EXEC-001-implementation.md` |
+| Expected / Actual Manifest SHA-256 | `2a1a7086a5614ab042e542e277a700fee5f5463a7086e2483b531741d5179b95` / `2a1a7086a5614ab042e542e277a700fee5f5463a7086e2483b531741d5179b95` |
+| Exact Runtime | Node `v24.19.0` / npm `11.17.0` |
+| Timestamp | `2026-09-26T10:23:24+08:00` |
+| Decision | `REQUEST_CHANGES` |
+
+### Independence and Identity
+
+| Check | Result | Evidence |
+|---|---|---|
+| Maker / Reviewer separation | `PASS` | Maker execution `EXE-HNS-EXEC-001-IMPLEMENTATION-001` differs from fresh Reviewer execution `EXE-HNS-EXEC-001-TECH-REVIEW-001`; the Reviewer did not modify candidate, manifest, Work Items, governance, or Gate state. |
+| Manifest digest | `PASS` | The manifest file hashes exactly to the Work Item-bound SHA-256 `2a1a7086a5614ab042e542e277a700fee5f5463a7086e2483b531741d5179b95`. |
+| Candidate identity | `PASS` | Commit `2ab7924e1c95facf41bbf4bdd01124c04ca021e0` exists, is an ancestor of review-assignment HEAD `40dab731ec5cba7ed4ce0b974db825abb39351bb`, and all nine manifest artifact Git blobs and content SHA-256 values match the candidate tree exactly. |
+| Manifest lineage | `FAIL` | Manifest states base `27cf599be8b56842318a2469913d941ba5765545`, which does not exist in this repository. The candidate's actual sole parent is `27cf599b753196e8a1fa84cd3d2f64a4aebf7ff8`. See `FND-HNS-EXEC-001-TECH-001-001`. |
+| Candidate diff scope | `PASS` | Actual parent-to-candidate delta is exactly nine authorized paths: package and lock files, public index, Work Item parser/index, execution state, one fixture, and two unit suites; `1,955` insertions and `3` deletions; `git diff --check` passed. |
+
+### Technical Review
+
+| Area | Result | Evidence |
+|---|---|---|
+| Work Item v2 structure / metadata | `PASS` | AST-backed parsing, exact required metadata/section checks, enum checks, v1 rejection, filename/ID binding, reviewer-only field validation, deterministic SHA-256, and immutable output are implemented and covered. |
+| Scope validation | `FAIL` | `normalizeScopePattern` accepts embedded glob segments such as `*.ts`, while `patternsMayOverlap` treats only a complete `*` segment as wildcard. Both write-glob/forbidden-file and write-file/forbidden-glob overlaps parse successfully. See `FND-HNS-EXEC-001-TECH-001-002`. |
+| Reference / dependency resolution | `FAIL` | The parser converts safe-looking tokens into typed references but does not resolve canonical paths, anchors, or Work Item dependencies. Nonexistent `HNS-NOT-REAL-999` and `docs/not-real.md` Section 999 both parse successfully. See `FND-HNS-EXEC-001-TECH-001-003`. |
+| Acceptance criteria / Gate validation | `PASS` | AC IDs, checkbox shape, uniqueness, DONE completion, canonical Gate IDs, phase Gate presence, and Delivery Assurance Gate binding fail closed in checked-in tests. |
+| Execution state | `PASS` | The eleven canonical states, forward lifecycle, fail-closed stop states, `FAILED_GATE` boundary, terminal behavior, stale expected-state rejection, and immutable diagnostics match the assigned SDD/Work Item boundary. |
+| Dependency impact | `PASS` | Direct dependency is exact-pinned as `mdast-util-from-markdown@2.0.3` in package and lock data; clean install audited 42 packages with 0 vulnerabilities; no adapter, enforcement, process, network, credential, or production capability was introduced. |
+| Unauthorized capability / scope | `PASS` | Candidate adds only parser/state foundation, exports, dependency lock changes, fixture, and tests. No generator, Context/Policy compiler, persistence, Gate runner, adapter, enforcement, production execution, or external side effect is present. |
+
+### Exact-Runtime Validation
+
+Validation ran from an exported immutable candidate tree at `2ab7924e1c95facf41bbf4bdd01124c04ca021e0`, outside the repository checkout, with the supplied runtime path.
+
+| Check | Result |
+|---|---|
+| Runtime identity | `PASS`; Node `v24.19.0`, npm `11.17.0` |
+| `npm ci` | `PASS`; 41 packages added, 42 packages audited, 0 vulnerabilities |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| `npm test` | `PASS`; 168 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| Focused parser/state suites | `PASS`; 28 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+| Bounded technical probes | `FAIL`; positive control parsed, but four AC-bounded invalid cases were incorrectly accepted: two embedded-glob scope conflicts, one nonexistent Work Item dependency, and one nonexistent architecture path/anchor |
+
+### Acceptance Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-EXEC-001-TECH-REVIEW-001-001` | `FAIL` | Manifest hash, candidate artifacts, dependency lock, scope, and execution separation pass, but the immutable manifest names a nonexistent base commit rather than the candidate's actual parent. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-001-002` | `FAIL` | State behavior and most parser validation pass; scope conflict detection and canonical reference/dependency resolution do not satisfy direct SDD and Work Item requirements. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-001-003` | `FAIL` | Build, typecheck, official tests, and focused tests pass on the exact runtime, but bounded technical probes reproduce four invalid-input acceptances. |
+| `AC-HNS-EXEC-001-TECH-REVIEW-001-004` | `PASS` | This review appends evidence and findings only to `docs/08_agent_reviews/review_log.md`; it does not alter reviewed or governance artifacts and issues no GateResult. |
+
+### Findings
+
+#### FND-HNS-EXEC-001-TECH-001-001 - Manifest names a nonexistent candidate base
+
+| Field | Value |
+|---|---|
+| Severity / Status | `MAJOR` / `OPEN` |
+| Subject / Return Owner | Implementation manifest lineage / `IMPLEMENTER` |
+| Evidence | Manifest base `27cf599be8b56842318a2469913d941ba5765545` cannot be resolved; `git rev-parse 2ab7924e^` returns `27cf599b753196e8a1fa84cd3d2f64a4aebf7ff8`. |
+| Impact | The immutable review input contains a false base identity, so its lineage and parent-relative scope claim are not reproducible from the recorded base. |
+| Required correction | Produce a corrected immutable manifest bound through a new review assignment, naming the actual base/candidate relationship and retaining exact artifact hashes. Existing evidence bound to the old manifest hash must not be reused as same-hash PASS evidence. |
+
+#### FND-HNS-EXEC-001-TECH-001-002 - Embedded glob segments bypass forbidden-scope overlap detection
+
+| Field | Value |
+|---|---|
+| Severity / Status | `MAJOR` / `OPEN` |
+| Subject / Return Owner | Work Item parser scope correctness / `IMPLEMENTER` |
+| Evidence | Candidate `parser.ts` accepts `harness/src/*.ts` as a scope pattern, but overlap logic recognizes only segments equal to `*` or `**`. Bounded probes accepted both write `harness/src/*.ts` vs forbidden `harness/src/index.ts` and the reverse arrangement. |
+| Impact | A Work Item can parse successfully even when Write Scope intersects Forbidden Scope, violating fail-closed scope validation and allowing contradictory runtime policy inputs. |
+| Required correction | Either reject unsupported embedded glob syntax or implement overlap semantics for every accepted pattern form; add positive and negative regression tests in both operand directions. |
+
+#### FND-HNS-EXEC-001-TECH-001-003 - Canonical references and dependencies are never resolved
+
+| Field | Value |
+|---|---|
+| Severity / Status | `MAJOR` / `OPEN` |
+| Subject / Return Owner | Work Item parser reference correctness / `IMPLEMENTER` |
+| Evidence | `referenceFromToken` performs only syntactic conversion. Bounded probes accepted nonexistent dependency `HNS-NOT-REAL-999` and nonexistent architecture reference `docs/not-real.md` with `Section 999`. |
+| Impact | Missing Work Items, artifact paths, and anchors can enter an apparently valid immutable Work Item, contrary to SDD Section 17 resolution/fail-closed requirements and the Work Item requirement to validate dependencies and references. |
+| Required correction | Resolve canonical dependency and artifact targets, including required anchors, through an explicit deterministic repository/registry boundary; reject unresolved targets with structured `HNS-WI-001` details and add bounded regression tests. |
+
+### Known Limitations and Decision
+
+- Review probes were limited to canonical ACs and high-confidence parser/state boundaries; no open-ended fuzzing was performed.
+- This TECH review does not substitute for assigned QA or Security review and does not approve `IMPLEMENTATION_GATE`.
+- No prior `HNS-EXEC-001` finding IDs existed in the review log before this append.
+- Reviewer write scope is limited to this append; candidate, manifest, Work Items, governance, source, tests, dependencies, and Gate state remain unchanged.
+
+`REQUEST_CHANGES`
+
+The exact candidate builds and its complete checked-in suite passes, but immutable lineage and two fail-closed parser contracts are incorrect. The three open MAJOR findings require Implementer correction and a new immutable candidate/manifest followed by fresh independent review.
