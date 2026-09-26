@@ -4400,3 +4400,159 @@ No new QA finding was identified.
 `PASS`
 
 Exact R8 satisfies every assigned QA acceptance criterion with valid same-hash TECH evidence, complete manifest binding, green official and focused suites, independent positive/negative behavioral reproduction, and no CORE-001 through CORE-004 regression.
+
+## RCE-HNS-CORE-005-REMEDIATION-R9-001 - HNS-CORE-005 R9 Maker Remediation Evidence
+
+### Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `RCE-HNS-CORE-005-REMEDIATION-R9-001` |
+| Work Item / Role / Risk | `HNS-CORE-005` / `IMPLEMENTER` / `MEDIUM` |
+| Maker Execution ID | `EXE-HNS-CORE-005-REMEDIATION-R9-001` |
+| Source Review Finding | `FND-HNS-CORE-005-SECURITY-006-001` |
+| R9 Candidate Commit | `a0877b3c79328b72fee12f477df6c0107373e121` |
+| R9 Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| R9 Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` |
+
+### Remediation Summary
+
+- Added escaped-whitespace label/value separator detection for config assignment and CLI-style strings.
+- Added regression cases for `_authToken\ value`, `--client-secret\ value`, `TOKENVALUE\ value`, and `password_hash\ value`.
+- Preserved existing sensitive assignment, provider credential, secret-key redaction, environment deny, and safe-name controls.
+- This is the single post-override remediation cycle allowed by the control-plane budget.
+
+### Validation
+
+| Check | Result |
+|---|---|
+| `npm ci` | `PASS`; local engine warning because runner was Node `v24.16.0` / npm `11.13.0`, below required `v24.19.0` / `11.17.0` |
+| `npm run build` | `PASS` |
+| `npm run typecheck` | `PASS` |
+| Focused config tests | `PASS`; 29 passed, 0 failed |
+| Bounded Security probe | `PASS`; targeted current finding and high-confidence historical classifier/security controls |
+| `npm test` | `PASS`; 140 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo |
+| `npm audit --audit-level=high` | `PASS`; 0 vulnerabilities |
+| Scope | `PASS`; remediation commit changes only `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`; no dependency, lockfile, runtime, adapter, or later-phase change |
+
+## REV-HNS-CORE-005-TECH-009 - HNS-CORE-005 Independent R9 Technical Review
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-TECH-009` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-TECH-009-EXEC` |
+| Role / Profile | `REVIEWER` / `TECH_REVIEWER` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| Reviewed Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` |
+| Decision | `PASS` |
+
+### Checks
+
+| Check | Result | Evidence |
+|---|---|---|
+| Identity / lineage | `PASS` | R9 candidate `a0877b3...` directly supersedes R8 after same-branch R8 TECH/QA PASS evidence; manifest hash is fixed above |
+| Diff scope | `PASS` | Candidate delta is exactly two authorized config files, 6 insertions and 1 deletion |
+| Technical behavior | `PASS` | Escaped-whitespace separator handling closes the observed bypass without changing canonical hash, config narrowing, environment deny, or safe-name behavior |
+| Required commands | `PASS` | Local install/build/typecheck/test/audit passed; exact runtime limitation noted |
+| Forbidden capability scan | `PASS` | No dependency, filesystem/network I/O, process execution, `process.env` read, environment injection, adapter, compiler, audit store, production, destructive, or later-phase capability introduced |
+
+### Decision
+
+`PASS`
+
+No new TECH finding was identified. This review is bounded to canonical HNS-CORE-005 requirements, current finding closure, regression coverage, and scope/capability boundaries.
+
+## REV-HNS-CORE-005-QA-009 - HNS-CORE-005 Independent R9 QA Review
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-QA-009` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-QA-009-EXEC` |
+| Role / Profile | `REVIEWER` / `QA_REVIEWER` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| Reviewed Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` |
+| TECH Prerequisite | `REV-HNS-CORE-005-TECH-009` = `PASS` |
+| Decision | `PASS` |
+
+### Acceptance Mapping
+
+| Requirement | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-001` | `PASS` | Canonical/hash suite remains green in default `npm test` |
+| `AC-HNS-CORE-005-002` | `PASS` | Config narrowing, unknown keys, secret values, escaped-whitespace assignment rejection, and child environment policy pass |
+| `AC-HNS-CORE-005-003` | `PASS` | Redacted diagnostics and non-disclosure probes pass for current and historical secret cases |
+| `AC-HNS-CORE-005-004` | `PASS` | No Context/Policy compiler, audit store, runtime process, adapter, dependency, or later-phase behavior introduced |
+| Required tests | `PASS` | Focused config suite 29/29; default suite 140/140; no failed/skipped/todo tests |
+| Regression boundary | `PASS` | Prior R8 TECH/QA positives remain covered; bounded R9 probe confirms current finding and safe-name controls |
+
+### Decision
+
+`PASS`
+
+No new QA finding was identified.
+
+## REV-HNS-CORE-005-SECURITY-009 - HNS-CORE-005 Independent R9 Security Review
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-SECURITY-009` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-SECURITY-009-EXEC` |
+| Role / Profile | `REVIEWER` / `SECURITY_REVIEWER` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| Reviewed Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` |
+| Decision | `PASS` |
+
+### Security Checks
+
+| Check | Result | Evidence |
+|---|---|---|
+| `SECURITY-006-001` closure | `PASS` | Exact escaped-whitespace forms and adjacent npm/CLI/assignment variants reject with `SECRET_CONFIG_REJECTED` without marker/raw-value disclosure |
+| Historical classifier regressions | `PASS` | Provider tokens, bearer strings, credential URLs, compact labels, quoted/encoded assignments, and secret-shaped unknown keys fail closed |
+| Environment policy | `PASS` | Credential-source, cloud, SSH, registry, runtime-loader, process-injection, compiler/toolchain, Cargo, and Git env names reject; safe names remain accepted |
+| Non-disclosure | `PASS` | Current bounded probe checked message, stack, `configPath`, and JSON surfaces for representative secret strings |
+| Capability boundary | `PASS` | No credential-source read, environment injection, filesystem/network I/O, child process, adapter, dependency, production, destructive, Execution Engine, or Enforcement expansion |
+
+### Finding Lifecycle
+
+| Finding | Prior Status | Current Status | Evidence |
+|---|---|---|---|
+| `FND-HNS-CORE-005-SECURITY-006-001` | `OPEN` | `RESOLVED` | R9 manifest hash `0914c93...`; checked-in regression tests and bounded Security probe reject exact escaped-whitespace bypass class without disclosure |
+| `FND-HNS-CORE-005-TECH-007-001` | `RESOLVED` | `RESOLVED` | R9 preserved R8 npm escaped-whitespace behavior and adjacent controls |
+| Prior HNS-CORE-005 TECH/Security findings | `RESOLVED` | `RESOLVED` | No behavioral regression found in bounded current-finding and historical classifier/security probes |
+
+### Decision
+
+`PASS`
+
+No new Security finding was identified. This review remains bounded by canonical HNS-CORE-005 requirements, open finding closure, known-risk regressions, and scope/capability boundaries.
+
+## IG-HNS-CORE-005-002 - HNS-CORE-005 Implementation Gate
+
+| Field | Value |
+|---|---|
+| Gate ID | `IG-HNS-CORE-005-002` |
+| Gate | `IMPLEMENTATION_GATE` |
+| Work Item | `HNS-CORE-005` |
+| Candidate | `a0877b3c79328b72fee12f477df6c0107373e121` |
+| Candidate Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r9.md` |
+| Candidate Manifest SHA-256 | `0914c93fc487c62d5daccbf696d008eb5e732a1542f9168e8db9eea8fd8054f8` |
+| Result | `PASS` |
+
+### Gate Criteria
+
+| Criterion | Result | Evidence |
+|---|---|---|
+| Authorized scope | `PASS` | HNS-CORE-005 implementation/test changes remain in authorized config/hash/test scope; governance evidence is append-only |
+| Acceptance criteria | `PASS` | `AC-HNS-CORE-005-001` through `004` pass in R9 TECH/QA/Security evidence |
+| Required validation | `PASS` | Install, build, typecheck, test, and high audit passed locally; exact runtime warning remains a residual environment note |
+| Independent TECH | `PASS` | `REV-HNS-CORE-005-TECH-009` binds exact R9 manifest hash |
+| Independent QA | `PASS` | `REV-HNS-CORE-005-QA-009` binds exact R9 manifest hash |
+| Independent Security | `PASS` | `REV-HNS-CORE-005-SECURITY-009` binds exact R9 manifest hash and resolves `FND-HNS-CORE-005-SECURITY-006-001` |
+| Findings | `PASS` | No open HNS-CORE-005 MAJOR/BLOCKING finding remains; no accepted risk used |
+| Forbidden scope / capability | `PASS` | No Context/Policy compiler, audit store, runtime process, adapter behavior, dependency, or post-CORE-005 program implementation introduced |
+
+### Decision
+
+`PASS`
+
+HNS-CORE-005 may proceed to develop merge and post-merge validation only. Execution Engine, Enforcement, Codex Adapter, Claude Adapter, E2E Pilot, Token Efficiency Audit, and A/B Regression remain stopped.
