@@ -49,6 +49,7 @@ export type WorkItemParseResult =
 export interface CanonicalReferenceTarget {
   readonly path: string;
   readonly anchors?: readonly string[];
+  readonly reviewed_artifact_hash?: string;
 }
 
 export interface WorkItemParseContext {
@@ -395,8 +396,14 @@ function extractTrailingAnchor(item: AstNode, finalToken: string): string | unde
 function canonicalTargetMap(
   context: WorkItemParseContext | undefined,
   addError: (input: ErrorInput) => void,
-): ReadonlyMap<string, ReadonlySet<string>> {
-  const targets = new Map<string, ReadonlySet<string>>();
+): ReadonlyMap<string, Readonly<{
+  readonly anchors: ReadonlySet<string>;
+  readonly reviewed_artifact_hash?: string;
+}>> {
+  const targets = new Map<string, Readonly<{
+    readonly anchors: ReadonlySet<string>;
+    readonly reviewed_artifact_hash?: string;
+  }>>();
   for (const target of context?.canonical_targets ?? []) {
     const path = normalizeRepositoryPath(target.path);
     if (path === undefined || targets.has(path)) {
@@ -422,8 +429,21 @@ function canonicalTargetMap(
         anchors.add(anchor);
       }
     }
+    if (target.reviewed_artifact_hash !== undefined && !REVIEW_HASH_PATTERN.test(target.reviewed_artifact_hash)) {
+      addError({
+        field: "canonical_targets",
+        expected: "reviewed_artifact_hash as sha256:<64 lowercase hex>",
+        actual: `${target.path}#${target.reviewed_artifact_hash}`,
+      });
+      valid = false;
+    }
     if (valid) {
-      targets.set(path, anchors);
+      targets.set(path, Object.freeze({
+        anchors,
+        ...(target.reviewed_artifact_hash === undefined
+          ? {}
+          : { reviewed_artifact_hash: target.reviewed_artifact_hash }),
+      }));
     }
   }
   return targets;
@@ -441,7 +461,10 @@ function requiresCanonicalResolution(reference: ArtifactReference): boolean {
 
 function validateCanonicalReference(
   reference: ArtifactReference,
-  targets: ReadonlyMap<string, ReadonlySet<string>>,
+  targets: ReadonlyMap<string, Readonly<{
+    readonly anchors: ReadonlySet<string>;
+    readonly reviewed_artifact_hash?: string;
+  }>>,
   section: string,
   field: string | undefined,
   addError: (input: ErrorInput) => void,
@@ -449,8 +472,8 @@ function validateCanonicalReference(
   if (!requiresCanonicalResolution(reference)) {
     return true;
   }
-  const anchors = targets.get(reference.path);
-  if (anchors === undefined) {
+  const target = targets.get(reference.path);
+  if (target === undefined) {
     addError({
       section,
       ...(field === undefined ? {} : { field }),
@@ -459,7 +482,7 @@ function validateCanonicalReference(
     });
     return false;
   }
-  if (reference.anchor !== undefined && !anchors.has(reference.anchor)) {
+  if (reference.anchor !== undefined && !target.anchors.has(reference.anchor)) {
     addError({
       section,
       ...(field === undefined ? {} : { field }),
@@ -618,12 +641,37 @@ export class WorkItemParser {
       if (artifactPath === undefined || artifactPath.includes("*")) {
         addError({ section: "Metadata", field: "Reviewed Artifact", expected: "safe repository-relative artifact path", actual: reviewedArtifactText });
       } else {
-        reviewedArtifact = { kind: "reviewed-artifact", path: artifactPath };
+        const artifactReference = { kind: "reviewed-artifact", path: artifactPath };
+        if (validateCanonicalReference(artifactReference, canonicalTargets, "Metadata", "Reviewed Artifact", addError)) {
+          const targetHash = canonicalTargets.get(artifactPath)?.reviewed_artifact_hash;
+          if (targetHash === undefined) {
+            addError({
+              section: "Metadata",
+              field: "Reviewed Artifact",
+              expected: "registered canonical target with reviewed artifact hash metadata",
+              actual: artifactPath,
+            });
+          } else {
+            reviewedArtifact = artifactReference;
+          }
+        }
       }
       if (!REVIEW_HASH_PATTERN.test(reviewedHashText)) {
         addError({ section: "Metadata", field: "Reviewed Artifact Hash", expected: "sha256:<64 lowercase hex>", actual: reviewedHashText });
       } else {
-        reviewedArtifactHash = reviewedHashText;
+        const registeredHash = reviewedArtifact === null
+          ? undefined
+          : canonicalTargets.get(reviewedArtifact.path)?.reviewed_artifact_hash;
+        if (registeredHash !== undefined && reviewedHashText !== registeredHash) {
+          addError({
+            section: "Metadata",
+            field: "Reviewed Artifact Hash",
+            expected: registeredHash,
+            actual: reviewedHashText,
+          });
+        } else {
+          reviewedArtifactHash = reviewedHashText;
+        }
       }
       if (reviewProfileText === "DELIVERY_ASSURANCE_REVIEWER") {
         makerExecutionId = makerExecutionIdText === "N/A" ? null : makerExecutionIdText;

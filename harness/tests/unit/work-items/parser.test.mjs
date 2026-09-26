@@ -9,10 +9,12 @@ const fixtureUrl = new URL("../../fixtures/work-items/HNS-FIXTURE-001.md", impor
 const assignedWorkItemUrl = new URL("../../../../work-items/HNS-EXEC-001.md", import.meta.url);
 const packageUrl = new URL("../../../package.json", import.meta.url);
 const packageLockUrl = new URL("../../../package-lock.json", import.meta.url);
+const reviewedArtifactHash = `sha256:${"a".repeat(64)}`;
 
 const fixtureContext = Object.freeze({
   canonical_targets: Object.freeze([
     Object.freeze({ path: "docs/harness_v0.1_SDD.md", anchors: Object.freeze(["Section 17"]) }),
+    Object.freeze({ path: "harness/src/index.ts", reviewed_artifact_hash: reviewedArtifactHash }),
   ]),
 });
 const assignedContext = Object.freeze({
@@ -47,6 +49,15 @@ function expectFailure(result, predicate) {
 function replaceOnce(markdown, before, after) {
   assert.ok(markdown.includes(before), `Fixture does not contain ${before}`);
   return markdown.replace(before, after);
+}
+
+function reviewerWorkItem(markdown, artifact = "harness/src/index.ts", hash = reviewedArtifactHash) {
+  let reviewer = replaceOnce(markdown, "| Role | `IMPLEMENTER` |", "| Role | `REVIEWER` |");
+  reviewer = replaceOnce(reviewer, "| Phase | `IMPLEMENTATION` |", "| Phase | `REVIEW` |");
+  reviewer = replaceOnce(reviewer, "| Review Profile | `N/A` |", "| Review Profile | `TECH_REVIEWER` |");
+  reviewer = replaceOnce(reviewer, "| Reviewed Artifact | `N/A` |", `| Reviewed Artifact | \`${artifact}\` |`);
+  reviewer = replaceOnce(reviewer, "| Reviewed Artifact Hash | `N/A` |", `| Reviewed Artifact Hash | \`${hash}\` |`);
+  return replaceOnce(reviewer, "| Maker Execution ID | `N/A` |", "| Maker Execution ID | `maker-001` |");
 }
 
 test("canonical assigned v2 Work Item parses into an immutable normalized value", async () => {
@@ -116,19 +127,77 @@ test("parser production code has no adapter, enforcement, process, network, or c
 });
 
 test("a valid REVIEWER binding parses with typed artifact identity", async () => {
-  let markdown = await fixture();
-  markdown = replaceOnce(markdown, "| Role | `IMPLEMENTER` |", "| Role | `REVIEWER` |");
-  markdown = replaceOnce(markdown, "| Phase | `IMPLEMENTATION` |", "| Phase | `REVIEW` |");
-  markdown = replaceOnce(markdown, "| Review Profile | `N/A` |", "| Review Profile | `TECH_REVIEWER` |");
-  markdown = replaceOnce(markdown, "| Reviewed Artifact | `N/A` |", "| Reviewed Artifact | `harness/src/index.ts` |");
-  markdown = replaceOnce(markdown, "| Reviewed Artifact Hash | `N/A` |", `| Reviewed Artifact Hash | \`sha256:${"a".repeat(64)}\` |`);
-  markdown = replaceOnce(markdown, "| Maker Execution ID | `N/A` |", "| Maker Execution ID | `maker-001` |");
+  const markdown = reviewerWorkItem(await fixture());
 
   const result = parseWorkItem("work-items/HNS-FIXTURE-001.md", markdown);
   assert.equal(result.ok, true, result.ok ? undefined : JSON.stringify(result.error));
   assert.equal(result.value.review_profile, "TECH_REVIEWER");
   assert.deepEqual(result.value.reviewed_artifact, { kind: "reviewed-artifact", path: "harness/src/index.ts" });
   assert.equal(result.value.maker_execution_id, "maker-001");
+});
+
+test("REVIEWER artifacts must be safe registered canonical targets", async () => {
+  const markdown = await fixture();
+  for (const artifact of [
+    "docs/not-real-reviewed-artifact.md",
+    "harness/src/unregistered.ts",
+    "../harness/src/index.ts",
+    "/harness/src/index.ts",
+  ]) {
+    expectFailure(
+      parseWorkItem("work-items/HNS-FIXTURE-001.md", reviewerWorkItem(markdown, artifact)),
+      (detail) => detail.field === "Reviewed Artifact",
+    );
+  }
+});
+
+test("REVIEWER artifacts require supported target metadata and an exact registered hash", async () => {
+  const markdown = await fixture();
+  const reviewer = reviewerWorkItem(markdown);
+  const unsupportedTarget = {
+    canonical_targets: [
+      { path: "docs/harness_v0.1_SDD.md", anchors: ["Section 17"] },
+      { path: "harness/src/index.ts" },
+    ],
+  };
+  expectFailure(
+    parseWorkItemWithContext("work-items/HNS-FIXTURE-001.md", reviewer, unsupportedTarget),
+    (detail) => detail.field === "Reviewed Artifact" && detail.expected.includes("hash metadata"),
+  );
+
+  const mismatchedTarget = {
+    canonical_targets: [
+      { path: "docs/harness_v0.1_SDD.md", anchors: ["Section 17"] },
+      { path: "harness/src/index.ts", reviewed_artifact_hash: `sha256:${"b".repeat(64)}` },
+    ],
+  };
+  expectFailure(
+    parseWorkItemWithContext("work-items/HNS-FIXTURE-001.md", reviewer, mismatchedTarget),
+    (detail) => detail.field === "Reviewed Artifact Hash"
+      && detail.expected === `sha256:${"b".repeat(64)}`
+      && detail.actual === reviewedArtifactHash,
+  );
+
+  const malformedTarget = {
+    canonical_targets: [
+      { path: "docs/harness_v0.1_SDD.md", anchors: ["Section 17"] },
+      { path: "harness/src/index.ts", reviewed_artifact_hash: "sha256:not-a-hash" },
+    ],
+  };
+  expectFailure(
+    parseWorkItemWithContext("work-items/HNS-FIXTURE-001.md", reviewer, malformedTarget),
+    (detail) => detail.field === "canonical_targets",
+  );
+});
+
+test("malformed REVIEWER binding fields still fail closed", async () => {
+  const markdown = await fixture();
+  const malformed = reviewerWorkItem(markdown, "harness/src/index.ts", "sha256:not-a-hash")
+    .replace("| Maker Execution ID | `maker-001` |", "| Maker Execution ID | `N/A` |");
+
+  const result = parseWorkItem("work-items/HNS-FIXTURE-001.md", malformed);
+  expectFailure(result, (detail) => detail.field === "Reviewed Artifact Hash");
+  assert.ok(result.error.some((detail) => detail.field === "Maker Execution ID"));
 });
 
 test("v1 and unknown schema versions fail closed", async () => {
