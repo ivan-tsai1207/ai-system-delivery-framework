@@ -4275,3 +4275,128 @@ No new TECH finding was identified.
 `PASS`
 
 Exact R8 has valid provenance and immutable identity, exact authorized scope, green official commands, complete historical regression coverage, preserved narrow parsing and false-positive boundaries, and independent closure of `FND-HNS-CORE-005-TECH-007-001`. All assigned TECH review acceptance criteria pass.
+
+## REV-HNS-CORE-005-QA-008 - HNS-CORE-005 Independent R8 QA Review
+
+### Evidence Metadata
+
+| Field | Value |
+|---|---|
+| Evidence ID | `REV-HNS-CORE-005-QA-008` |
+| Reviewer Execution ID | `REV-HNS-CORE-005-QA-008-EXEC-20260926T011822Z` |
+| Role / Profile | `REVIEWER` / `QA_REVIEWER` |
+| Risk Class / Active Gate | `MEDIUM` / `IMPLEMENTATION_GATE` |
+| Work Item | `HNS-CORE-005-QA-REVIEW-008` |
+| Maker Evidence / Execution | `RCE-HNS-CORE-005-REMEDIATION-R8-001` / `EXE-HNS-CORE-005-REMEDIATION-R8-001` |
+| Same-hash TECH Evidence | `REV-HNS-CORE-005-TECH-008` / `PASS` |
+| Reviewed Manifest | `docs/08_agent_reviews/manifests/HNS-CORE-005-implementation-r8.md` |
+| Manifest SHA-256 / Git Blob | `e66abaaa9318d7a17870e79509490411a0425f4ac3646e22ff6fc339a4588b95` / `112d836f2423263f0036b3da8393d1e1a28e45d7` |
+| R7 Manifest SHA-256 / Git Blob | `de431db1016078d135bc561b44d83d7002c909768815b8b499d2c3c3a78f8ba3` / `b6e4b3722e14cd87e2bcfd3d5ca3ef377fb6f952` |
+| Base / R8 Candidate | `fb48e9ce63e2421ef5efb9dc90ea025f9526a371` / `27b14265ebb4a5870573abecae4a551014445982` |
+| Review-start Branch HEAD | `634abc4cb6706fbfa8bb7596b06492de9d67126b` |
+| Node / npm | `v24.19.0` / `11.17.0` |
+| Timestamp | `2026-09-26T01:18:22Z` |
+
+### Specification and Context References
+
+- Primary acceptance criteria: `work-items/HNS-CORE-005.md`, `AC-HNS-CORE-005-001` through `-004`.
+- Companion acceptance criteria: `work-items/HNS-CORE-005-TEST-DISCOVERY.md`, `AC-HNS-CORE-005-TEST-DISCOVERY-001` through `-007`.
+- Assigned review contract: `work-items/HNS-CORE-005-QA-REVIEW-008.md`; `.ai/roles/reviewer.md`; `.ai/roles/reviewer-profiles/qa-reviewer.md`; `.ai/gates/implementation-gate.md`.
+- Canonical requirements: `docs/harness_v0.1_SDD.md` Sections 6, 31-32, 35, 38, 40.1, and 46 Phase 1.
+- Identity and regression evidence: complete R7 manifest, R8 delta manifest, Maker evidence, same-hash TECH PASS, and all HNS-CORE-005 findings through `REV-HNS-CORE-005-TECH-008`.
+
+### Provenance, Binding, and Independence
+
+| Check | Result | Evidence |
+|---|---|---|
+| Fresh clone / origin | `PASS` | Fresh temporary clone at `/tmp/hns-core-005-qa-review-008.OeyzCL/repo`; origin exactly `https://github.com/ivan-tsai1207/ai-system-delivery-framework.git`; no user checkout was used or modified. |
+| Remote start | `PASS` | Independent `ls-remote`, remote-tracking ref, and local review-start HEAD all resolved `feature/hns-core-005-config-hash` to required start `634abc4cb6706fbfa8bb7596b06492de9d67126b`; starting tree was clean. |
+| Independent execution | `PASS` | `REV-HNS-CORE-005-QA-008-EXEC-20260926T011822Z` was absent from prior evidence and differs from every Maker and prior Reviewer execution ID. |
+| Candidate lineage | `PASS` | R8 candidate has direct parent `f388d85adf1601f70f2d1682e64c0931759740b9`, is an ancestor of review start, and the 29-commit base-to-candidate range contains no merge commit. |
+| Effective manifest | `PASS` | Exact R8 and inherited R7 bytes match their assigned SHA-256 values; the effective set contains 15 artifacts: two R8 replacements and thirteen R7 inherited identities. |
+| Artifact identities / immutability | `PASS` | All 15 effective paths independently matched declared Git blob and content SHA-256 at candidate; every path retained the same blob at review start. |
+| Same-hash TECH prerequisite | `PASS` | `REV-HNS-CORE-005-TECH-008` records `PASS` against the same R8 manifest SHA-256 and candidate with a distinct Reviewer execution ID. |
+| Maker / Reviewer separation | `PASS` | Reviewer execution modified no reviewed artifact, manifest, test, Work Item, governance file, or prior evidence. |
+
+### Commands and Test Results
+
+| Command / Runner | Result | Evidence |
+|---|---|---|
+| Runtime assertion / `npm ci` | `PASS` | Node `v24.19.0`; npm `11.17.0`; 7 packages added, 8 audited, 0 vulnerabilities. |
+| `npm run build` | `PASS` | Strict TypeScript build completed on the required runtime. |
+| `npm run typecheck` | `PASS` | No-emit TypeScript validation completed without diagnostics. |
+| Focused hash/config runner | `PASS` | 44 passed; 0 failed, cancelled, skipped, or todo. |
+| Config-only runner | `PASS` | 29 passed; 0 failed, cancelled, skipped, or todo. |
+| Default `npm test` | `PASS` | 140 passed; 0 failed, cancelled, skipped, or todo; root, core, schema, error, hash, and config suites were discovered. |
+| CORE-001 regression | `PASS` | Root package/bootstrap suite: 3 passed; 0 failed/skipped/todo. |
+| CORE-002 regression | `PASS` | Core domain suite: 13 passed; 0 failed/skipped/todo. |
+| CORE-003 regression | `PASS` | Schema suite: 38 passed; 0 failed/skipped/todo. |
+| CORE-004 regression | `PASS` | Error registry suite: 42 passed; 0 failed/skipped/todo. |
+| `npm audit --audit-level=high` | `PASS` | 0 vulnerabilities. |
+| Lint / formatter | `NOT_APPLICABLE` | `harness/package.json` defines no lint or formatter script; build and typecheck are the available static checks. |
+| Diff / test integrity | `PASS` | Candidate `git diff --check` passed; no `.only`, `.skip`, or `.todo` marker exists under `harness/tests`. |
+
+### Independent QA Probes
+
+Three successful generated probe runs executed 276 cases independently of repository test definitions. All passed on exact R8.
+
+| Behavior | Result | Independent Evidence |
+|---|---|---|
+| npm / escape / encoded positives | `PASS` | 122 sensitive inputs rejected: 75 npm escaped-whitespace combinations across five semantic labels, five key quoting forms, and three value quoting forms; 25 npm escaped-separator variants; ten historical escaped/encoded/CLI controls; twelve provider/credential values. |
+| False positives / narrow decoding | `PASS` | 35 benign npm, assignment, CLI, unsupported escape, double-encoded, and unrelated encoded forms were accepted and retained byte-for-byte. |
+| Diagnostic non-disclosure | `PASS` | 488 checks confirmed marker and full raw input absence from message, stack, `configPath`, and JSON surfaces; three secret-shaped unknown keys used `configPath` exactly `[REDACTED]`. |
+| Environment / safe names | `PASS` | 56 cloud, SSH, registry, credential, runtime-loader, shell-startup, compiler/toolchain, Cargo, Git, production, and process-control names rejected; eleven task-safe names, including `KEYBOARD_LAYOUT`, `TOKENIZER_MODE`, and `AUTHORS_STYLE`, remained accepted. |
+| Narrowing / immutability / hostile input | `PASS` | Empty-baseline immutable policy and valid three-layer narrowing passed; nine re-expansions and seven accessor, prototype, symbol, sparse-array, custom-property, control-character, and invalid-bound hostile inputs rejected; accessor getter was not invoked. |
+| Canonicalization / hash | `PASS` | 13 SHA-256 lengths matched Node crypto, eight UTF-8 cases matched `TextEncoder`, ordering/NFC/exact verification passed, mismatch diagnostics remained redacted, and six cyclic/non-finite/non-canonical inputs rejected. |
+
+One preliminary generated probe was excluded from evidence because its setup incorrectly expected `public` to widen a host baseline that was already `public`. The corrected run used an `internal` baseline, reproduced the intended narrowing boundary, and is the only generated narrowing result counted above.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criterion | Result | Evidence |
+|---|---|---|
+| `AC-HNS-CORE-005-001` | `PASS` | Canonical ordering, NFC/UTF-8, fixture path independence, standard SHA-256 vectors, exact verification, and mismatch behavior passed. |
+| `AC-HNS-CORE-005-002` | `PASS` | Host/project/invocation narrowing, unknown-key fail-closed behavior, secret rejection, environment deny policy, and empty-baseline child policy passed. |
+| `AC-HNS-CORE-005-003` | `PASS` | Unicode/path independence, hash mismatch, invalid hash, redacted config diagnostics, secret-shaped keys, and hostile inputs passed. |
+| `AC-HNS-CORE-005-004` | `PASS` | Scope/import scans found no Context/Policy compiler, audit store, runtime process, filesystem/network I/O, adapter behavior, credential source, environment injection, or later-phase capability. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-001` | `PASS` | Default runner discovered and passed the root smoke/package suite. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-002` | `PASS` | Default runner discovered and passed the core unit suite. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-003` | `PASS` | Default runner discovered and passed all schema suites. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-004` | `PASS` | Default runner discovered and passed the error registry suite. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-005` | `PASS` | Default runner discovered and passed all hash tests. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-006` | `PASS` | Default runner discovered and passed all config tests. |
+| `AC-HNS-CORE-005-TEST-DISCOVERY-007` | `PASS` | All 140 discovered tests passed with zero failure/skip/todo; the count is execution evidence, not a permanent contract. |
+| `AC-HNS-CORE-005-QA-REVIEW-008-001` | `PASS` | Same-hash TECH PASS, exact R8/R7 hashes, effective 15-artifact identity set, candidate lineage, and immutability passed. |
+| `AC-HNS-CORE-005-QA-REVIEW-008-002` | `PASS` | Every primary and companion AC and all historical finding behaviors passed independently. |
+| `AC-HNS-CORE-005-QA-REVIEW-008-003` | `PASS` | False positives, diagnostics, immutability, narrowing, hostile inputs, environment policy, safe names, and encoded/escaped positives and negatives passed. |
+| `AC-HNS-CORE-005-QA-REVIEW-008-004` | `PASS` | Default/focused suites and separate CORE-001 through CORE-004 regressions passed without failures, skips, or todos. |
+
+### Finding Lifecycle
+
+| Finding | Prior Status | Current Status | QA Evidence |
+|---|---|---|---|
+| `FND-HNS-CORE-005-TECH-001-001` | `RESOLVED` | `RESOLVED` | Assignment and non-disclosure regressions pass. |
+| `FND-HNS-CORE-005-TECH-001-002` | `RESOLVED` | `RESOLVED` | JWT and broader denied-environment regressions pass. |
+| `FND-HNS-CORE-005-SECURITY-002-001` | `RESOLVED` | `RESOLVED` | Provider and compact credential values reject without disclosure. |
+| `FND-HNS-CORE-005-SECURITY-002-002` | `RESOLVED` | `RESOLVED` | Secret-shaped unknown keys remain redacted across tested error surfaces. |
+| `FND-HNS-CORE-005-SECURITY-002-003` | `RESOLVED` | `RESOLVED` | Credential-source and process-injection environment classes remain denied. |
+| `FND-HNS-CORE-005-TECH-003-001` | `RESOLVED` | `RESOLVED` | Escaped colon/equal, unsupported escape, and narrow URL decoding regressions pass. |
+| `FND-HNS-CORE-005-TECH-003-002` | `RESOLVED` | `RESOLVED` | Git redirection, ccache, CMake launcher, and process-control regressions pass. |
+| `FND-HNS-CORE-005-TECH-003-003` | `RESOLVED` | `RESOLVED` | Benign labels and task-safe environment names remain accepted. |
+| `FND-HNS-CORE-005-SECURITY-006-001` | `OPEN` | `OPEN` | Exact and generalized escaped-whitespace bypass regressions pass behaviorally on R8; lifecycle closure remains assigned to `SECURITY_REVIEWER`. |
+| `FND-HNS-CORE-005-TECH-007-001` | `RESOLVED` | `RESOLVED` | npm-style escaped-whitespace variants reject without disclosure while adjacent negatives remain accepted. |
+
+No new QA finding was identified.
+
+### Scope and Limitations
+
+- R8 candidate scope is exactly `harness/src/config/config.ts` and `harness/tests/unit/config/config.test.mjs`; no package, lockfile, dependency, fixture, manifest, Work Item, governance, or prior evidence changed in the candidate.
+- Reviewer write scope is limited to this append in `docs/08_agent_reviews/review_log.md`; no reviewed artifact, manifest, source, test, Work Item, governance file, prior evidence, Gate, accepted-risk record, merge, or release artifact was modified.
+- `FND-HNS-CORE-005-SECURITY-006-001` is behaviorally passing but remains lifecycle-owned by the assigned `SECURITY_REVIEWER`.
+- No GateResult is issued. This QA decision is evidence for the active `IMPLEMENTATION_GATE`, not the Gate result itself.
+
+### Decision
+
+`PASS`
+
+Exact R8 satisfies every assigned QA acceptance criterion with valid same-hash TECH evidence, complete manifest binding, green official and focused suites, independent positive/negative behavioral reproduction, and no CORE-001 through CORE-004 regression.
